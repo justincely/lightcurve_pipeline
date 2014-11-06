@@ -60,7 +60,6 @@ def make_file_dict(filename):
     # Set image metadata keys
     file_dict['filename'] = os.path.basename(filename)
     root_dst = SETTINGS['filesystem_dir']
-    file_dict['src'] = filename
     file_dict['path'] = os.path.join(root_dst, file_dict['targname'])
     today = datetime.datetime.today()
     file_dict['ingest_date'] = datetime.datetime.strftime(today, '%Y-%m-%d')
@@ -79,9 +78,31 @@ def move_file(file_dict):
 # -----------------------------------------------------------------------------
 
 def update_database(file_dict):
+    """Insert or update a record in the database containing the
+    file_dict information.
+
+    Parameters
+    ----------
+    file_dict : dict
+        A dictionary containing metadata of the file.  Each key of the
+        file_dict corresponds to a column in the database.
     """
 
-    """
+    # Get the id of the record, if it exists
+    query = session.query(Metadata.id)\
+        .filter(Metadata.filename == file_dict['filename']).all()
+    if query == []:
+        id_test = ''
+    else:
+        id_test = query[0][0]
+
+    # If id doesn't exist then insert. If id exsits, then update
+    if id_test == '':
+        engine.execute(Metadata.__table__.insert(), file_dict)
+    else:
+        session.query(Metadata)\
+            .filter(Metadata.id == id_test)\
+            .update(file_dict)
 
 # -----------------------------------------------------------------------------
 # -----------------------------------------------------------------------------
@@ -90,7 +111,7 @@ if __name__ == '__main__':
 
     filelist = glob.glob(os.path.join(SETTINGS['ingest_dir'], '*.fits*'))
 
-    for file_to_ingest in filelist[0:1]:
+    for file_to_ingest in filelist[0:4]:
 
         print('Ingesting {}'.format(file_to_ingest))
 
