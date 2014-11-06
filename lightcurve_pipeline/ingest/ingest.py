@@ -91,10 +91,11 @@ def move_file(file_dict):
         set_permissions(file_dict['path'])
 
     # Move the file from ingest directory into filesystem
-    # Using shutil.copyfile instead of shutil.move for testing purposes
     src = os.path.join(SETTINGS['ingest_dir'], file_dict['filename'])
     dst = os.path.join(file_dict['path'], file_dict['filename'])
     print('\tMoving file.')
+    if os.path.exists(dst):
+        os.remove(dst)
     shutil.move(src, dst)
 
     # Set permissions
@@ -139,7 +140,7 @@ if __name__ == '__main__':
 
     filelist = glob.glob(os.path.join(SETTINGS['ingest_dir'], '*.fits*'))
 
-    for file_to_ingest in filelist[0:4]:
+    for file_to_ingest in filelist:
 
         print('Ingesting {}'.format(file_to_ingest))
 
