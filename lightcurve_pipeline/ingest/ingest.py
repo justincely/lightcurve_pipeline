@@ -95,7 +95,7 @@ def move_file(file_dict):
     src = os.path.join(SETTINGS['ingest_dir'], file_dict['filename'])
     dst = os.path.join(file_dict['path'], file_dict['filename'])
     print('\tMoving file.')
-    shutil.copyfile(src, dst)
+    shutil.move(src, dst)
 
     # Set permissions
     print('\tSetting permissions.')
