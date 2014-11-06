@@ -1,4 +1,5 @@
 import os
+import grp
 import yaml
 
 def get_settings():
@@ -11,5 +12,17 @@ def get_settings():
         data = yaml.load(f)
 
     return data
+
+
+def set_permissions(path):
+    """
+    Set the permissions of the file path to hstlc settings.
+    """
+
+    user = os.getuid()
+    group = grp.getgrnam("hstlc").gr_gid
+    os.chown(path, user, group)
+    os.chmod(path, 0770)
+
 
 SETTINGS = get_settings()
