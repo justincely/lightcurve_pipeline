@@ -6,11 +6,14 @@ from __future__ import print_function
 
 import datetime
 import glob
+import grp
 import os
+import shutil
 
 from astropy.io import fits
 
 from lightcurve_pipeline.settings.settings import SETTINGS
+from lightcurve_pipeline.settings.settings import set_permissions
 from lightcurve_pipeline.database.database_interface import engine
 from lightcurve_pipeline.database.database_interface import session
 from lightcurve_pipeline.database.database_interface import Metadata
@@ -69,11 +72,34 @@ def make_file_dict(filename):
 # -----------------------------------------------------------------------------
 
 def move_file(file_dict):
+    """Move the file from the ingest directory into the filesystem.
+
+    Parameters
+    ----------
+    file_dict : dict
+        A dictionary containing metadata of the file.
+
+    Notes
+    -----
+    The parent directory to the file is named afer the file's TARGNAME.
     """
 
-    """
+    # Create parent directory if necessary
+    if not os.path.exists(file_dict['path']):
+        print('\tCreating directory {}'.format(file_dict['path']))
+        os.mkdir(file_dict['path'])
+        set_permissions(file_dict['path'])
 
-    pass
+    # Move the file from ingest directory into filesystem
+    # Using shutil.copyfile instead of shutil.move for testing purposes
+    src = os.path.join(SETTINGS['ingest_dir'], file_dict['filename'])
+    dst = os.path.join(file_dict['path'], file_dict['filename'])
+    print('\tMoving file.')
+    shutil.copyfile(src, dst)
+
+    # Set permissions
+    print('\tSetting permissions.')
+    set_permissions(dst)
 
 # -----------------------------------------------------------------------------
 
@@ -87,6 +113,8 @@ def update_database(file_dict):
         A dictionary containing metadata of the file.  Each key of the
         file_dict corresponds to a column in the database.
     """
+
+    print('\tUpdating database.')
 
     # Get the id of the record, if it exists
     query = session.query(Metadata.id)\

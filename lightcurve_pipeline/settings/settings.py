@@ -19,10 +19,12 @@ def set_permissions(path):
     Set the permissions of the file path to hstlc settings.
     """
 
-    user = os.getuid()
-    group = grp.getgrnam("hstlc").gr_gid
-    os.chown(path, user, group)
-    os.chmod(path, 0770)
+    uid = os.stat(path).st_uid
+    gid = grp.getgrnam("hstlc").gr_gid
+
+    if uid == os.getuid():
+        os.chown(path, uid, gid)
+        os.chmod(path, 0770)
 
 
 SETTINGS = get_settings()
