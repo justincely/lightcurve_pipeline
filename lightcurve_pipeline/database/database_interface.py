@@ -10,6 +10,7 @@ from sqlalchemy.orm import sessionmaker
 from sqlalchemy import Column
 from sqlalchemy import Date
 from sqlalchemy import Float
+from sqlalchemy import ForeignKey
 from sqlalchemy import Integer
 from sqlalchemy import String
 
@@ -69,8 +70,18 @@ class Metadata(base):
     detector = Column(String(30), nullable=False)
     opt_elem = Column(String(30), nullable=False)
     fppos = Column(Integer(), nullable=False)
-    output_filename = Column(String(30))
-    output_path = Column(String(100))
+
+
+class Outputs(base):
+    """ORM for the outputs table"""
+    __tablename__ = 'outputs'
+    id = Column(Integer(), nullable=False, primary_key=True)
+    metadata_id = Column(Integer(), ForeignKey('metadata.id'), nullable=False,
+        unique=True)
+    individual_path = Column(String(100))
+    individual_filename = Column(String(30))
+    composite_path = Column(String(100))
+    composite_filename = Column(String(30))
 
 # -----------------------------------------------------------------------------
 
