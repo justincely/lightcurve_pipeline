@@ -41,7 +41,7 @@ def make_directory(directory):
 
 # -----------------------------------------------------------------------------
 
-def make_metadata_dicts(filename):
+def make_file_dicts(filename):
     """Return a dictionary containing file metadata and a dictionary
     containing output product information
 
@@ -93,12 +93,14 @@ def make_metadata_dicts(filename):
         datetime.datetime.today(), '%Y-%m-%d')
 
     # Set outputs keys
-    outputs_dict['individual_path'] = 
+    outputs_dict['individual_path'] = \
         metadata_dict['path'].replace('filesystem', 'outputs')
-    outputs_dict['individual_filename'] = '{}_curve.fits'.format(
-        metadata_dict['filename'].split('_')[0])
-    outputs_dict['composite_path'] = ''
-    outputs_dict['composite_filename'] = ''
+    outputs_dict['individual_filename'] = \
+        '{}_curve.fits'.format(metadata_dict['filename'].split('_')[0])
+    outputs_dict['composite_path'] = \
+        metadata_dict['path'].replace('filesystem', 'outputs')
+    outputs_dict['composite_filename'] = \
+        '{}_curve.fits'.format(metadata_dict['targname'])
 
     return metadata_dict, outputs_dict
 
@@ -188,12 +190,43 @@ def update_metadata_table(metadata_dict):
 
 # -----------------------------------------------------------------------------
 
-def update_outputs_table():
+def update_outputs_table(metadata_dict, outputs_dict):
     """Insert or update a record in the outputs table containing
-    output product information. 
+    output product information.
+
+    Parameters
+    ----------
+    metadata_dict : dict
+        A dictionary containing metadata of the file.
+    outputs_dict : dict
+        A dictionary containing output product information.
     """
 
-    pass
+    print('Updating outputs table.')
+
+    # Get the metadata_id
+    session.rollback()
+    metadata_id_query = session.query(Metadata.id)\
+        .filter(Metadata.filename == metadata_dict['filename']).all()
+    metadata_id = metadata_id_query[0][0]
+    outputs_dict['metadata_id'] = metadata_id
+
+    # Get the id of the outputs record, if it exists
+    id_query = session.query(Outputs.id)\
+        .join(Metadata)\
+        .filter(Metadata.filename == metadata_dict['filename']).all()
+    if id_query == []:
+        id_test = ''
+    else:
+        id_test = id_query[0][0]
+
+    # If id doesn't exist then insert. If id exsits, then update
+    if id_test == '':
+        engine.execute(Outputs.__table__.insert(), outputs_dict)
+    else:
+        session.query(Outputs)\
+            .filter(Outputs.id == id_test)\
+            .update(outputs_dict)
 
 # -----------------------------------------------------------------------------
 # -----------------------------------------------------------------------------
@@ -202,7 +235,7 @@ if __name__ == '__main__':
 
     filelist = glob.glob(os.path.join(SETTINGS['ingest_dir'], '*.fits*'))
 
-    for file_to_ingest in filelist[0:20]:
+    for file_to_ingest in filelist[0:2]:
 
         print('\nIngesting {}'.format(file_to_ingest))
 
@@ -210,4 +243,4 @@ if __name__ == '__main__':
         update_metadata_table(metadata_dict)
         move_file(metadata_dict)
         make_lightcurve(metadata_dict, outputs_dict)
-        update_output_table()
+        update_outputs_table(metadata_dict, outputs_dict)
