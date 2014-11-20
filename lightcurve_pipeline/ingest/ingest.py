@@ -6,7 +6,6 @@ from __future__ import print_function
 
 import datetime
 import glob
-import grp
 import os
 import shutil
 
@@ -21,6 +20,31 @@ from lightcurve_pipeline.database.database_interface import Metadata
 from lightcurve_pipeline.database.database_interface import Outputs
 
 os.environ['lref'] = '/grp/hst/cdbs/lref/'
+
+# -----------------------------------------------------------------------------
+
+def insert_or_update(table, data, id_num):
+    """
+    Insert or update the table with information in the record_dict.
+
+    Parameters
+    ----------
+    table :
+        The table of the database to update.
+    data : dict
+        A dictionary of the information to update.  Each key of the
+        dictionary must be a column in the Table.
+    id_num : string
+        The row ID to update.  If id_test is blank, then a new row is
+        inserted.
+    """
+
+    if id_num == '':
+        engine.execute(table.__table__.insert(), data)
+    else:
+        session.query(table)\
+            .filter(table.id == id_num)\
+            .update(data)
 
 # -----------------------------------------------------------------------------
 
@@ -121,10 +145,11 @@ def make_lightcurve(metadata_dict, outputs_dict):
     make_directory(outputs_dict['individual_path'])
 
     # Create the lightcurve if it doesn't already exist
-    outputname = os.path.join(outputs_dict['individual_path'], 
+    outputname = os.path.join(outputs_dict['individual_path'],
         outputs_dict['individual_filename'])
     if not os.path.exists(outputname):
-        inputname = os.path.join(metadata_dict['path'], metadata_dict['filename'])
+        inputname = os.path.join(metadata_dict['path'],
+            metadata_dict['filename'])
         print('Creating lightcurve {}'.format(outputname))
         lc = lightcurve.open(filename=inputname, step=1)
         lc.write(outputname)
@@ -176,17 +201,12 @@ def update_metadata_table(metadata_dict):
     query = session.query(Metadata.id)\
         .filter(Metadata.filename == metadata_dict['filename']).all()
     if query == []:
-        id_test = ''
+        id_num = ''
     else:
-        id_test = query[0][0]
+        id_num = query[0][0]
 
     # If id doesn't exist then insert. If id exsits, then update
-    if id_test == '':
-        engine.execute(Metadata.__table__.insert(), metadata_dict)
-    else:
-        session.query(Metadata)\
-            .filter(Metadata.id == id_test)\
-            .update(metadata_dict)
+    insert_or_update(Metadata, metadata_dict, id_num)
 
 # -----------------------------------------------------------------------------
 
@@ -216,17 +236,12 @@ def update_outputs_table(metadata_dict, outputs_dict):
         .join(Metadata)\
         .filter(Metadata.filename == metadata_dict['filename']).all()
     if id_query == []:
-        id_test = ''
+        id_num = ''
     else:
-        id_test = id_query[0][0]
+        id_num = id_query[0][0]
 
     # If id doesn't exist then insert. If id exsits, then update
-    if id_test == '':
-        engine.execute(Outputs.__table__.insert(), outputs_dict)
-    else:
-        session.query(Outputs)\
-            .filter(Outputs.id == id_test)\
-            .update(outputs_dict)
+    insert_or_update(Outputs, outputs_dict, id_num)
 
 # -----------------------------------------------------------------------------
 # -----------------------------------------------------------------------------
