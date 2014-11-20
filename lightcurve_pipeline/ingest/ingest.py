@@ -11,12 +11,15 @@ import os
 import shutil
 
 from astropy.io import fits
+import lightcurve
 
 from lightcurve_pipeline.settings.settings import SETTINGS
 from lightcurve_pipeline.settings.settings import set_permissions
 from lightcurve_pipeline.database.database_interface import engine
 from lightcurve_pipeline.database.database_interface import session
 from lightcurve_pipeline.database.database_interface import Metadata
+
+os.environ['lref'] = '/grp/hst/cdbs/lref/'
 
 # -----------------------------------------------------------------------------
 
@@ -71,6 +74,34 @@ def make_file_dict(filename):
 
 # -----------------------------------------------------------------------------
 
+def make_lightcurve(file_dict):
+    """Extract the spectra and create a lightcurve
+
+    Parameters
+    ----------
+    file_dict : dict
+        A dictionary containing metadata of the file.
+    """
+
+    # Create parent output directory if necessary
+    output_path = file_dict['path'].replace('filesystem', 'outputs')
+    if not os.path.exists(output_path):
+        print('\tCreating directory {}'.format(output_path))
+        os.mkdir(output_path)
+        set_permissions(output_path)
+
+    # Create the lightcurve if it doesn't already exist
+    rootname = file_dict['filename'].split('_')[0]
+    outputname = '{}_curve.fits'.format(rootname)
+    outputname = os.path.join(output_path, outputname)
+    if not os.path.exists(outputname):
+        inputname = os.path.join(file_dict['path'], file_dict['filename'])
+        print('\tCreating lightcurve {}'.format(outputname))
+        lc = lightcurve.open(filename=inputname, step=1)
+        lc.write(outputname)
+
+# -----------------------------------------------------------------------------
+
 def move_file(file_dict):
     """Move the file from the ingest directory into the filesystem.
 
@@ -104,18 +135,19 @@ def move_file(file_dict):
 
 # -----------------------------------------------------------------------------
 
-def update_database(file_dict):
-    """Insert or update a record in the database containing the
+def update_metadata_table(file_dict):
+    """Insert or update a record in the metadata table containing the
     file_dict information.
 
     Parameters
     ----------
     file_dict : dict
         A dictionary containing metadata of the file.  Each key of the
-        file_dict corresponds to a column in the database.
+        file_dict corresponds to a column in the matadata table of the
+        database.
     """
 
-    print('\tUpdating database.')
+    print('\tUpdating metadata table.')
 
     # Get the id of the record, if it exists
     query = session.query(Metadata.id)\
@@ -140,10 +172,12 @@ if __name__ == '__main__':
 
     filelist = glob.glob(os.path.join(SETTINGS['ingest_dir'], '*.fits*'))
 
-    for file_to_ingest in filelist:
+    for file_to_ingest in filelist[0:20]:
 
         print('Ingesting {}'.format(file_to_ingest))
 
         file_dict = make_file_dict(file_to_ingest)
-        update_database(file_dict)
+        update_metadata_table(file_dict)
         move_file(file_dict)
+        make_lightcurve(file_dict)
+        #update_output_table(file_dict)
