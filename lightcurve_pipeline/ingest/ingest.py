@@ -23,6 +23,23 @@ os.environ['lref'] = '/grp/hst/cdbs/lref/'
 
 # -----------------------------------------------------------------------------
 
+def make_directory(directory):
+    """Create a directory if it doesn't already exist and set the
+    permissions.
+
+    Parameters
+    ----------
+    directory : string
+        The path to the directory.
+    """
+
+    if not os.path.exists(directory):
+        print('Creating directory {}'.format(directory))
+        os.mkdir(directory)
+        set_permissions(directory)
+
+# -----------------------------------------------------------------------------
+
 def make_file_dict(filename):
     """Return a dictionary containing file metadata.
 
@@ -85,10 +102,7 @@ def make_lightcurve(file_dict):
 
     # Create parent output directory if necessary
     output_path = file_dict['path'].replace('filesystem', 'outputs')
-    if not os.path.exists(output_path):
-        print('\tCreating directory {}'.format(output_path))
-        os.mkdir(output_path)
-        set_permissions(output_path)
+    make_directory(output_path)
 
     # Create the lightcurve if it doesn't already exist
     rootname = file_dict['filename'].split('_')[0]
@@ -96,9 +110,10 @@ def make_lightcurve(file_dict):
     outputname = os.path.join(output_path, outputname)
     if not os.path.exists(outputname):
         inputname = os.path.join(file_dict['path'], file_dict['filename'])
-        print('\tCreating lightcurve {}'.format(outputname))
+        print('Creating lightcurve {}'.format(outputname))
         lc = lightcurve.open(filename=inputname, step=1)
         lc.write(outputname)
+        set_permissions(outputname)
 
 # -----------------------------------------------------------------------------
 
@@ -116,22 +131,15 @@ def move_file(file_dict):
     """
 
     # Create parent directory if necessary
-    if not os.path.exists(file_dict['path']):
-        print('\tCreating directory {}'.format(file_dict['path']))
-        os.mkdir(file_dict['path'])
-        set_permissions(file_dict['path'])
+    make_directory(file_dict['path'])
 
     # Move the file from ingest directory into filesystem
     src = os.path.join(SETTINGS['ingest_dir'], file_dict['filename'])
     dst = os.path.join(file_dict['path'], file_dict['filename'])
-    print('\tMoving file.')
+    print('Moving file.')
     if os.path.exists(dst):
         os.remove(dst)
     shutil.move(src, dst)
-
-    # Set permissions
-    print('\tSetting permissions.')
-    set_permissions(dst)
 
 # -----------------------------------------------------------------------------
 
@@ -147,7 +155,7 @@ def update_metadata_table(file_dict):
         database.
     """
 
-    print('\tUpdating metadata table.')
+    print('Updating metadata table.')
 
     # Get the id of the record, if it exists
     query = session.query(Metadata.id)\
@@ -174,7 +182,7 @@ if __name__ == '__main__':
 
     for file_to_ingest in filelist[0:20]:
 
-        print('Ingesting {}'.format(file_to_ingest))
+        print('\nIngesting {}'.format(file_to_ingest))
 
         file_dict = make_file_dict(file_to_ingest)
         update_metadata_table(file_dict)
