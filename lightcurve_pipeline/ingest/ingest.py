@@ -2,15 +2,20 @@
 hstlc database.
 """
 
-from __future__ import print_function
-
 import datetime
+import getpass
 import glob
+import logging
 import os
 import shutil
+import socket
+import sys
 
+import astropy
 from astropy.io import fits
 import lightcurve
+import numpy
+import sqlalchemy
 
 from lightcurve_pipeline.settings.settings import SETTINGS
 from lightcurve_pipeline.settings.settings import set_permissions
@@ -59,7 +64,7 @@ def make_directory(directory):
     """
 
     if not os.path.exists(directory):
-        print('Creating directory {}'.format(directory))
+        logging.info('\tCreating directory {}'.format(directory))
         os.mkdir(directory)
         set_permissions(directory)
 
@@ -150,7 +155,7 @@ def make_lightcurve(metadata_dict, outputs_dict):
     if not os.path.exists(outputname):
         inputname = os.path.join(metadata_dict['path'],
             metadata_dict['filename'])
-        print('Creating lightcurve {}'.format(outputname))
+        logging.info('\tCreating lightcurve {}'.format(outputname))
         lc = lightcurve.open(filename=inputname, step=1)
         lc.write(outputname)
         set_permissions(outputname)
@@ -176,10 +181,43 @@ def move_file(metadata_dict):
     # Move the file from ingest directory into filesystem
     src = os.path.join(SETTINGS['ingest_dir'], metadata_dict['filename'])
     dst = os.path.join(metadata_dict['path'], metadata_dict['filename'])
-    print('Moving file.')
+    logging.info('\tMoving file.')
     if os.path.exists(dst):
         os.remove(dst)
     shutil.move(src, dst)
+
+# -----------------------------------------------------------------------------
+
+def setup_logging():
+    """
+    Configures and initializes a log to store program execution
+    information.
+    """
+
+    # Configure logging
+    timestamp = datetime.datetime.now().strftime('%Y-%m-%d-%H-%M')
+    module = os.path.basename(__file__).strip('.py')
+    filename = '{}_{}.log'.format(module, timestamp)
+    logfile = os.path.join(SETTINGS['log_dir'], filename)
+    logging.basicConfig(
+        filename=logfile,
+        format='%(asctime)s %(levelname)s: %(message)s',
+        datefmt = '%m/%d/%Y %H:%M:%S',
+        level=logging.INFO)
+
+    # Log environment information
+    logging.info('User: {}'.format(getpass.getuser()))
+    logging.info('System: {}'.format(socket.gethostname()))
+    logging.info('Python Version: {}'.format(sys.version.replace('\n', '')))
+    logging.info('Python Path: {}'.format(sys.executable))
+    logging.info('Numpy Version: {}'.format(numpy.__version__))
+    logging.info('Numpy Path: {}'.format(numpy.__path__[0]))
+    logging.info('Astropy Version: {}'.format(astropy.__version__))
+    logging.info('Astropy Path: {}'.format(astropy.__path__[0]))
+    logging.info('SQLAlchemy Version: {}'.format(sqlalchemy.__version__))
+    logging.info('SQLAlchemy Path: {}'.format(sqlalchemy.__path__[0]))
+
+    set_permissions(logfile)
 
 # -----------------------------------------------------------------------------
 
@@ -195,7 +233,7 @@ def update_metadata_table(metadata_dict):
         database.
     """
 
-    print('Updating metadata table.')
+    logging.info('\tUpdating metadata table.')
 
     # Get the id of the record, if it exists
     query = session.query(Metadata.id)\
@@ -222,7 +260,7 @@ def update_outputs_table(metadata_dict, outputs_dict):
         A dictionary containing output product information.
     """
 
-    print('Updating outputs table.')
+    logging.info('\tUpdating outputs table.')
 
     # Get the metadata_id
     session.rollback()
@@ -248,11 +286,14 @@ def update_outputs_table(metadata_dict, outputs_dict):
 
 if __name__ == '__main__':
 
+    setup_logging()
+
     filelist = glob.glob(os.path.join(SETTINGS['ingest_dir'], '*.fits*'))
 
     for file_to_ingest in filelist[0:2]:
 
-        print('\nIngesting {}'.format(file_to_ingest))
+        logging.info('')
+        logging.info('Ingesting {}'.format(file_to_ingest))
 
         metadata_dict, outputs_dict = make_file_dicts(file_to_ingest)
         update_metadata_table(metadata_dict)
