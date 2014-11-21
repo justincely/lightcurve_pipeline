@@ -162,6 +162,22 @@ def make_lightcurve(metadata_dict, outputs_dict):
 
 # -----------------------------------------------------------------------------
 
+def make_quicklook(outputs_dict):
+    """Make a quicklook PDF of the lightcurve.
+
+    Parameters
+    ----------
+    outputs_dict : dict
+        A dictionary containing output product information.
+    """
+
+    lc_name = os.path.join(outputs_dict['individual_path'],
+        outputs_dict['individual_filename'])
+    lightcurve.io.quicklook(lc_name)
+    set_permissions(lc_name.replace('.fits', '.pdf'))
+
+# -----------------------------------------------------------------------------
+
 def move_file(metadata_dict):
     """Move the file from the ingest directory into the filesystem.
 
@@ -300,3 +316,4 @@ if __name__ == '__main__':
         move_file(metadata_dict)
         make_lightcurve(metadata_dict, outputs_dict)
         update_outputs_table(metadata_dict, outputs_dict)
+        make_quicklook(outputs_dict)
