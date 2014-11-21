@@ -306,7 +306,7 @@ if __name__ == '__main__':
 
     filelist = glob.glob(os.path.join(SETTINGS['ingest_dir'], '*.fits*'))
 
-    for file_to_ingest in filelist[0:2]:
+    for file_to_ingest in filelist:
 
         logging.info('')
         logging.info('Ingesting {}'.format(file_to_ingest))
