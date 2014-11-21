@@ -144,7 +144,15 @@ def make_lightcurve(metadata_dict, outputs_dict):
         A dictionary containing metadata of the file.
     outputs_dict : dict
         A dictionary containing output product information.
+
+    Returns
+    -------
+    success : bool
+        True/False status of successful extraction
+
     """
+
+    success = True
 
     # Create parent output directory if necessary
     make_directory(outputs_dict['individual_path'])
@@ -152,13 +160,22 @@ def make_lightcurve(metadata_dict, outputs_dict):
     # Create the lightcurve if it doesn't already exist
     outputname = os.path.join(outputs_dict['individual_path'],
         outputs_dict['individual_filename'])
+
     if not os.path.exists(outputname):
         inputname = os.path.join(metadata_dict['path'],
             metadata_dict['filename'])
+
         logging.info('\tCreating lightcurve {}'.format(outputname))
-        lc = lightcurve.open(filename=inputname, step=1)
-        lc.write(outputname)
-        set_permissions(outputname)
+        try:
+            lc = lightcurve.open(filename=inputname, step=1)
+            lc.write(outputname)
+            set_permissions(outputname)
+        except Exception as e:
+            logging.warn('Exception raised for {}'.format(outputname))
+            logging.warn('\t{}'.format(e.message))
+            success = False
+
+    return success
 
 # -----------------------------------------------------------------------------
 
@@ -314,6 +331,8 @@ if __name__ == '__main__':
         metadata_dict, outputs_dict = make_file_dicts(file_to_ingest)
         update_metadata_table(metadata_dict)
         move_file(metadata_dict)
-        make_lightcurve(metadata_dict, outputs_dict)
-        update_outputs_table(metadata_dict, outputs_dict)
-        make_quicklook(outputs_dict)
+
+        success = make_lightcurve(metadata_dict, outputs_dict)
+        if success:
+            update_outputs_table(metadata_dict, outputs_dict)
+            make_quicklook(outputs_dict)
