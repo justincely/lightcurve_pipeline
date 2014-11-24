@@ -180,7 +180,7 @@ def make_lightcurve(metadata_dict, outputs_dict):
 # -----------------------------------------------------------------------------
 
 def make_quicklook(outputs_dict):
-    """Make a quicklook PDF of the lightcurve.
+    """Make a quicklook PNG of the lightcurve.
 
     Parameters
     ----------
@@ -190,8 +190,9 @@ def make_quicklook(outputs_dict):
 
     lc_name = os.path.join(outputs_dict['individual_path'],
         outputs_dict['individual_filename'])
+    logging.info('\tCreating quicklook plot.')
     lightcurve.io.quicklook(lc_name)
-    set_permissions(lc_name.replace('.fits', '.pdf'))
+    set_permissions(lc_name.replace('.fits', '.png'))
 
 # -----------------------------------------------------------------------------
 
