@@ -17,12 +17,23 @@ from lightcurve_pipeline.settings.settings import SETTINGS
 def move_files_to_ingest():
     """
     Move files from filesystem back to the ingestion directory.
+
+    Notes
+    -----
+    If the file already exists in the ingest directory, the file is
+    removed rather than moved.
     """
 
     filelist = glob.glob(os.path.join(SETTINGS['filesystem_dir'], '*/*.fits'))
     for filename in filelist:
-        shutil.move(filename, SETTINGS['ingest_dir'])
-        print('\tMoved {} to {}'.format(filename, SETTINGS['ingest_dir']))
+
+        dst = os.path.join(SETTINGS['ingest_dir'], os.path.basename(filename))
+
+        if not os.path.exists(dst):
+            shutil.move(filename, SETTINGS['ingest_dir'])
+            print('\tMoved {} to {}'.format(filename, SETTINGS['ingest_dir']))
+        else:
+            os.remove(filename)
 
 # -----------------------------------------------------------------------------
 
