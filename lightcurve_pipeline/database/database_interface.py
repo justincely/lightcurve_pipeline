@@ -81,7 +81,7 @@ class Outputs(base):
     individual_path = Column(String(100))
     individual_filename = Column(String(30))
     composite_path = Column(String(100))
-    composite_filename = Column(String(30))
+    composite_filename = Column(String(100))
 
 # -----------------------------------------------------------------------------
 
