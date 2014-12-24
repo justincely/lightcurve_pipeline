@@ -162,7 +162,7 @@ def make_lightcurve(metadata_dict, outputs_dict):
         outputs_dict['individual_filename'])
 
     if not os.path.exists(outputname):
-        inputname = os.path.join(metadata_dict['path'],
+        inputname = os.path.join(SETTINGS['ingest_dir'],
             metadata_dict['filename'])
 
         logging.info('\tCreating lightcurve {}'.format(outputname))
@@ -331,9 +331,10 @@ if __name__ == '__main__':
 
         metadata_dict, outputs_dict = make_file_dicts(file_to_ingest)
         update_metadata_table(metadata_dict)
-        move_file(metadata_dict)
 
         success = make_lightcurve(metadata_dict, outputs_dict)
         if success:
             update_outputs_table(metadata_dict, outputs_dict)
             make_quicklook(outputs_dict)
+
+        move_file(metadata_dict)
