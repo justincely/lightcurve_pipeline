@@ -28,6 +28,30 @@ os.environ['lref'] = '/grp/hst/cdbs/lref/'
 
 # -----------------------------------------------------------------------------
 
+def ingest(filename, header):
+    """Ingests the file into the hstlc filesystem and database. Also
+    produces output lightcurves.
+
+    Parameters
+    ----------
+    filename : string
+        The absolute path to the file.
+    header : astropy.io.fits.header.Header
+        The primary header of the file.
+    """
+
+    metadata_dict, outputs_dict = make_file_dicts(filename, header)
+    update_metadata_table(metadata_dict)
+
+    success = make_lightcurve(metadata_dict, outputs_dict)
+    if success:
+        update_outputs_table(metadata_dict, outputs_dict)
+        make_quicklook(outputs_dict)
+
+    move_file(metadata_dict)
+
+# -----------------------------------------------------------------------------
+
 def insert_or_update(table, data, id_num):
     """
     Insert or update the table with information in the record_dict.
@@ -70,7 +94,7 @@ def make_directory(directory):
 
 # -----------------------------------------------------------------------------
 
-def make_file_dicts(filename):
+def make_file_dicts(filename, header):
     """Return a dictionary containing file metadata and a dictionary
     containing output product information
 
@@ -78,6 +102,8 @@ def make_file_dicts(filename):
     ----------
     filename : string
         The absolute path to the file.
+    header : astropy.io.fits.header.Header
+        The primary header of the file.
 
     Returns
     -------
@@ -89,10 +115,6 @@ def make_file_dicts(filename):
 
     metadata_dict = {}
     outputs_dict = {}
-
-    # Open image
-    with fits.open(filename, 'readonly') as hdulist:
-        header = hdulist[0].header
 
     # Set header keys
     metadata_dict['telescop'] = header['TELESCOP']
@@ -321,7 +343,6 @@ def update_outputs_table(metadata_dict, outputs_dict):
 if __name__ == '__main__':
 
     setup_logging()
-
     filelist = glob.glob(os.path.join(SETTINGS['ingest_dir'], '*.fits*'))
 
     for file_to_ingest in filelist:
@@ -329,12 +350,18 @@ if __name__ == '__main__':
         logging.info('')
         logging.info('Ingesting {}'.format(file_to_ingest))
 
-        metadata_dict, outputs_dict = make_file_dicts(file_to_ingest)
-        update_metadata_table(metadata_dict)
+        # Open file
+        with fits.open(file_to_ingest, 'readonly') as hdulist:
+            header = hdulist[0].header
 
-        success = make_lightcurve(metadata_dict, outputs_dict)
-        if success:
-            update_outputs_table(metadata_dict, outputs_dict)
-            make_quicklook(outputs_dict)
+            # Check that file has events and has NORMAL expflag
+            if len(hdulist[1].data) == 0:
+                logging.info('\tNo events, removing file')
+                os.remove(file_to_ingest)
+            elif hdulist[1].header['EXPFLAG'] != 'NORMAL':
+                logging.info('\tBad EXPFLAG, removing file')
+                os.remove(file_to_ingest)
 
-        move_file(metadata_dict)
+            # Ingest the data if it is normal
+            else:
+                ingest(file_to_ingest, header)
