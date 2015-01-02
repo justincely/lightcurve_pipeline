@@ -1,0 +1,269 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>lightcurve_pipeline.ingest package &mdash; lightcurve_pipeline  documentation</title>
+    
+    <link rel="stylesheet" href="_static/sphinxdoc.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="lightcurve_pipeline  documentation" href="index.html" />
+    <link rel="up" title="lightcurve_pipeline package" href="lightcurve_pipeline.html" />
+    <link rel="next" title="lightcurve_pipeline.settings package" href="lightcurve_pipeline.settings.html" />
+    <link rel="prev" title="lightcurve_pipeline.database package" href="lightcurve_pipeline.database.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="lightcurve_pipeline.settings.html" title="lightcurve_pipeline.settings package"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="lightcurve_pipeline.database.html" title="lightcurve_pipeline.database package"
+             accesskey="P">previous</a> |</li>
+        <li><a href="index.html">lightcurve_pipeline  documentation</a> &raquo;</li>
+          <li><a href="lightcurve_pipeline.html" accesskey="U">lightcurve_pipeline package</a> &raquo;</li> 
+      </ul>
+    </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">lightcurve_pipeline.ingest package</a><ul>
+<li><a class="reference internal" href="#submodules">Submodules</a></li>
+<li><a class="reference internal" href="#module-lightcurve_pipeline.ingest.ingest">lightcurve_pipeline.ingest.ingest module</a></li>
+<li><a class="reference internal" href="#module-lightcurve_pipeline.ingest">Module contents</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="lightcurve_pipeline.database.html"
+                        title="previous chapter">lightcurve_pipeline.database package</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="lightcurve_pipeline.settings.html"
+                        title="next chapter">lightcurve_pipeline.settings package</a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="_sources/lightcurve_pipeline.ingest.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="lightcurve-pipeline-ingest-package">
+<h1>lightcurve_pipeline.ingest package<a class="headerlink" href="#lightcurve-pipeline-ingest-package" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="module-lightcurve_pipeline.ingest.ingest">
+<span id="lightcurve-pipeline-ingest-ingest-module"></span><h2>lightcurve_pipeline.ingest.ingest module<a class="headerlink" href="#module-lightcurve_pipeline.ingest.ingest" title="Permalink to this headline">¶</a></h2>
+<p>Ingestion script to move files into hstlc filesystem and update the
+hstlc database.</p>
+<dl class="function">
+<dt id="lightcurve_pipeline.ingest.ingest.ingest">
+<tt class="descclassname">lightcurve_pipeline.ingest.ingest.</tt><tt class="descname">ingest</tt><big>(</big><em>filename</em>, <em>header</em><big>)</big><a class="reference internal" href="_modules/lightcurve_pipeline/ingest/ingest.html#ingest"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#lightcurve_pipeline.ingest.ingest.ingest" title="Permalink to this definition">¶</a></dt>
+<dd><p>Ingests the file into the hstlc filesystem and database. Also
+produces output lightcurves.</p>
+<dl class="docutils">
+<dt>filename <span class="classifier-delimiter">:</span> <span class="classifier">string</span></dt>
+<dd>The absolute path to the file.</dd>
+<dt>header <span class="classifier-delimiter">:</span> <span class="classifier">astropy.io.fits.header.Header</span></dt>
+<dd>The primary header of the file.</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="lightcurve_pipeline.ingest.ingest.insert_or_update">
+<tt class="descclassname">lightcurve_pipeline.ingest.ingest.</tt><tt class="descname">insert_or_update</tt><big>(</big><em>table</em>, <em>data</em>, <em>id_num</em><big>)</big><a class="reference internal" href="_modules/lightcurve_pipeline/ingest/ingest.html#insert_or_update"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#lightcurve_pipeline.ingest.ingest.insert_or_update" title="Permalink to this definition">¶</a></dt>
+<dd><p>Insert or update the table with information in the record_dict.</p>
+<dl class="docutils">
+<dt>table :</dt>
+<dd>The table of the database to update.</dd>
+<dt>data <span class="classifier-delimiter">:</span> <span class="classifier">dict</span></dt>
+<dd>A dictionary of the information to update.  Each key of the
+dictionary must be a column in the Table.</dd>
+<dt>id_num <span class="classifier-delimiter">:</span> <span class="classifier">string</span></dt>
+<dd>The row ID to update.  If id_test is blank, then a new row is
+inserted.</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="lightcurve_pipeline.ingest.ingest.make_directory">
+<tt class="descclassname">lightcurve_pipeline.ingest.ingest.</tt><tt class="descname">make_directory</tt><big>(</big><em>directory</em><big>)</big><a class="reference internal" href="_modules/lightcurve_pipeline/ingest/ingest.html#make_directory"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#lightcurve_pipeline.ingest.ingest.make_directory" title="Permalink to this definition">¶</a></dt>
+<dd><p>Create a directory if it doesn&#8217;t already exist and set the
+permissions.</p>
+<dl class="docutils">
+<dt>directory <span class="classifier-delimiter">:</span> <span class="classifier">string</span></dt>
+<dd>The path to the directory.</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="lightcurve_pipeline.ingest.ingest.make_file_dicts">
+<tt class="descclassname">lightcurve_pipeline.ingest.ingest.</tt><tt class="descname">make_file_dicts</tt><big>(</big><em>filename</em>, <em>header</em><big>)</big><a class="reference internal" href="_modules/lightcurve_pipeline/ingest/ingest.html#make_file_dicts"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#lightcurve_pipeline.ingest.ingest.make_file_dicts" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return a dictionary containing file metadata and a dictionary
+containing output product information</p>
+<dl class="docutils">
+<dt>filename <span class="classifier-delimiter">:</span> <span class="classifier">string</span></dt>
+<dd>The absolute path to the file.</dd>
+<dt>header <span class="classifier-delimiter">:</span> <span class="classifier">astropy.io.fits.header.Header</span></dt>
+<dd>The primary header of the file.</dd>
+</dl>
+<dl class="docutils">
+<dt>metadata_dict <span class="classifier-delimiter">:</span> <span class="classifier">dict</span></dt>
+<dd>A dictionary containing metadata of the file.</dd>
+<dt>outputs_dict <span class="classifier-delimiter">:</span> <span class="classifier">dict</span></dt>
+<dd>A dictionary containing output product information.</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="lightcurve_pipeline.ingest.ingest.make_lightcurve">
+<tt class="descclassname">lightcurve_pipeline.ingest.ingest.</tt><tt class="descname">make_lightcurve</tt><big>(</big><em>metadata_dict</em>, <em>outputs_dict</em><big>)</big><a class="reference internal" href="_modules/lightcurve_pipeline/ingest/ingest.html#make_lightcurve"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#lightcurve_pipeline.ingest.ingest.make_lightcurve" title="Permalink to this definition">¶</a></dt>
+<dd><p>Extract the spectra and create a lightcurve</p>
+<dl class="docutils">
+<dt>metadata_dict <span class="classifier-delimiter">:</span> <span class="classifier">dict</span></dt>
+<dd>A dictionary containing metadata of the file.</dd>
+<dt>outputs_dict <span class="classifier-delimiter">:</span> <span class="classifier">dict</span></dt>
+<dd>A dictionary containing output product information.</dd>
+</dl>
+<dl class="docutils">
+<dt>success <span class="classifier-delimiter">:</span> <span class="classifier">bool</span></dt>
+<dd>True/False status of successful extraction</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="lightcurve_pipeline.ingest.ingest.make_quicklook">
+<tt class="descclassname">lightcurve_pipeline.ingest.ingest.</tt><tt class="descname">make_quicklook</tt><big>(</big><em>outputs_dict</em><big>)</big><a class="reference internal" href="_modules/lightcurve_pipeline/ingest/ingest.html#make_quicklook"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#lightcurve_pipeline.ingest.ingest.make_quicklook" title="Permalink to this definition">¶</a></dt>
+<dd><p>Make a quicklook PNG of the lightcurve.</p>
+<dl class="docutils">
+<dt>outputs_dict <span class="classifier-delimiter">:</span> <span class="classifier">dict</span></dt>
+<dd>A dictionary containing output product information.</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="lightcurve_pipeline.ingest.ingest.move_file">
+<tt class="descclassname">lightcurve_pipeline.ingest.ingest.</tt><tt class="descname">move_file</tt><big>(</big><em>metadata_dict</em><big>)</big><a class="reference internal" href="_modules/lightcurve_pipeline/ingest/ingest.html#move_file"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#lightcurve_pipeline.ingest.ingest.move_file" title="Permalink to this definition">¶</a></dt>
+<dd><p>Move the file from the ingest directory into the filesystem.</p>
+<dl class="docutils">
+<dt>metadata_dict <span class="classifier-delimiter">:</span> <span class="classifier">dict</span></dt>
+<dd>A dictionary containing metadata of the file.</dd>
+</dl>
+<p>The parent directory to the file is named afer the file&#8217;s TARGNAME.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="lightcurve_pipeline.ingest.ingest.setup_logging">
+<tt class="descclassname">lightcurve_pipeline.ingest.ingest.</tt><tt class="descname">setup_logging</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/lightcurve_pipeline/ingest/ingest.html#setup_logging"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#lightcurve_pipeline.ingest.ingest.setup_logging" title="Permalink to this definition">¶</a></dt>
+<dd><p>Configures and initializes a log to store program execution
+information.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="lightcurve_pipeline.ingest.ingest.update_metadata_table">
+<tt class="descclassname">lightcurve_pipeline.ingest.ingest.</tt><tt class="descname">update_metadata_table</tt><big>(</big><em>metadata_dict</em><big>)</big><a class="reference internal" href="_modules/lightcurve_pipeline/ingest/ingest.html#update_metadata_table"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#lightcurve_pipeline.ingest.ingest.update_metadata_table" title="Permalink to this definition">¶</a></dt>
+<dd><p>Insert or update a record in the metadata table containing the
+metadata_dict information.</p>
+<dl class="docutils">
+<dt>metadata_dict <span class="classifier-delimiter">:</span> <span class="classifier">dict</span></dt>
+<dd>A dictionary containing metadata of the file.  Each key of the
+metadata_dict corresponds to a column in the matadata table of the
+database.</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="lightcurve_pipeline.ingest.ingest.update_outputs_table">
+<tt class="descclassname">lightcurve_pipeline.ingest.ingest.</tt><tt class="descname">update_outputs_table</tt><big>(</big><em>metadata_dict</em>, <em>outputs_dict</em><big>)</big><a class="reference internal" href="_modules/lightcurve_pipeline/ingest/ingest.html#update_outputs_table"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#lightcurve_pipeline.ingest.ingest.update_outputs_table" title="Permalink to this definition">¶</a></dt>
+<dd><p>Insert or update a record in the outputs table containing
+output product information.</p>
+<dl class="docutils">
+<dt>metadata_dict <span class="classifier-delimiter">:</span> <span class="classifier">dict</span></dt>
+<dd>A dictionary containing metadata of the file.</dd>
+<dt>outputs_dict <span class="classifier-delimiter">:</span> <span class="classifier">dict</span></dt>
+<dd>A dictionary containing output product information.</dd>
+</dl>
+</dd></dl>
+
+</div>
+<div class="section" id="module-lightcurve_pipeline.ingest">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-lightcurve_pipeline.ingest" title="Permalink to this headline">¶</a></h2>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="lightcurve_pipeline.settings.html" title="lightcurve_pipeline.settings package"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="lightcurve_pipeline.database.html" title="lightcurve_pipeline.database package"
+             >previous</a> |</li>
+        <li><a href="index.html">lightcurve_pipeline  documentation</a> &raquo;</li>
+          <li><a href="lightcurve_pipeline.html" >lightcurve_pipeline package</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2014, Justin Ely, Matthew Bourque.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.2.
+    </div>
+  </body>
+</html>

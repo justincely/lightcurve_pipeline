@@ -1,0 +1,277 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>lightcurve_pipeline.database package &mdash; lightcurve_pipeline  documentation</title>
+    
+    <link rel="stylesheet" href="_static/sphinxdoc.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="lightcurve_pipeline  documentation" href="index.html" />
+    <link rel="up" title="lightcurve_pipeline package" href="lightcurve_pipeline.html" />
+    <link rel="next" title="lightcurve_pipeline.ingest package" href="lightcurve_pipeline.ingest.html" />
+    <link rel="prev" title="lightcurve_pipeline package" href="lightcurve_pipeline.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="lightcurve_pipeline.ingest.html" title="lightcurve_pipeline.ingest package"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="lightcurve_pipeline.html" title="lightcurve_pipeline package"
+             accesskey="P">previous</a> |</li>
+        <li><a href="index.html">lightcurve_pipeline  documentation</a> &raquo;</li>
+          <li><a href="lightcurve_pipeline.html" accesskey="U">lightcurve_pipeline package</a> &raquo;</li> 
+      </ul>
+    </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">lightcurve_pipeline.database package</a><ul>
+<li><a class="reference internal" href="#submodules">Submodules</a></li>
+<li><a class="reference internal" href="#module-lightcurve_pipeline.database.database_interface">lightcurve_pipeline.database.database_interface module</a></li>
+<li><a class="reference internal" href="#module-lightcurve_pipeline.database">Module contents</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="lightcurve_pipeline.html"
+                        title="previous chapter">lightcurve_pipeline package</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="lightcurve_pipeline.ingest.html"
+                        title="next chapter">lightcurve_pipeline.ingest package</a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="_sources/lightcurve_pipeline.database.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="lightcurve-pipeline-database-package">
+<h1>lightcurve_pipeline.database package<a class="headerlink" href="#lightcurve-pipeline-database-package" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="module-lightcurve_pipeline.database.database_interface">
+<span id="lightcurve-pipeline-database-database-interface-module"></span><h2>lightcurve_pipeline.database.database_interface module<a class="headerlink" href="#module-lightcurve_pipeline.database.database_interface" title="Permalink to this headline">¶</a></h2>
+<p>Connection module for the hstlc database</p>
+<dl class="class">
+<dt id="lightcurve_pipeline.database.database_interface.Metadata">
+<em class="property">class </em><tt class="descclassname">lightcurve_pipeline.database.database_interface.</tt><tt class="descname">Metadata</tt><big>(</big><em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/lightcurve_pipeline/database/database_interface.html#Metadata"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#lightcurve_pipeline.database.database_interface.Metadata" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">sqlalchemy.ext.declarative.Base</span></tt></p>
+<p>ORM for the metadata table</p>
+<dl class="attribute">
+<dt id="lightcurve_pipeline.database.database_interface.Metadata.aperture">
+<tt class="descname">aperture</tt><a class="headerlink" href="#lightcurve_pipeline.database.database_interface.Metadata.aperture" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="lightcurve_pipeline.database.database_interface.Metadata.cal_ver">
+<tt class="descname">cal_ver</tt><a class="headerlink" href="#lightcurve_pipeline.database.database_interface.Metadata.cal_ver" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="lightcurve_pipeline.database.database_interface.Metadata.cenwave">
+<tt class="descname">cenwave</tt><a class="headerlink" href="#lightcurve_pipeline.database.database_interface.Metadata.cenwave" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="lightcurve_pipeline.database.database_interface.Metadata.detector">
+<tt class="descname">detector</tt><a class="headerlink" href="#lightcurve_pipeline.database.database_interface.Metadata.detector" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="lightcurve_pipeline.database.database_interface.Metadata.filename">
+<tt class="descname">filename</tt><a class="headerlink" href="#lightcurve_pipeline.database.database_interface.Metadata.filename" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="lightcurve_pipeline.database.database_interface.Metadata.fppos">
+<tt class="descname">fppos</tt><a class="headerlink" href="#lightcurve_pipeline.database.database_interface.Metadata.fppos" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="lightcurve_pipeline.database.database_interface.Metadata.id">
+<tt class="descname">id</tt><a class="headerlink" href="#lightcurve_pipeline.database.database_interface.Metadata.id" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="lightcurve_pipeline.database.database_interface.Metadata.ingest_date">
+<tt class="descname">ingest_date</tt><a class="headerlink" href="#lightcurve_pipeline.database.database_interface.Metadata.ingest_date" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="lightcurve_pipeline.database.database_interface.Metadata.instrume">
+<tt class="descname">instrume</tt><a class="headerlink" href="#lightcurve_pipeline.database.database_interface.Metadata.instrume" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="lightcurve_pipeline.database.database_interface.Metadata.obstype">
+<tt class="descname">obstype</tt><a class="headerlink" href="#lightcurve_pipeline.database.database_interface.Metadata.obstype" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="lightcurve_pipeline.database.database_interface.Metadata.opt_elem">
+<tt class="descname">opt_elem</tt><a class="headerlink" href="#lightcurve_pipeline.database.database_interface.Metadata.opt_elem" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="lightcurve_pipeline.database.database_interface.Metadata.path">
+<tt class="descname">path</tt><a class="headerlink" href="#lightcurve_pipeline.database.database_interface.Metadata.path" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="lightcurve_pipeline.database.database_interface.Metadata.targname">
+<tt class="descname">targname</tt><a class="headerlink" href="#lightcurve_pipeline.database.database_interface.Metadata.targname" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="lightcurve_pipeline.database.database_interface.Metadata.telescop">
+<tt class="descname">telescop</tt><a class="headerlink" href="#lightcurve_pipeline.database.database_interface.Metadata.telescop" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="lightcurve_pipeline.database.database_interface.Outputs">
+<em class="property">class </em><tt class="descclassname">lightcurve_pipeline.database.database_interface.</tt><tt class="descname">Outputs</tt><big>(</big><em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/lightcurve_pipeline/database/database_interface.html#Outputs"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#lightcurve_pipeline.database.database_interface.Outputs" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">sqlalchemy.ext.declarative.Base</span></tt></p>
+<p>ORM for the outputs table</p>
+<dl class="attribute">
+<dt id="lightcurve_pipeline.database.database_interface.Outputs.composite_filename">
+<tt class="descname">composite_filename</tt><a class="headerlink" href="#lightcurve_pipeline.database.database_interface.Outputs.composite_filename" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="lightcurve_pipeline.database.database_interface.Outputs.composite_path">
+<tt class="descname">composite_path</tt><a class="headerlink" href="#lightcurve_pipeline.database.database_interface.Outputs.composite_path" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="lightcurve_pipeline.database.database_interface.Outputs.id">
+<tt class="descname">id</tt><a class="headerlink" href="#lightcurve_pipeline.database.database_interface.Outputs.id" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="lightcurve_pipeline.database.database_interface.Outputs.individual_filename">
+<tt class="descname">individual_filename</tt><a class="headerlink" href="#lightcurve_pipeline.database.database_interface.Outputs.individual_filename" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="lightcurve_pipeline.database.database_interface.Outputs.individual_path">
+<tt class="descname">individual_path</tt><a class="headerlink" href="#lightcurve_pipeline.database.database_interface.Outputs.individual_path" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="lightcurve_pipeline.database.database_interface.Outputs.metadata_id">
+<tt class="descname">metadata_id</tt><a class="headerlink" href="#lightcurve_pipeline.database.database_interface.Outputs.metadata_id" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="function">
+<dt id="lightcurve_pipeline.database.database_interface.load_connection">
+<tt class="descclassname">lightcurve_pipeline.database.database_interface.</tt><tt class="descname">load_connection</tt><big>(</big><em>connection_string</em>, <em>echo=False</em><big>)</big><a class="reference internal" href="_modules/lightcurve_pipeline/database/database_interface.html#load_connection"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#lightcurve_pipeline.database.database_interface.load_connection" title="Permalink to this definition">¶</a></dt>
+<dd><p>Create and return a connection to the database given in the
+connection string.</p>
+<dl class="docutils">
+<dt>connection_string <span class="classifier-delimiter">:</span> <span class="classifier">str</span></dt>
+<dd>A string that points to the database conenction.  The
+connection string is in the following form:
+dialect+driver://username:password&#64;host:port/database</dd>
+<dt>echo <span class="classifier-delimiter">:</span> <span class="classifier">bool</span></dt>
+<dd>Show all SQL produced.</dd>
+</dl>
+<dl class="docutils">
+<dt>session <span class="classifier-delimiter">:</span> <span class="classifier">sesson object</span></dt>
+<dd>Provides a holding zone for all objects loaded or associated
+with the database.</dd>
+<dt>base <span class="classifier-delimiter">:</span> <span class="classifier">base object</span></dt>
+<dd>Provides a base class for declarative class definitions.</dd>
+<dt>engine <span class="classifier-delimiter">:</span> <span class="classifier">engine object</span></dt>
+<dd>Provides a source of database connectivity and behavior.</dd>
+</dl>
+</dd></dl>
+
+</div>
+<div class="section" id="module-lightcurve_pipeline.database">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-lightcurve_pipeline.database" title="Permalink to this headline">¶</a></h2>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="lightcurve_pipeline.ingest.html" title="lightcurve_pipeline.ingest package"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="lightcurve_pipeline.html" title="lightcurve_pipeline package"
+             >previous</a> |</li>
+        <li><a href="index.html">lightcurve_pipeline  documentation</a> &raquo;</li>
+          <li><a href="lightcurve_pipeline.html" >lightcurve_pipeline package</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2014, Justin Ely, Matthew Bourque.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.2.
+    </div>
+  </body>
+</html>
