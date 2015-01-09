@@ -9,6 +9,7 @@ from sqlalchemy.orm import sessionmaker
 
 from sqlalchemy import Column
 from sqlalchemy import Date
+from sqlalchemy import Enum
 from sqlalchemy import Float
 from sqlalchemy import ForeignKey
 from sqlalchemy import Integer
@@ -82,6 +83,15 @@ class Outputs(base):
     individual_filename = Column(String(30))
     composite_path = Column(String(100))
     composite_filename = Column(String(100))
+
+
+class BadData(base):
+    """ORM for bad_data table"""
+    __tablename__ = 'bad_data'
+    id = Column(Integer(), nullable=False, primary_key=True)
+    filename = Column(String(30), unique=True, nullable=False, index=True)
+    ingest_date = Column(Date, nullable=False)
+    reason = Column(Enum('No events', 'Bad EXPFLAG'), nullable=False)
 
 # -----------------------------------------------------------------------------
 
