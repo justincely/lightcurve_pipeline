@@ -21,6 +21,7 @@ from lightcurve_pipeline.settings.settings import SETTINGS
 from lightcurve_pipeline.settings.settings import set_permissions
 from lightcurve_pipeline.database.database_interface import engine
 from lightcurve_pipeline.database.database_interface import session
+from lightcurve_pipeline.database.database_interface import BadData
 from lightcurve_pipeline.database.database_interface import Metadata
 from lightcurve_pipeline.database.database_interface import Outputs
 
@@ -258,7 +259,7 @@ def setup_logging():
     logging.basicConfig(
         filename=logfile,
         format='%(asctime)s %(levelname)s: %(message)s',
-        datefmt = '%m/%d/%Y %H:%M:%S',
+        datefmt='%m/%d/%Y %H:%M:%S',
         level=logging.INFO)
 
     # Log environment information
@@ -274,6 +275,39 @@ def setup_logging():
     logging.info('SQLAlchemy Path: {}'.format(sqlalchemy.__path__[0]))
 
     set_permissions(logfile)
+
+# -----------------------------------------------------------------------------
+
+def update_bad_data_table(filename, reason):
+    """Insert or update a record pertaining to the filename in the
+    bad_data table.
+
+    Parameters
+    ----------
+    filename : string
+        The filename of the file.
+    reason : string
+        The reason that the data is bad. Can either be 'No events' or
+        'Bad EXPFLAG'.
+    """
+
+    # Build dictionary containing data to store
+    bad_data_dict = {}
+    bad_data_dict['filename'] = filename
+    bad_data_dict['ingest_date'] = datetime.datetime.strftime(
+        datetime.datetime.today(), '%Y-%m-%d')
+    bad_data_dict['reason'] = reason
+
+    # The the id of the record, if it exists
+    query = session.query(BadData.id)\
+        .filter(BadData.filename == filename).all()
+    if query == []:
+        id_num = ''
+    else:
+        id_num = query[0][0]
+
+    # If id doesn't exist then instert.  If id exists, then update
+    insert_or_update(BadData, bad_data_dict, id_num)
 
 # -----------------------------------------------------------------------------
 
@@ -356,9 +390,16 @@ if __name__ == '__main__':
 
             # Check that file has events and has NORMAL expflag
             if len(hdulist[1].data) == 0:
+                update_bad_data_table(
+                    os.path.basename(file_to_ingest),
+                    'No events')
                 logging.info('\tNo events, removing file')
                 os.remove(file_to_ingest)
+
             elif hdulist[1].header['EXPFLAG'] != 'NORMAL':
+                update_bad_data_table(
+                    os.path.basename(file_to_ingest),
+                    'Bad EXPFLAG')
                 logging.info('\tBad EXPFLAG, removing file')
                 os.remove(file_to_ingest)
 
