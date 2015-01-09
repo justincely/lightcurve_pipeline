@@ -85,12 +85,16 @@ def make_composite_lightcurves():
     the outputs table of the database.
     """
 
+    logging.info('')
+    logging.info('Creating composite lightcurves')
+
     # Get list of datasets that need to be (re)processed by querying
     # for empty composite records
     query = session.query(Metadata.targname, Metadata.detector,
         Metadata.opt_elem, Metadata.cenwave)\
         .join(Outputs).filter(Outputs.composite_path == 'NULL').all()
     datasets = set(query)
+    logging.info('{} datasets to process'.format(len(datasets)))
 
     # Make composite lightcurves of datasets that need (re)processing
     for dataset in datasets:
@@ -101,6 +105,10 @@ def make_composite_lightcurves():
         opt_elem = dataset[2]
         cenwave = dataset[3]
 
+        logging.info('')
+        logging.info('Processing dataset: {}\t{}\t{}\t{}'.format(targname,
+            detector, opt_elem, cenwave))
+
         # Query for the individual filenames in each dataset
         files = session.query(Metadata.filename, Metadata.path)\
             .filter(Metadata.targname == targname)\
@@ -110,16 +118,20 @@ def make_composite_lightcurves():
 
         # Parse the individual files
         files_to_process = [os.path.join(item[0], item[1]) for item in files]
+        logging.info('\t{} files to process.'.format(len(files_to_process)))
 
         # Perform the extraction
+        logging.info('\tPerforming extraction.')
         path = SETTINGS['composite_dir']
         filename = '{}_{}_{}_{}_curve.fits'.format(targname, detector,
             opt_elem, cenwave)
         save_loc = os.path.join(path, filename)
         composite_lc = lightcurve.composite(files_to_process)
         composite_lc.write(save_loc)
+        logging.info('\tComposite lightcurve saved to {}'.format(save_loc))
 
         # Update the outputs table with the composite information
+        logging.info('\tUpdating outputs table.')
         session.query(Outputs).join(Metadata)\
             .filter(Metadata.targname == targname)\
             .filter(Metadata.detector == detector)\
