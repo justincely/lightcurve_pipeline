@@ -143,7 +143,8 @@ def make_composite_lightcurves():
         filename = '{}_{}_{}_{}_curve.fits'.format(targname, detector,
             opt_elem, cenwave)
         save_loc = os.path.join(path, filename)
-        composite_lc = composite(files_to_process, save_loc)
+        composite(files_to_process, save_loc)
+        set_permissions(save_loc)
         logging.info('\tComposite lightcurve saved to {}'.format(save_loc))
 
         # Update the outputs table with the composite information
