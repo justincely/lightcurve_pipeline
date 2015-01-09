@@ -78,6 +78,57 @@ def insert_or_update(table, data, id_num):
 
 # -----------------------------------------------------------------------------
 
+def make_composite_lightcurves():
+    """Create composite lightcurves made up of datasets with similar
+    targname, detector, opt_elem, and cenwave.  The lightcurves that
+    require processing are determined by NULL composite_path values in
+    the outputs table of the database.
+    """
+
+    # Get list of datasets that need to be (re)processed by querying
+    # for empty composite records
+    query = session.query(Metadata.targname, Metadata.detector,
+        Metadata.opt_elem, Metadata.cenwave)\
+        .join(Outputs).filter(Outputs.composite_path == 'NULL').all()
+    datasets = set(query)
+
+    # Make composite lightcurves of datasets that need (re)processing
+    for dataset in datasets:
+
+        # Parse the dataset parameters
+        targname = dataset[0]
+        detector = dataset[1]
+        opt_elem = dataset[2]
+        cenwave = dataset[3]
+
+        # Query for the individual filenames in each dataset
+        files = session.query(Metadata.filename, Metadata.path)\
+            .filter(Metadata.targname == targname)\
+            .filter(Metadata.detector == detector)\
+            .filter(Metadata.opt_elem == opt_elem)\
+            .filter(Metadata.cenwave == cenwave).all()
+
+        # Parse the individual files
+        files_to_process = [os.path.join(item[0], item[1]) for item in files]
+
+        # Perform the extraction
+        path = SETTINGS['composite_dir']
+        filename = '{}_{}_{}_{}_curve.fits'.format(targname, detector,
+            opt_elem, cenwave)
+        save_loc = os.path.join(path, filename)
+        composite_lc = lightcurve.composite(files_to_process)
+        composite_lc.write(save_loc)
+
+        # Update the outputs table with the composite information
+        session.query(Outputs).join(Metadata)\
+            .filter(Metadata.targname == targname)\
+            .filter(Metadata.detector == detector)\
+            .filter(Metadata.opt_elem == opt_elem)\
+            .filter(Metadata.cenwave == cenwave)\
+            .update({'composite_path':path, 'composite_filename':filename})
+
+# -----------------------------------------------------------------------------
+
 def make_directory(directory):
     """Create a directory if it doesn't already exist and set the
     permissions.
@@ -149,10 +200,6 @@ def make_file_dicts(filename, header):
         metadata_dict['path'].replace('filesystem', 'outputs')
     outputs_dict['individual_filename'] = \
         '{}_curve.fits'.format(metadata_dict['filename'].split('_')[0])
-    outputs_dict['composite_path'] = \
-        metadata_dict['path'].replace('filesystem', 'outputs')
-    outputs_dict['composite_filename'] = \
-        '{}_curve.fits'.format(metadata_dict['targname'])
 
     return metadata_dict, outputs_dict
 
@@ -406,3 +453,6 @@ if __name__ == '__main__':
             # Ingest the data if it is normal
             else:
                 ingest(file_to_ingest, header)
+
+    # Make composite lightcurves
+    make_composite_lightcurves()
