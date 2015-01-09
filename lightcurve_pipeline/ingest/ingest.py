@@ -29,6 +29,23 @@ os.environ['lref'] = '/grp/hst/cdbs/lref/'
 
 # -----------------------------------------------------------------------------
 
+def composite(filelist, save_loc):
+    """Creates a composite lightcurve from files in filelist and saves
+    it to the save_loc.
+
+    Parameters
+    ----------
+    filelist : list
+        A list of full paths to the input files.
+    save_loc : string
+        The path to the location in which the composite lightcurve is
+        saved.
+    """
+
+    pass
+
+# -----------------------------------------------------------------------------
+
 def ingest(filename, header):
     """Ingests the file into the hstlc filesystem and database. Also
     produces output lightcurves.
@@ -126,8 +143,7 @@ def make_composite_lightcurves():
         filename = '{}_{}_{}_{}_curve.fits'.format(targname, detector,
             opt_elem, cenwave)
         save_loc = os.path.join(path, filename)
-        composite_lc = lightcurve.composite(files_to_process)
-        composite_lc.write(save_loc)
+        composite_lc = composite(files_to_process, save_loc)
         logging.info('\tComposite lightcurve saved to {}'.format(save_loc))
 
         # Update the outputs table with the composite information
