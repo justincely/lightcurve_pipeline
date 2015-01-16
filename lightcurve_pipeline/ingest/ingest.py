@@ -107,54 +107,53 @@ def make_composite_lightcurves():
 
     # Get list of datasets that need to be (re)processed by querying
     # for empty composite records
-    query = session.query(Metadata.targname, Metadata.detector,
-        Metadata.opt_elem, Metadata.cenwave)\
-        .join(Outputs).filter(Outputs.composite_path == 'NULL').all()
-    datasets = set(query)
+    datasets = session.query(Metadata.targname, Metadata.detector,
+        Metadata.opt_elem, Metadata.cenwave).join(Outputs)\
+        .filter(Outputs.composite_path == None).all()
+    datasets = set(datasets)
     logging.info('{} datasets to process'.format(len(datasets)))
 
-    # Make composite lightcurves of datasets that need (re)processing
     for dataset in datasets:
 
-        # Parse the dataset parameters
+        # Parse the dataset information
         targname = dataset[0]
         detector = dataset[1]
         opt_elem = dataset[2]
         cenwave = dataset[3]
-
         logging.info('')
         logging.info('Processing dataset: {}\t{}\t{}\t{}'.format(targname,
             detector, opt_elem, cenwave))
 
-        # Query for the individual filenames in each dataset
-        files = session.query(Metadata.filename, Metadata.path)\
-            .filter(Metadata.targname == targname)\
-            .filter(Metadata.detector == detector)\
-            .filter(Metadata.opt_elem == opt_elem)\
-            .filter(Metadata.cenwave == cenwave).all()
-
-        # Parse the individual files
-        files_to_process = [os.path.join(item[0], item[1]) for item in files]
-        logging.info('\t{} files to process.'.format(len(files_to_process)))
+        # Get list of files for each dataset to be processed
+        filelist = session.query(
+            Metadata.id, Metadata.path, Metadata.filename)\
+            .filter(Metadata.targname == dataset[0])\
+            .filter(Metadata.detector == dataset[1])\
+            .filter(Metadata.opt_elem == dataset[2])\
+            .filter(Metadata.cenwave == dataset[3]).all()
+        metadata_ids = [item[0] for item in filelist]
+        files_to_process = [os.path.join(item[1], item[2]) for item in filelist]
+        logging.info('\t{} file(s) to process.'.format(len(files_to_process)))
 
         # Perform the extraction
         logging.info('\tPerforming extraction.')
         path = SETTINGS['composite_dir']
-        filename = '{}_{}_{}_{}_curve.fits'.format(targname, detector,
+        output_filename = '{}_{}_{}_{}_curve.fits'.format(targname, detector,
             opt_elem, cenwave)
-        save_loc = os.path.join(path, filename)
+        save_loc = os.path.join(path, output_filename)
         composite(files_to_process, save_loc)
-        set_permissions(save_loc)
+        #set_permissions(save_loc)
         logging.info('\tComposite lightcurve saved to {}'.format(save_loc))
 
         # Update the outputs table with the composite information
         logging.info('\tUpdating outputs table.')
-        session.query(Outputs).join(Metadata)\
-            .filter(Metadata.targname == targname)\
-            .filter(Metadata.detector == detector)\
-            .filter(Metadata.opt_elem == opt_elem)\
-            .filter(Metadata.cenwave == cenwave)\
-            .update({'composite_path':path, 'composite_filename':filename})
+        for metadata_id in metadata_ids:
+            session.query(Outputs)\
+                .filter(Outputs.metadata_id == metadata_id)\
+                .update({'composite_path':path,
+                    'composite_filename':output_filename})
+
+    session.commit()
 
 # -----------------------------------------------------------------------------
 
@@ -485,3 +484,5 @@ if __name__ == '__main__':
 
     # Make composite lightcurves
     make_composite_lightcurves()
+
+    logging.info('Processing complete.')
