@@ -101,6 +101,33 @@
 <span id="lightcurve-pipeline-database-database-interface-module"></span><h2>lightcurve_pipeline.database.database_interface module<a class="headerlink" href="#module-lightcurve_pipeline.database.database_interface" title="Permalink to this headline">¶</a></h2>
 <p>Connection module for the hstlc database</p>
 <dl class="class">
+<dt id="lightcurve_pipeline.database.database_interface.BadData">
+<em class="property">class </em><tt class="descclassname">lightcurve_pipeline.database.database_interface.</tt><tt class="descname">BadData</tt><big>(</big><em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/lightcurve_pipeline/database/database_interface.html#BadData"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#lightcurve_pipeline.database.database_interface.BadData" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">sqlalchemy.ext.declarative.Base</span></tt></p>
+<p>ORM for bad_data table</p>
+<dl class="attribute">
+<dt id="lightcurve_pipeline.database.database_interface.BadData.filename">
+<tt class="descname">filename</tt><a class="headerlink" href="#lightcurve_pipeline.database.database_interface.BadData.filename" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="lightcurve_pipeline.database.database_interface.BadData.id">
+<tt class="descname">id</tt><a class="headerlink" href="#lightcurve_pipeline.database.database_interface.BadData.id" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="lightcurve_pipeline.database.database_interface.BadData.ingest_date">
+<tt class="descname">ingest_date</tt><a class="headerlink" href="#lightcurve_pipeline.database.database_interface.BadData.ingest_date" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="lightcurve_pipeline.database.database_interface.BadData.reason">
+<tt class="descname">reason</tt><a class="headerlink" href="#lightcurve_pipeline.database.database_interface.BadData.reason" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
 <dt id="lightcurve_pipeline.database.database_interface.Metadata">
 <em class="property">class </em><tt class="descclassname">lightcurve_pipeline.database.database_interface.</tt><tt class="descname">Metadata</tt><big>(</big><em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/lightcurve_pipeline/database/database_interface.html#Metadata"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#lightcurve_pipeline.database.database_interface.Metadata" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">sqlalchemy.ext.declarative.Base</span></tt></p>
@@ -219,23 +246,39 @@
 <tt class="descclassname">lightcurve_pipeline.database.database_interface.</tt><tt class="descname">load_connection</tt><big>(</big><em>connection_string</em>, <em>echo=False</em><big>)</big><a class="reference internal" href="_modules/lightcurve_pipeline/database/database_interface.html#load_connection"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#lightcurve_pipeline.database.database_interface.load_connection" title="Permalink to this definition">¶</a></dt>
 <dd><p>Create and return a connection to the database given in the
 connection string.</p>
-<dl class="docutils">
-<dt>connection_string <span class="classifier-delimiter">:</span> <span class="classifier">str</span></dt>
-<dd>A string that points to the database conenction.  The
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>connection_string</strong> : str</p>
+<blockquote>
+<div><p>A string that points to the database conenction.  The
 connection string is in the following form:
-dialect+driver://username:password&#64;host:port/database</dd>
-<dt>echo <span class="classifier-delimiter">:</span> <span class="classifier">bool</span></dt>
-<dd>Show all SQL produced.</dd>
-</dl>
-<dl class="docutils">
-<dt>session <span class="classifier-delimiter">:</span> <span class="classifier">sesson object</span></dt>
-<dd>Provides a holding zone for all objects loaded or associated
-with the database.</dd>
-<dt>base <span class="classifier-delimiter">:</span> <span class="classifier">base object</span></dt>
-<dd>Provides a base class for declarative class definitions.</dd>
-<dt>engine <span class="classifier-delimiter">:</span> <span class="classifier">engine object</span></dt>
-<dd>Provides a source of database connectivity and behavior.</dd>
-</dl>
+dialect+driver://username:password&#64;host:port/database</p>
+</div></blockquote>
+<p><strong>echo</strong> : bool</p>
+<blockquote>
+<div><p>Show all SQL produced.</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>session</strong> : sesson object</p>
+<blockquote>
+<div><p>Provides a holding zone for all objects loaded or associated
+with the database.</p>
+</div></blockquote>
+<p><strong>base</strong> : base object</p>
+<blockquote>
+<div><p>Provides a base class for declarative class definitions.</p>
+</div></blockquote>
+<p><strong>engine</strong> : engine object</p>
+<blockquote class="last">
+<div><p>Provides a source of database connectivity and behavior.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 </div>

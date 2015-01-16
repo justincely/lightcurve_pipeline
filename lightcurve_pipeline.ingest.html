@@ -102,32 +102,87 @@
 <p>Ingestion script to move files into hstlc filesystem and update the
 hstlc database.</p>
 <dl class="function">
+<dt id="lightcurve_pipeline.ingest.ingest.composite">
+<tt class="descclassname">lightcurve_pipeline.ingest.ingest.</tt><tt class="descname">composite</tt><big>(</big><em>filelist</em>, <em>save_loc</em><big>)</big><a class="reference internal" href="_modules/lightcurve_pipeline/ingest/ingest.html#composite"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#lightcurve_pipeline.ingest.ingest.composite" title="Permalink to this definition">¶</a></dt>
+<dd><p>Creates a composite lightcurve from files in filelist and saves
+it to the save_loc.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>filelist</strong> : list</p>
+<blockquote>
+<div><p>A list of full paths to the input files.</p>
+</div></blockquote>
+<p><strong>save_loc</strong> : string</p>
+<blockquote class="last">
+<div><p>The path to the location in which the composite lightcurve is
+saved.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
 <dt id="lightcurve_pipeline.ingest.ingest.ingest">
 <tt class="descclassname">lightcurve_pipeline.ingest.ingest.</tt><tt class="descname">ingest</tt><big>(</big><em>filename</em>, <em>header</em><big>)</big><a class="reference internal" href="_modules/lightcurve_pipeline/ingest/ingest.html#ingest"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#lightcurve_pipeline.ingest.ingest.ingest" title="Permalink to this definition">¶</a></dt>
 <dd><p>Ingests the file into the hstlc filesystem and database. Also
 produces output lightcurves.</p>
-<dl class="docutils">
-<dt>filename <span class="classifier-delimiter">:</span> <span class="classifier">string</span></dt>
-<dd>The absolute path to the file.</dd>
-<dt>header <span class="classifier-delimiter">:</span> <span class="classifier">astropy.io.fits.header.Header</span></dt>
-<dd>The primary header of the file.</dd>
-</dl>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>filename</strong> : string</p>
+<blockquote>
+<div><p>The absolute path to the file.</p>
+</div></blockquote>
+<p><strong>header</strong> : astropy.io.fits.header.Header</p>
+<blockquote class="last">
+<div><p>The primary header of the file.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 <dl class="function">
 <dt id="lightcurve_pipeline.ingest.ingest.insert_or_update">
 <tt class="descclassname">lightcurve_pipeline.ingest.ingest.</tt><tt class="descname">insert_or_update</tt><big>(</big><em>table</em>, <em>data</em>, <em>id_num</em><big>)</big><a class="reference internal" href="_modules/lightcurve_pipeline/ingest/ingest.html#insert_or_update"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#lightcurve_pipeline.ingest.ingest.insert_or_update" title="Permalink to this definition">¶</a></dt>
 <dd><p>Insert or update the table with information in the record_dict.</p>
-<dl class="docutils">
-<dt>table :</dt>
-<dd>The table of the database to update.</dd>
-<dt>data <span class="classifier-delimiter">:</span> <span class="classifier">dict</span></dt>
-<dd>A dictionary of the information to update.  Each key of the
-dictionary must be a column in the Table.</dd>
-<dt>id_num <span class="classifier-delimiter">:</span> <span class="classifier">string</span></dt>
-<dd>The row ID to update.  If id_test is blank, then a new row is
-inserted.</dd>
-</dl>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>table :</strong> :</p>
+<blockquote>
+<div><p>The table of the database to update.</p>
+</div></blockquote>
+<p><strong>data</strong> : dict</p>
+<blockquote>
+<div><p>A dictionary of the information to update.  Each key of the
+dictionary must be a column in the Table.</p>
+</div></blockquote>
+<p><strong>id_num</strong> : string</p>
+<blockquote class="last">
+<div><p>The row ID to update.  If id_test is blank, then a new row is
+inserted.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="lightcurve_pipeline.ingest.ingest.make_composite_lightcurves">
+<tt class="descclassname">lightcurve_pipeline.ingest.ingest.</tt><tt class="descname">make_composite_lightcurves</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/lightcurve_pipeline/ingest/ingest.html#make_composite_lightcurves"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#lightcurve_pipeline.ingest.ingest.make_composite_lightcurves" title="Permalink to this definition">¶</a></dt>
+<dd><p>Create composite lightcurves made up of datasets with similar
+targname, detector, opt_elem, and cenwave.  The lightcurves that
+require processing are determined by NULL composite_path values in
+the outputs table of the database.</p>
 </dd></dl>
 
 <dl class="function">
@@ -135,10 +190,18 @@ inserted.</dd>
 <tt class="descclassname">lightcurve_pipeline.ingest.ingest.</tt><tt class="descname">make_directory</tt><big>(</big><em>directory</em><big>)</big><a class="reference internal" href="_modules/lightcurve_pipeline/ingest/ingest.html#make_directory"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#lightcurve_pipeline.ingest.ingest.make_directory" title="Permalink to this definition">¶</a></dt>
 <dd><p>Create a directory if it doesn&#8217;t already exist and set the
 permissions.</p>
-<dl class="docutils">
-<dt>directory <span class="classifier-delimiter">:</span> <span class="classifier">string</span></dt>
-<dd>The path to the directory.</dd>
-</dl>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>directory</strong> : string</p>
+<blockquote class="last">
+<div><p>The path to the directory.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 <dl class="function">
@@ -146,54 +209,97 @@ permissions.</p>
 <tt class="descclassname">lightcurve_pipeline.ingest.ingest.</tt><tt class="descname">make_file_dicts</tt><big>(</big><em>filename</em>, <em>header</em><big>)</big><a class="reference internal" href="_modules/lightcurve_pipeline/ingest/ingest.html#make_file_dicts"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#lightcurve_pipeline.ingest.ingest.make_file_dicts" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return a dictionary containing file metadata and a dictionary
 containing output product information</p>
-<dl class="docutils">
-<dt>filename <span class="classifier-delimiter">:</span> <span class="classifier">string</span></dt>
-<dd>The absolute path to the file.</dd>
-<dt>header <span class="classifier-delimiter">:</span> <span class="classifier">astropy.io.fits.header.Header</span></dt>
-<dd>The primary header of the file.</dd>
-</dl>
-<dl class="docutils">
-<dt>metadata_dict <span class="classifier-delimiter">:</span> <span class="classifier">dict</span></dt>
-<dd>A dictionary containing metadata of the file.</dd>
-<dt>outputs_dict <span class="classifier-delimiter">:</span> <span class="classifier">dict</span></dt>
-<dd>A dictionary containing output product information.</dd>
-</dl>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>filename</strong> : string</p>
+<blockquote>
+<div><p>The absolute path to the file.</p>
+</div></blockquote>
+<p><strong>header</strong> : astropy.io.fits.header.Header</p>
+<blockquote>
+<div><p>The primary header of the file.</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>metadata_dict</strong> : dict</p>
+<blockquote>
+<div><p>A dictionary containing metadata of the file.</p>
+</div></blockquote>
+<p><strong>outputs_dict</strong> : dict</p>
+<blockquote class="last">
+<div><p>A dictionary containing output product information.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 <dl class="function">
 <dt id="lightcurve_pipeline.ingest.ingest.make_lightcurve">
 <tt class="descclassname">lightcurve_pipeline.ingest.ingest.</tt><tt class="descname">make_lightcurve</tt><big>(</big><em>metadata_dict</em>, <em>outputs_dict</em><big>)</big><a class="reference internal" href="_modules/lightcurve_pipeline/ingest/ingest.html#make_lightcurve"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#lightcurve_pipeline.ingest.ingest.make_lightcurve" title="Permalink to this definition">¶</a></dt>
 <dd><p>Extract the spectra and create a lightcurve</p>
-<dl class="docutils">
-<dt>metadata_dict <span class="classifier-delimiter">:</span> <span class="classifier">dict</span></dt>
-<dd>A dictionary containing metadata of the file.</dd>
-<dt>outputs_dict <span class="classifier-delimiter">:</span> <span class="classifier">dict</span></dt>
-<dd>A dictionary containing output product information.</dd>
-</dl>
-<dl class="docutils">
-<dt>success <span class="classifier-delimiter">:</span> <span class="classifier">bool</span></dt>
-<dd>True/False status of successful extraction</dd>
-</dl>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>metadata_dict</strong> : dict</p>
+<blockquote>
+<div><p>A dictionary containing metadata of the file.</p>
+</div></blockquote>
+<p><strong>outputs_dict</strong> : dict</p>
+<blockquote>
+<div><p>A dictionary containing output product information.</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>success</strong> : bool</p>
+<blockquote class="last">
+<div><p>True/False status of successful extraction</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 <dl class="function">
 <dt id="lightcurve_pipeline.ingest.ingest.make_quicklook">
 <tt class="descclassname">lightcurve_pipeline.ingest.ingest.</tt><tt class="descname">make_quicklook</tt><big>(</big><em>outputs_dict</em><big>)</big><a class="reference internal" href="_modules/lightcurve_pipeline/ingest/ingest.html#make_quicklook"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#lightcurve_pipeline.ingest.ingest.make_quicklook" title="Permalink to this definition">¶</a></dt>
 <dd><p>Make a quicklook PNG of the lightcurve.</p>
-<dl class="docutils">
-<dt>outputs_dict <span class="classifier-delimiter">:</span> <span class="classifier">dict</span></dt>
-<dd>A dictionary containing output product information.</dd>
-</dl>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>outputs_dict</strong> : dict</p>
+<blockquote class="last">
+<div><p>A dictionary containing output product information.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 <dl class="function">
 <dt id="lightcurve_pipeline.ingest.ingest.move_file">
 <tt class="descclassname">lightcurve_pipeline.ingest.ingest.</tt><tt class="descname">move_file</tt><big>(</big><em>metadata_dict</em><big>)</big><a class="reference internal" href="_modules/lightcurve_pipeline/ingest/ingest.html#move_file"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#lightcurve_pipeline.ingest.ingest.move_file" title="Permalink to this definition">¶</a></dt>
 <dd><p>Move the file from the ingest directory into the filesystem.</p>
-<dl class="docutils">
-<dt>metadata_dict <span class="classifier-delimiter">:</span> <span class="classifier">dict</span></dt>
-<dd>A dictionary containing metadata of the file.</dd>
-</dl>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>metadata_dict</strong> : dict</p>
+<blockquote class="last">
+<div><p>A dictionary containing metadata of the file.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Notes</p>
 <p>The parent directory to the file is named afer the file&#8217;s TARGNAME.</p>
 </dd></dl>
 
@@ -205,16 +311,48 @@ information.</p>
 </dd></dl>
 
 <dl class="function">
+<dt id="lightcurve_pipeline.ingest.ingest.update_bad_data_table">
+<tt class="descclassname">lightcurve_pipeline.ingest.ingest.</tt><tt class="descname">update_bad_data_table</tt><big>(</big><em>filename</em>, <em>reason</em><big>)</big><a class="reference internal" href="_modules/lightcurve_pipeline/ingest/ingest.html#update_bad_data_table"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#lightcurve_pipeline.ingest.ingest.update_bad_data_table" title="Permalink to this definition">¶</a></dt>
+<dd><p>Insert or update a record pertaining to the filename in the
+bad_data table.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>filename</strong> : string</p>
+<blockquote>
+<div><p>The filename of the file.</p>
+</div></blockquote>
+<p><strong>reason</strong> : string</p>
+<blockquote class="last">
+<div><p>The reason that the data is bad. Can either be &#8216;No events&#8217; or
+&#8216;Bad EXPFLAG&#8217;.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
 <dt id="lightcurve_pipeline.ingest.ingest.update_metadata_table">
 <tt class="descclassname">lightcurve_pipeline.ingest.ingest.</tt><tt class="descname">update_metadata_table</tt><big>(</big><em>metadata_dict</em><big>)</big><a class="reference internal" href="_modules/lightcurve_pipeline/ingest/ingest.html#update_metadata_table"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#lightcurve_pipeline.ingest.ingest.update_metadata_table" title="Permalink to this definition">¶</a></dt>
 <dd><p>Insert or update a record in the metadata table containing the
 metadata_dict information.</p>
-<dl class="docutils">
-<dt>metadata_dict <span class="classifier-delimiter">:</span> <span class="classifier">dict</span></dt>
-<dd>A dictionary containing metadata of the file.  Each key of the
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>metadata_dict</strong> : dict</p>
+<blockquote class="last">
+<div><p>A dictionary containing metadata of the file.  Each key of the
 metadata_dict corresponds to a column in the matadata table of the
-database.</dd>
-</dl>
+database.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 <dl class="function">
@@ -222,12 +360,22 @@ database.</dd>
 <tt class="descclassname">lightcurve_pipeline.ingest.ingest.</tt><tt class="descname">update_outputs_table</tt><big>(</big><em>metadata_dict</em>, <em>outputs_dict</em><big>)</big><a class="reference internal" href="_modules/lightcurve_pipeline/ingest/ingest.html#update_outputs_table"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#lightcurve_pipeline.ingest.ingest.update_outputs_table" title="Permalink to this definition">¶</a></dt>
 <dd><p>Insert or update a record in the outputs table containing
 output product information.</p>
-<dl class="docutils">
-<dt>metadata_dict <span class="classifier-delimiter">:</span> <span class="classifier">dict</span></dt>
-<dd>A dictionary containing metadata of the file.</dd>
-<dt>outputs_dict <span class="classifier-delimiter">:</span> <span class="classifier">dict</span></dt>
-<dd>A dictionary containing output product information.</dd>
-</dl>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>metadata_dict</strong> : dict</p>
+<blockquote>
+<div><p>A dictionary containing metadata of the file.</p>
+</div></blockquote>
+<p><strong>outputs_dict</strong> : dict</p>
+<blockquote class="last">
+<div><p>A dictionary containing output product information.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 </div>
