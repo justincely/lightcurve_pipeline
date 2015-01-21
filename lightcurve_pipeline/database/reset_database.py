@@ -4,6 +4,8 @@
 Reset all tables in the database.
 """
 
+from __future__ import print_function
+
 from lightcurve_pipeline.database.database_interface import base
 from lightcurve_pipeline.utils.utils import SETTINGS
 
@@ -15,6 +17,6 @@ if __name__ == '__main__':
     response = raw_input(prompt)
 
     if response.lower() == 'y':
-        print 'Resetting database'
+        print('Resetting database')
         base.metadata.drop_all()
         base.metadata.create_all()
