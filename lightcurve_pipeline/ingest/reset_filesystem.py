@@ -10,7 +10,7 @@ import glob
 import os
 import shutil
 
-from lightcurve_pipeline.settings.settings import SETTINGS
+from lightcurve_pipeline.utils.utils import SETTINGS
 
 # -----------------------------------------------------------------------------
 

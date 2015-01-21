@@ -3,22 +3,17 @@ hstlc database.
 """
 
 import datetime
-import getpass
 import glob
 import logging
 import os
 import shutil
-import socket
-import sys
 
-import astropy
 from astropy.io import fits
 import lightcurve
-import numpy
-import sqlalchemy
 
-from lightcurve_pipeline.settings.settings import SETTINGS
-from lightcurve_pipeline.settings.settings import set_permissions
+from lightcurve_pipeline.utils.utils import SETTINGS
+from lightcurve_pipeline.utils.utils import set_permissions
+from lightcurve_pipeline.utils.utils import setup_logging
 from lightcurve_pipeline.database.database_interface import engine
 from lightcurve_pipeline.database.database_interface import session
 from lightcurve_pipeline.database.database_interface import BadData
@@ -320,39 +315,6 @@ def move_file(metadata_dict):
 
 # -----------------------------------------------------------------------------
 
-def setup_logging():
-    """
-    Configures and initializes a log to store program execution
-    information.
-    """
-
-    # Configure logging
-    timestamp = datetime.datetime.now().strftime('%Y-%m-%d-%H-%M')
-    module = os.path.basename(__file__).strip('.py')
-    filename = '{}_{}.log'.format(module, timestamp)
-    logfile = os.path.join(SETTINGS['log_dir'], filename)
-    logging.basicConfig(
-        filename=logfile,
-        format='%(asctime)s %(levelname)s: %(message)s',
-        datefmt='%m/%d/%Y %H:%M:%S',
-        level=logging.INFO)
-
-    # Log environment information
-    logging.info('User: {}'.format(getpass.getuser()))
-    logging.info('System: {}'.format(socket.gethostname()))
-    logging.info('Python Version: {}'.format(sys.version.replace('\n', '')))
-    logging.info('Python Path: {}'.format(sys.executable))
-    logging.info('Numpy Version: {}'.format(numpy.__version__))
-    logging.info('Numpy Path: {}'.format(numpy.__path__[0]))
-    logging.info('Astropy Version: {}'.format(astropy.__version__))
-    logging.info('Astropy Path: {}'.format(astropy.__path__[0]))
-    logging.info('SQLAlchemy Version: {}'.format(sqlalchemy.__version__))
-    logging.info('SQLAlchemy Path: {}'.format(sqlalchemy.__path__[0]))
-
-    set_permissions(logfile)
-
-# -----------------------------------------------------------------------------
-
 def update_bad_data_table(filename, reason):
     """Insert or update a record pertaining to the filename in the
     bad_data table.
@@ -451,7 +413,8 @@ def update_outputs_table(metadata_dict, outputs_dict):
 
 if __name__ == '__main__':
 
-    setup_logging()
+    module = os.path.basename(__file__).strip('.py')
+    setup_logging(module)
     filelist = glob.glob(os.path.join(SETTINGS['ingest_dir'], '*.fits*'))
 
     for file_to_ingest in filelist:

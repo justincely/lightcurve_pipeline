@@ -5,7 +5,7 @@ Reset all tables in the database.
 """
 
 from lightcurve_pipeline.database.database_interface import base
-from lightcurve_pipeline.settings.settings import SETTINGS
+from lightcurve_pipeline.utils.utils import SETTINGS
 
 if __name__ == '__main__':
 

@@ -1,5 +1,9 @@
 #! /usr/bin/env python
 
+"""Download all COS & STIS data that do not already exist in the hstlc
+filesystem.
+"""
+
 import datetime
 import httplib
 import os
@@ -8,8 +12,8 @@ import urllib
 
 from lightcurve_pipeline.download.SignStsciRequest import SignStsciRequest
 
-from lightcurve_pipeline.settings.settings import SETTINGS
-from lightcurve_pipeline.settings.settings import set_permissions
+from lightcurve_pipeline.utils.utils import SETTINGS
+from lightcurve_pipeline.utils.utils import set_permissions
 from lightcurve_pipeline.database.database_interface import engine
 from lightcurve_pipeline.database.database_interface import session
 from lightcurve_pipeline.database.database_interface import BadData

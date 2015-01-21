@@ -1,7 +1,7 @@
 """Connection module for the hstlc database
 """
 
-from lightcurve_pipeline.settings.settings import SETTINGS
+from lightcurve_pipeline.utils.utils import SETTINGS
 
 from sqlalchemy import create_engine
 from sqlalchemy.ext.declarative import declarative_base
