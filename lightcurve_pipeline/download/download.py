@@ -14,6 +14,7 @@ from lightcurve_pipeline.download.SignStsciRequest import SignStsciRequest
 
 from lightcurve_pipeline.utils.utils import SETTINGS
 from lightcurve_pipeline.utils.utils import set_permissions
+from lightcurve_pipeline.utils.utils import setup_logging
 from lightcurve_pipeline.database.database_interface import engine
 from lightcurve_pipeline.database.database_interface import session
 from lightcurve_pipeline.database.database_interface import BadData
@@ -187,23 +188,27 @@ def submit_xml_request(xml_request):
 
 if __name__ == '__main__':
 
+    module = os.path.basename(__file__).strip('.py')
+    setup_logging(module)
+
     # Build list of files in filesystem
     filesystem_rootnames = set(get_filesystem_rootnames())
-    print '{} rootnames in filesystem'.format(len(filesystem_rootnames))
+    logging.info('{} rootnames in filesystem.'.format(len(filesystem_rootnames)))
 
     # Query MAST for datasets
     mast_rootnames = set(get_mast_rootnames())
-    print '{} rootnames in MAST'.format(len(mast_rootnames))
+    logging.info('{} rootnames in MAST.'.format(len(mast_rootnames)))
 
     # Compare lists
     files_to_download = mast_rootnames - filesystem_rootnames
-    print '{} new rootnames'.format(len(files_to_download))
+    logging.info('{} new rootnames.'.format(len(files_to_download)))
 
     # Build XML request
+    logging.info('Building XML request.')
     xml_request = build_xml_request(files_to_download)
-    print xml_request
 
     # Send request
+    logging.info('Submitting XML request.')
     #submission_results = submit_xml_request(xml_request)
 
     # Save submission results
