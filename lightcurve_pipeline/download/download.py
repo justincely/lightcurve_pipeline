@@ -4,13 +4,16 @@
 filesystem.
 """
 
+from astropy.io import fits
+
 import datetime
 import httplib
+import logging
 import os
 import string
 import urllib
 
-from lightcurve_pipeline.download.SignStsciRequest import SignStsciRequest
+#from lightcurve_pipeline.download.SignStsciRequest import SignStsciRequest
 
 from lightcurve_pipeline.utils.utils import SETTINGS
 from lightcurve_pipeline.utils.utils import set_permissions
@@ -84,16 +87,22 @@ def get_filesystem_rootnames():
 
     filesystem = session.query(Metadata.filename, Metadata.instrume).all()
     filesystem_rootnames = [item[0].split('_')[0] for item in filesystem \
-        if item[1] == 'STIS']
-    filesystem_rootnames.extend([item[0].split('_')[0] for item in filesystem \
-        if item[1] == 'COS'])
+        if item[1] == 'COS']
+    # filesystem_rootnames.extend([item[0].split('_')[0] for item in filesystem \
+    #     if item[1] == 'COS'])
 
     return filesystem_rootnames
 
 # -----------------------------------------------------------------------------
 
-def get_mast_rootnames():
-    """Return a list of rootnames of all COS/STIS data in MAST.
+def get_mast_rootnames(detector):
+    """Return a list of rootnames of all data in MAST for the given
+    detector.
+
+    Parameters
+    ----------
+    detector : string
+        The detector to query for. Can either be "cos" or "stis".
 
     Returns
     -------
@@ -111,11 +120,16 @@ def get_mast_rootnames():
     transmit, receive = os.popen2("~/freetds/bin/tsql -S {} -D '{}' -U '{}' -P '{}' -t '|'".format(mast_server, mast_database, mast_account, mast_password))
 
     # Build query
-    query = ("SELECT ads_data_set_name "
-             "FROM archive_data_set_all "
-             "WHERE ads_instrument = 'STIS' "
-             "OR ads_instrument = 'COS'"
-             "\ngo\n")
+    if detector == 'cos':
+        query = ("SELECT csd_data_set_name "
+                 "FROM cos_d_data "
+                 "WHERE csd_obsmode = 'TIME-TAG' "
+                 "\ngo\n")
+    elif detector == 'stis':
+        query = ("SELECT sss_data_set_name "
+                 "FROM stis_science "
+                 "WHERE sss_obsmode = 'TIME-TAG' "
+                 "\ngo\n")
 
     # Perform query and capture results
     transmit.write(query)
@@ -196,7 +210,9 @@ if __name__ == '__main__':
     logging.info('{} rootnames in filesystem.'.format(len(filesystem_rootnames)))
 
     # Query MAST for datasets
-    mast_rootnames = set(get_mast_rootnames())
+    mast_rootnames_for_cos = set(get_mast_rootnames('cos'))
+    mast_rootnames_for_stis = set(get_mast_rootnames('stis'))
+    mast_rootnames = mast_rootnames_for_cos.union(mast_rootnames_for_stis)
     logging.info('{} rootnames in MAST.'.format(len(mast_rootnames)))
 
     # Compare lists
@@ -212,4 +228,4 @@ if __name__ == '__main__':
     #submission_results = submit_xml_request(xml_request)
 
     # Save submission results
-    save_submission_results(submission_results)
+    #save_submission_results(submission_results)
