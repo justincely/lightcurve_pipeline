@@ -26,75 +26,6 @@ os.environ['oref'] = '/grp/hst/cdbs/oref/'
 
 # -----------------------------------------------------------------------------
 
-def composite(filelist, save_loc):
-    """Creates a composite lightcurve from files in filelist and saves
-    it to the save_loc.
-
-    Parameters
-    ----------
-    filelist : list
-        A list of full paths to the input files.
-    save_loc : string
-        The path to the location in which the composite lightcurve is
-        saved.
-    """
-
-    wmin = 700
-    wmax = 20000
-
-    for filename in filelist:
-        with fits.open(filename) as hdu:
-            dq = hdu[1].data['DQ']
-            wave = hdu[1].data['wavelength']
-            xcorr = hdu[1].data['xcorr']
-            ycorr = hdu[1].data['ycorr']
-            sdqflags = hdu[1].header['SDQFLAGS']
-
-            if (hdu[0].header['INSTRUME'] == "COS") and (hdu[0].header['DETECTOR'] == 'FUV'):
-                other_file = [item for item in lightcurve.cos.get_both_filenames(filename) if not item == filename][0]
-                if os.path.exists(other_file):
-                    with fits.open(other_file) as hdu_2:
-                        dq = np.hstack([dq, hdu_2[1].data['DQ']])
-                        wave = np.hstack([wave, hdu_2[1].data['wavelength']])
-                        xcorr = np.hstack([xcorr, hdu_2[1].data['xcorr']])
-                        ycorr = np.hstack([ycorr, hdu_2[1].data['ycorr']])
-                        sdqflags |= hdu_2[1].header['SDQFLAGS']
-
-            index = np.where((np.logical_not(dq & sdqflags)) &
-                             (wave > 500) &
-                             (xcorr >=0) &
-                             (ycorr >=0))
-
-            if not len(index[0]):
-                print('No Valid events')
-                continue
-
-            max_wave = wave[index].max()
-            min_wave = wave[index].min()
-
-            if max_wave < wmax:
-                wmax = max_wave
-            if min_wave > wmin:
-                wmin = min_wave
-
-
-    logging.info('\tUsing wavelength range of: {}-{}'.format(wmin, wmax))
-
-    out_lc = lightcurve.LightCurve()
-
-    for filename in filelist:
-        new_lc = lightcurve.io.open(filename=filename,
-                                    step=1,
-                                    wlim=(wmin, wmax),
-                                    alt=None,
-                                    filter=True)
-
-        out_lc = out_lc.concatenate(new_lc)
-
-    out_lc.write(save_loc, clobber=True)
-
-# -----------------------------------------------------------------------------
-
 def ingest(filename, header):
     """Ingests the file into the hstlc filesystem and database. Also
     produces output lightcurves.
@@ -196,7 +127,7 @@ def make_composite_lightcurves():
         output_filename = '{}_{}_{}_{}_curve.fits'.format(targname, detector,
             opt_elem, cenwave)
         save_loc = os.path.join(path, output_filename)
-        composite(files_to_process, save_loc)
+        lightcurve.composite(files_to_process, save_loc)
         set_permissions(save_loc)
         logging.info('\tComposite lightcurve saved to {}'.format(save_loc))
 
