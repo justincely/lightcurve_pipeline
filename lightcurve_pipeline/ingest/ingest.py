@@ -78,7 +78,7 @@ def composite(filelist, save_loc):
                 wmin = min_wave
 
 
-    logging.info('Using wavelength range of: {}-{}'.format(wmin, wmax))
+    logging.info('\tUsing wavelength range of: {}-{}'.format(wmin, wmax))
 
     out_lc = lightcurve.LightCurve()
 
@@ -108,6 +108,12 @@ def ingest(filename, header):
     """
 
     metadata_dict, outputs_dict = make_file_dicts(filename, header)
+
+    if metadata_dict['instrume'] == 'STIS':
+        lightcurve.stis.stis_corrtag(filename)
+        new_filename = filename.replace('_tag.fits', '_corrtag.fits')
+        metadata_dict['filename'] = os.path.basename(new_filename)
+
     update_metadata_table(metadata_dict)
 
     success = make_lightcurve(metadata_dict, outputs_dict)
@@ -191,7 +197,7 @@ def make_composite_lightcurves():
             opt_elem, cenwave)
         save_loc = os.path.join(path, output_filename)
         composite(files_to_process, save_loc)
-        #set_permissions(save_loc)
+        set_permissions(save_loc)
         logging.info('\tComposite lightcurve saved to {}'.format(save_loc))
 
         # Update the outputs table with the composite information
@@ -201,8 +207,7 @@ def make_composite_lightcurves():
                 .filter(Outputs.metadata_id == metadata_id)\
                 .update({'composite_path':path,
                     'composite_filename':output_filename})
-
-    session.commit()
+        session.commit()
 
 # -----------------------------------------------------------------------------
 
@@ -471,33 +476,33 @@ if __name__ == '__main__':
     setup_logging(module)
     filelist = glob.glob(os.path.join(SETTINGS['ingest_dir'], '*.fits*'))
 
-    for file_to_ingest in filelist:
+   for file_to_ingest in filelist:
 
-        logging.info('')
-        logging.info('Ingesting {}'.format(file_to_ingest))
+       logging.info('')
+       logging.info('Ingesting {}'.format(file_to_ingest))
 
-        # Open file
-        with fits.open(file_to_ingest, 'readonly') as hdulist:
-            header = hdulist[0].header
+       # Open file
+       with fits.open(file_to_ingest, 'readonly') as hdulist:
+           header = hdulist[0].header
 
-            # Check that file has events and has NORMAL expflag
-            if len(hdulist[1].data) == 0:
-                update_bad_data_table(
-                    os.path.basename(file_to_ingest),
-                    'No events')
-                logging.info('\tNo events, removing file')
-                os.remove(file_to_ingest)
+           # Check that file has events and has NORMAL expflag
+           if len(hdulist[1].data) == 0:
+               update_bad_data_table(
+                   os.path.basename(file_to_ingest),
+                   'No events')
+               logging.info('\tNo events, removing file')
+               os.remove(file_to_ingest)
 
-            elif hdulist[1].header['EXPFLAG'] != 'NORMAL':
-                update_bad_data_table(
-                    os.path.basename(file_to_ingest),
-                    'Bad EXPFLAG')
-                logging.info('\tBad EXPFLAG, removing file')
-                os.remove(file_to_ingest)
+           elif hdulist[1].header['EXPFLAG'] != 'NORMAL':
+               update_bad_data_table(
+                   os.path.basename(file_to_ingest),
+                   'Bad EXPFLAG')
+               logging.info('\tBad EXPFLAG, removing file')
+               os.remove(file_to_ingest)
 
-            # Ingest the data if it is normal
-            else:
-                ingest(file_to_ingest, header)
+           # Ingest the data if it is normal
+           else:
+               ingest(file_to_ingest, header)
 
     # Make composite lightcurves
     make_composite_lightcurves()
