@@ -15,6 +15,8 @@ import astropy
 import numpy
 import sqlalchemy
 
+# -----------------------------------------------------------------------------
+
 def get_settings():
     """Return the setting information located in the configuration file
     located in the settings/ directory.

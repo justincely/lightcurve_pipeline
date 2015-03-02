@@ -7,7 +7,6 @@ import glob
 import logging
 import os
 import shutil
-import numpy as np
 
 from astropy.io import fits
 import lightcurve
@@ -127,7 +126,7 @@ def make_composite_lightcurves():
         output_filename = '{}_{}_{}_{}_curve.fits'.format(targname, detector,
             opt_elem, cenwave)
         save_loc = os.path.join(path, output_filename)
-        lightcurve.composite(files_to_process, save_loc)
+        lightcurve.io.composite(files_to_process, save_loc)
         set_permissions(save_loc)
         logging.info('\tComposite lightcurve saved to {}'.format(save_loc))
 
@@ -407,33 +406,33 @@ if __name__ == '__main__':
     setup_logging(module)
     filelist = glob.glob(os.path.join(SETTINGS['ingest_dir'], '*.fits*'))
 
-   for file_to_ingest in filelist:
+    for file_to_ingest in filelist:
 
-       logging.info('')
-       logging.info('Ingesting {}'.format(file_to_ingest))
+        logging.info('')
+        logging.info('Ingesting {}'.format(file_to_ingest))
 
-       # Open file
-       with fits.open(file_to_ingest, 'readonly') as hdulist:
-           header = hdulist[0].header
+        # Open file
+        with fits.open(file_to_ingest, 'readonly') as hdulist:
+            header = hdulist[0].header
 
-           # Check that file has events and has NORMAL expflag
-           if len(hdulist[1].data) == 0:
-               update_bad_data_table(
-                   os.path.basename(file_to_ingest),
-                   'No events')
-               logging.info('\tNo events, removing file')
-               os.remove(file_to_ingest)
+            # Check that file has events and has NORMAL expflag
+            if len(hdulist[1].data) == 0:
+                update_bad_data_table(
+                    os.path.basename(file_to_ingest),
+                    'No events')
+                logging.info('\tNo events, removing file')
+                os.remove(file_to_ingest)
 
-           elif hdulist[1].header['EXPFLAG'] != 'NORMAL':
-               update_bad_data_table(
-                   os.path.basename(file_to_ingest),
-                   'Bad EXPFLAG')
-               logging.info('\tBad EXPFLAG, removing file')
-               os.remove(file_to_ingest)
+            elif hdulist[1].header['EXPFLAG'] != 'NORMAL':
+                update_bad_data_table(
+                    os.path.basename(file_to_ingest),
+                    'Bad EXPFLAG')
+                logging.info('\tBad EXPFLAG, removing file')
+                os.remove(file_to_ingest)
 
-           # Ingest the data if it is normal
-           else:
-               ingest(file_to_ingest, header)
+            # Ingest the data if it is normal
+            else:
+                ingest(file_to_ingest, header)
 
     # Make composite lightcurves
     make_composite_lightcurves()
