@@ -16,5 +16,5 @@ setup(
                    'Topic :: Software Development :: Libraries :: Python Modules'],
     packages = find_packages(),
     requires = ['numpy', 'astropy', 'sqlalchemy', 'pyyaml'],
-    data_files = [('lightcurve_pipeline/settings/', ['lightcurve_pipeline/settings/config.yaml'])]
+    data_files = [('lightcurve_pipeline/utils/', ['lightcurve_pipeline/utils/config.yaml'])]
     )
