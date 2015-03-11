@@ -1,6 +1,8 @@
 """Connection module for the hstlc database
 """
 
+import pymysql
+
 from lightcurve_pipeline.utils.utils import SETTINGS
 
 from sqlalchemy import create_engine
