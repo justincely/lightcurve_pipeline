@@ -1,10 +1,8 @@
-#! /usr/bin/env python
+#!/usr/bin/env/python
 
 """Download all COS & STIS data that do not already exist in the hstlc
 filesystem.
 """
-
-from astropy.io import fits
 
 import datetime
 import httplib
@@ -13,7 +11,7 @@ import os
 import string
 import urllib
 
-#from lightcurve_pipeline.download.SignStsciRequest import SignStsciRequest
+from lightcurve_pipeline.download.SignStsciRequest import SignStsciRequest
 
 from lightcurve_pipeline.utils.utils import SETTINGS
 from lightcurve_pipeline.utils.utils import set_permissions
@@ -202,6 +200,8 @@ def submit_xml_request(xml_request):
 
 if __name__ == '__main__':
 
+    print 'here'
+
     module = os.path.basename(__file__).strip('.py')
     setup_logging(module)
 
@@ -225,7 +225,7 @@ if __name__ == '__main__':
 
     # Send request
     logging.info('Submitting XML request.')
-    #submission_results = submit_xml_request(xml_request)
+    submission_results = submit_xml_request(xml_request)
 
     # Save submission results
-    #save_submission_results(submission_results)
+    save_submission_results(submission_results)

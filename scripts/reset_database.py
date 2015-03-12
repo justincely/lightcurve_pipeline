@@ -1,4 +1,4 @@
-#! /usr/bin/env python
+#!/usr/bin/env/python
 
 """
 Reset all tables in the database.

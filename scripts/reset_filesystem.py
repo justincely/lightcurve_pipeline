@@ -1,4 +1,4 @@
-#! /usr/bin/env python
+#!/usr/bin/env/python
 
 """
 Reset all filesystem by moving files back into the ingestion folder.

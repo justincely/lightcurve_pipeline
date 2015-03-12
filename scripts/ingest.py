@@ -1,3 +1,5 @@
+#!/usr/bin/env/python
+
 """Ingestion script to move files into hstlc filesystem and update the
 hstlc database.
 """
