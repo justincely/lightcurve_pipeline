@@ -41,7 +41,8 @@ def ingest(filename, header):
 
     metadata_dict, outputs_dict = make_file_dicts(filename, header)
 
-    if metadata_dict['instrume'] == 'STIS':
+    # If the file is a tag STIS file, then make a corrtag
+    if metadata_dict['instrume'] == 'STIS' and '_tag.fits' in filename:
         lightcurve.stis.stis_corrtag(filename)
         new_filename = filename.replace('_tag.fits', '_corrtag.fits')
         metadata_dict['filename'] = os.path.basename(new_filename)
