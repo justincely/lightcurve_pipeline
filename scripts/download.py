@@ -59,12 +59,14 @@ def build_xml_request(datasets):
         The XML request string.
     """
 
+    datasets = ''.join(['<rootname>{0}</rootname>\n'.format(rootname) for rootname in datasets])
+
     request_string = REQUEST_TEMPLATE.safe_substitute(
         archive_user=SETTINGS['archive_user'],
         archiveUserEmail=SETTINGS['email'],
         ftpHost=SETTINGS['host'],
         ftpDir=SETTINGS['ingest_dir'],
-        fptUser=SETTINGS['ftp_user'],
+        ftpUser=SETTINGS['ftp_user'],
         datasets=datasets)
 
     xml_request = string.Template(request_string)
@@ -83,11 +85,8 @@ def get_filesystem_rootnames():
         A list of rootnames that are in the hstlc filesystem.
     """
 
-    filesystem = session.query(Metadata.filename, Metadata.instrume).all()
-    filesystem_rootnames = [item[0].split('_')[0] for item in filesystem \
-        if item[1] == 'COS']
-    # filesystem_rootnames.extend([item[0].split('_')[0] for item in filesystem \
-    #     if item[1] == 'COS'])
+    filesystem = session.query(Metadata.filename).all()
+    filesystem_rootnames = [item[0].split('_')[0] for item in filesystem]
 
     return filesystem_rootnames
 
@@ -115,7 +114,7 @@ def get_mast_rootnames(detector):
     mast_password = SETTINGS['mast_password']
 
     # Connect to server
-    transmit, receive = os.popen2("~/freetds/bin/tsql -S {} -D '{}' -U '{}' -P '{}' -t '|'".format(mast_server, mast_database, mast_account, mast_password))
+    transmit, receive = os.popen2("~/freetds/bin/tsql -S {0} -D '{1}' -U '{2}' -P '{3}' -t '|'".format(mast_server, mast_database, mast_account, mast_password))
 
     # Build query
     if detector == 'cos':
@@ -154,12 +153,12 @@ def save_submission_results(submission_results):
     """
 
     today = datetime.datetime.strftime(datetime.datetime.now(), '%Y_%m_%d')
-    xml_filename = 'result_{}.xml'.format(today)
+    xml_filename = 'result_{0}.xml'.format(today)
     xml_output_file = os.path.join(SETTINGS['download_dir'], xml_filename)
     with open(xml_output_file, 'w') as f:
         f.write(submission_results)
     set_permissions(xml_output_file)
-    logging.info('\tXML file saved to: {}'.format(xml_output_file))
+    logging.info('\tXML file saved to: {0}'.format(xml_output_file))
 
 # -----------------------------------------------------------------------------
 
@@ -181,7 +180,7 @@ def submit_xml_request(xml_request):
     home = os.environ.get("HOME")
 
     signer = SignStsciRequest()
-    request_xml_str = signer.signRequest('{}/.ssh/privkey.pem'.format(home), xml_file)
+    request_xml_str = signer.signRequest('{0}/.ssh/privkey.pem'.format(home), xml_request)
     params = urllib.urlencode({
         'dadshost': SETTINGS['dads_host'],
         'dadsport': 4703,
@@ -200,24 +199,26 @@ def submit_xml_request(xml_request):
 
 if __name__ == '__main__':
 
-    print 'here'
-
     module = os.path.basename(__file__).strip('.py')
     setup_logging(module)
 
     # Build list of files in filesystem
     filesystem_rootnames = set(get_filesystem_rootnames())
-    logging.info('{} rootnames in filesystem.'.format(len(filesystem_rootnames)))
+    logging.info('{0} rootnames in filesystem.'.format(len(filesystem_rootnames)))
 
     # Query MAST for datasets
     mast_rootnames_for_cos = set(get_mast_rootnames('cos'))
     mast_rootnames_for_stis = set(get_mast_rootnames('stis'))
     mast_rootnames = mast_rootnames_for_cos.union(mast_rootnames_for_stis)
-    logging.info('{} rootnames in MAST.'.format(len(mast_rootnames)))
+    logging.info('{0} rootnames in MAST.'.format(len(mast_rootnames)))
 
     # Compare lists
     files_to_download = mast_rootnames - filesystem_rootnames
-    logging.info('{} new rootnames.'.format(len(files_to_download)))
+    logging.info('{0} new rootnames.'.format(len(files_to_download)))
+
+    # Limit number of requests to 100
+    if len(files_to_download) > 100:
+        files_to_download = list(files_to_download)[0:100]
 
     # Build XML request
     logging.info('Building XML request.')
