@@ -54,7 +54,7 @@ def setup_logging(module):
 
     # Configure logging
     timestamp = datetime.datetime.now().strftime('%Y-%m-%d-%H-%M')
-    filename = '{}_{}.log'.format(module, timestamp)
+    filename = '{0}_{1}.log'.format(module, timestamp)
     logfile = os.path.join(SETTINGS['log_dir'], filename)
     logging.basicConfig(
         filename=logfile,
@@ -63,15 +63,15 @@ def setup_logging(module):
         level=logging.INFO)
 
     # Log environment information
-    logging.info('User: {}'.format(getpass.getuser()))
-    logging.info('System: {}'.format(socket.gethostname()))
-    logging.info('Python Version: {}'.format(sys.version.replace('\n', '')))
-    logging.info('Python Path: {}'.format(sys.executable))
-    logging.info('Numpy Version: {}'.format(numpy.__version__))
-    logging.info('Numpy Path: {}'.format(numpy.__path__[0]))
-    logging.info('Astropy Version: {}'.format(astropy.__version__))
-    logging.info('Astropy Path: {}'.format(astropy.__path__[0]))
-    logging.info('SQLAlchemy Version: {}'.format(sqlalchemy.__version__))
-    logging.info('SQLAlchemy Path: {}'.format(sqlalchemy.__path__[0]))
+    logging.info('User: {0}'.format(getpass.getuser()))
+    logging.info('System: {0}'.format(socket.gethostname()))
+    logging.info('Python Version: {0}'.format(sys.version.replace('\n', '')))
+    logging.info('Python Path: {0}'.format(sys.executable))
+    logging.info('Numpy Version: {0}'.format(numpy.__version__))
+    logging.info('Numpy Path: {0}'.format(numpy.__path__[0]))
+    logging.info('Astropy Version: {0}'.format(astropy.__version__))
+    logging.info('Astropy Path: {0}'.format(astropy.__path__[0]))
+    logging.info('SQLAlchemy Version: {0}'.format(sqlalchemy.__version__))
+    logging.info('SQLAlchemy Path: {0}'.format(sqlalchemy.__path__[0]))
 
     set_permissions(logfile)
