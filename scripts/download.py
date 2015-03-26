@@ -1,4 +1,4 @@
-#!/usr/bin/env/python
+#!/usr/bin/python
 
 """Download all COS & STIS data that do not already exist in the hstlc
 filesystem.
