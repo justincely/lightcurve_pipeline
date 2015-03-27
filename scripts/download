@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#! /usr/bin/python
 
 """Download all COS & STIS data that do not already exist in the hstlc
 filesystem.
@@ -20,7 +20,6 @@ from lightcurve_pipeline.database.database_interface import engine
 from lightcurve_pipeline.database.database_interface import session
 from lightcurve_pipeline.database.database_interface import BadData
 from lightcurve_pipeline.database.database_interface import Metadata
-from lightcurve_pipeline.database.database_interface import Outputs
 
 REQUEST_TEMPLATE = string.Template('\
 <?xml version="1.0"?>\
@@ -36,7 +35,8 @@ REQUEST_TEMPLATE = string.Template('\
      <body>\n\
        <include>\n\
          <select>\n\
-           <suffix name=\"*\" />\n\
+           <suffix name=\"X1D\" />\n\
+           <suffix name=\"RAW\" />\n\
         </select> \n\
         $datasets \n\
        </include>\n\
@@ -215,6 +215,11 @@ if __name__ == '__main__':
     # Compare lists
     files_to_download = mast_rootnames - filesystem_rootnames
     logging.info('{0} new rootnames.'.format(len(files_to_download)))
+
+    # Remove bad data rootnames
+    bad_rootnames = session.query(BadData.filename).all()
+    bad_rootnames = set([item[0][0:9] for item in bad_rootnames])
+    files_to_download = files_to_download - bad_rootnames
 
     # Limit number of requests to 100
     if len(files_to_download) > 100:
