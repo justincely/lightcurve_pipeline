@@ -4,6 +4,7 @@
 filesystem.
 """
 
+import glob
 import datetime
 import httplib
 import logging
@@ -35,8 +36,7 @@ REQUEST_TEMPLATE = string.Template('\
      <body>\n\
        <include>\n\
          <select>\n\
-           <suffix name=\"X1D\" />\n\
-           <suffix name=\"RAW\" />\n\
+           <suffix name=\"*\" />\n\
         </select> \n\
         $datasets \n\
        </include>\n\
@@ -92,14 +92,9 @@ def get_filesystem_rootnames():
 
 # -----------------------------------------------------------------------------
 
-def get_mast_rootnames(detector):
+def get_mast_rootnames():
     """Return a list of rootnames of all data in MAST for the given
     detector.
-
-    Parameters
-    ----------
-    detector : string
-        The detector to query for. Can either be "cos" or "stis".
 
     Returns
     -------
@@ -113,20 +108,21 @@ def get_mast_rootnames(detector):
     mast_account = SETTINGS['mast_account']
     mast_password = SETTINGS['mast_password']
 
+    # Build comparison date
+    today = datetime.datetime.utcnow()
+    today = today.strftime('%Y-%m-%d')
+
     # Connect to server
     transmit, receive = os.popen2("~/freetds/bin/tsql -S {0} -D '{1}' -U '{2}' -P '{3}' -t '|'".format(mast_server, mast_database, mast_account, mast_password))
 
     # Build query
-    if detector == 'cos':
-        query = ("SELECT csd_data_set_name "
-                 "FROM cos_d_data "
-                 "WHERE csd_obsmode = 'TIME-TAG' "
-                 "\ngo\n")
-    elif detector == 'stis':
-        query = ("SELECT sss_data_set_name "
-                 "FROM stis_science "
-                 "WHERE sss_obsmode = 'TIME-TAG' "
-                 "\ngo\n")
+    query = ("SELECT sci_data_set_name "
+             "FROM science "
+             "WHERE (sci_instrume = 'COS' OR sci_instrume = 'STIS') "
+             "AND sci_release_date < '{0}' "
+             "AND sci_targname NOT IN ('DARK', 'BIAS', 'DEUTERIUM', 'WAVE', 'ANY', 'NONE') "
+             "\ngo\n".format(today))
+    print query
 
     # Perform query and capture results
     transmit.write(query)
@@ -207,9 +203,7 @@ if __name__ == '__main__':
     logging.info('{0} rootnames in filesystem.'.format(len(filesystem_rootnames)))
 
     # Query MAST for datasets
-    mast_rootnames_for_cos = set(get_mast_rootnames('cos'))
-    mast_rootnames_for_stis = set(get_mast_rootnames('stis'))
-    mast_rootnames = mast_rootnames_for_cos.union(mast_rootnames_for_stis)
+    mast_rootnames = set(get_mast_rootnames())
     logging.info('{0} rootnames in MAST.'.format(len(mast_rootnames)))
 
     # Compare lists
@@ -220,6 +214,13 @@ if __name__ == '__main__':
     bad_rootnames = session.query(BadData.filename).all()
     bad_rootnames = set([item[0][0:9] for item in bad_rootnames])
     files_to_download = files_to_download - bad_rootnames
+
+    # Remove rootnames that already exist in ingest queue
+    files_in_ingest = glob.glob(os.path.join(SETTINGS['ingest_dir'], '*_corrtag.fits'))
+    files_in_ingest.extend(glob.glob(os.path.join(SETTINGS['ingest_dir'], '*_corrtag_?.fits')))
+    files_in_ingest.extend(glob.glob(os.path.join(SETTINGS['ingest_dir'], '*_tag.fits')))
+    rootnames_in_ingest = set([os.path.basename(item).split('_')[0] for item in files_in_ingest])
+    files_to_download = files_to_download - rootnames_in_ingest
 
     # Limit number of requests to 100
     if len(files_to_download) > 100:
