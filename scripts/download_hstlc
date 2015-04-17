@@ -36,7 +36,11 @@ REQUEST_TEMPLATE = string.Template('\
      <body>\n\
        <include>\n\
          <select>\n\
-           <suffix name=\"*\" />\n\
+           <suffix name=\"X1D\" />\n\
+           <suffix name=\"TAG\" />\n\
+           <suffix name=\"CTG\" />\n\
+           <suffix name=\"CTA\" />\n\
+           <suffix name=\"CTB\" />\n\
         </select> \n\
         $datasets \n\
        </include>\n\
