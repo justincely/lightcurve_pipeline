@@ -282,7 +282,8 @@ def make_quicklook(outputs_dict):
 # -----------------------------------------------------------------------------
 
 def move_file(metadata_dict):
-    """Move the file from the ingest directory into the filesystem.
+    """Move the file (and it's accompanying x1d file) from the ingest
+    directory into the filesystem.
 
     Parameters
     ----------
@@ -304,6 +305,16 @@ def move_file(metadata_dict):
     if os.path.exists(dst):
         os.remove(dst)
     shutil.move(src, dst)
+
+    # Move the accompanying x1d file from ingest directory to filesystem
+    x1d_file = '{}_x1d.fits'.format(metadata_dict['filename'].split('_')[0])
+    src = os.path.join(SETTINGS['ingest_dir'], x1d_file)
+    dst = os.path.join(metadata_dict['path'], x1d_file)
+    logging.info('\tMoving x1d file.')
+    if os.path.exists(src):
+        if os.path.exists(dst):
+            os.remove(dst)
+        shutil.move(src, dst)
 
 # -----------------------------------------------------------------------------
 
@@ -407,6 +418,7 @@ if __name__ == '__main__':
 
     module = os.path.basename(__file__).strip('.py')
     setup_logging(module)
+
     filelist = glob.glob(os.path.join(SETTINGS['ingest_dir'], '*.fits*'))
 
     for file_to_ingest in filelist:
