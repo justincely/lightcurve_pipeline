@@ -1,0 +1,54 @@
+#! /usr/bin/env python
+
+"""Regenerate the stats table in the hstlc database, which stores
+statistics for every lightcurve (composite or individual).
+"""
+
+import logging
+import multiprocessing
+import os
+
+from lightcurve_pipeline.utils.utils import insert_or_update
+from lightcurve_pipeline.utils.utils import SETTINGS
+from lightcurve_pipeline.database.database_interface import engine
+from lightcurve_pipeline.database.database_interface import session
+from lightcurve_pipeline.database.database_interface import Stats
+from lightcurve_pipeline.database.database_interface import Outputs
+
+# -----------------------------------------------------------------------------
+
+if __name__ == '__main__':
+
+    # module = os.path.basename(__file__).strip('.py')
+    # setup_logging(module)
+
+    # Query the outputs table for a list of lightcurves
+    results = session.query(Outputs).all()
+    individual_lightcurves = set([os.path.join(result.individual_path, result.individual_filename) for result in results])
+    composite_lightcurves = set([os.path.join(result.composite_path, result.composite_filename) for result in results if result.composite_filename != None])
+    lightcurves = individual_lightcurves | composite_lightcurves
+
+    # For each lightcurve, compute statistics and update the database
+    for dataset in lightcurves:
+        stats_dict = {}
+        stats_dict['lightcurve_path'] = os.path.dirname(dataset)
+        stats_dict['lightcurve_filename'] = os.path.basename(dataset)
+
+        # Populate with bogus stats for now
+        stats_dict['total'] = 0.0
+        stats_dict['stdev'] = 0.0
+        stats_dict['pearson_r'] = 0.0
+        stats_dict['correlation'] = 0.0
+
+        # Get the id of the record, if it exists
+        query = session.query(Stats.id)\
+            .filter(Stats.lightcurve_filename == os.path.basename(dataset)).all()
+        if query == []:
+            id_num = ''
+        else:
+            id_num = query[0][0]
+
+        print id_num
+
+        # If id doesn't exist then instert.  If id exists, then update
+        insert_or_update(Stats, stats_dict, id_num)

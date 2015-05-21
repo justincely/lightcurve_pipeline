@@ -16,6 +16,6 @@ setup(
                    'Topic :: Software Development :: Libraries :: Python Modules'],
     packages = find_packages(),
     requires = ['numpy', 'astropy', 'sqlalchemy', 'pyyaml'],
-    scripts = ['scripts/download_hstlc', 'scripts/ingest_hstlc', 'scripts/reset_hstlc_database', 'scripts/reset_hstlc_filesystem'],
+    scripts = ['scripts/download_hstlc', 'scripts/ingest_hstlc', 'scripts/reset_hstlc_database', 'scripts/reset_hstlc_filesystem', 'scripts/build_stats_table'],
     data_files = [('lightcurve_pipeline/utils/', ['lightcurve_pipeline/utils/config.yaml'])]
     )
