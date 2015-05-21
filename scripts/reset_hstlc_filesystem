@@ -54,7 +54,11 @@ def remove_directories():
 
 if __name__ == '__main__':
 
-    print('Resetting filesystem')
+    prompt = 'About to reset filesystem {}. '.format(SETTINGS['filesystem_dir'])
+    prompt += 'Do you wish to proceed? (y/n)'
+    response = raw_input(prompt)
 
-    move_files_to_ingest()
-    remove_directories()
+    if response.lower() == 'y':
+        print('Resetting filesystem')
+        move_files_to_ingest()
+        remove_directories()
