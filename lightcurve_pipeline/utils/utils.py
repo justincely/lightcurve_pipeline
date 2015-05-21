@@ -57,6 +57,7 @@ def insert_or_update(table, data, id_num):
         session.query(table)\
             .filter(table.id == id_num)\
             .update(data)
+        session.commit()
 
 # -----------------------------------------------------------------------------
 
