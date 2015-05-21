@@ -32,6 +32,34 @@ SETTINGS = get_settings()
 
 # -----------------------------------------------------------------------------
 
+from lightcurve_pipeline.database.database_interface import engine
+from lightcurve_pipeline.database.database_interface import session
+
+def insert_or_update(table, data, id_num):
+    """
+    Insert or update the table with information in the record_dict.
+
+    Parameters
+    ----------
+    table :
+        The table of the database to update.
+    data : dict
+        A dictionary of the information to update.  Each key of the
+        dictionary must be a column in the Table.
+    id_num : string
+        The row ID to update.  If id_test is blank, then a new row is
+        inserted.
+    """
+
+    if id_num == '':
+        engine.execute(table.__table__.insert(), data)
+    else:
+        session.query(table)\
+            .filter(table.id == id_num)\
+            .update(data)
+
+# -----------------------------------------------------------------------------
+
 def set_permissions(path):
     """
     Set the permissions of the file path to hstlc settings.
@@ -75,3 +103,20 @@ def setup_logging(module):
     logging.info('SQLAlchemy Path: {0}'.format(sqlalchemy.__path__[0]))
 
     set_permissions(logfile)
+
+# -----------------------------------------------------------------------------
+
+def make_directory(directory):
+    """Create a directory if it doesn't already exist and set the HSTLC
+    permissions.
+
+    Parameters
+    ----------
+    directory : string
+        The path to the directory.
+    """
+
+    if not os.path.exists(directory):
+        logging.info('\tCreating directory {}'.format(directory))
+        os.mkdir(directory)
+        set_permissions(directory)
