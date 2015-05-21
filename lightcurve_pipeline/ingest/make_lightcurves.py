@@ -25,6 +25,9 @@ def make_composite_lightcurves():
     logging.info('')
     logging.info('Creating composite lightcurves')
 
+    # Create composite directory if it doesn't already exist
+    make_directory(SETTINGS['composite_dir'])
+
     # Get list of datasets that need to be (re)processed by querying
     # for empty composite records
     datasets = session.query(Metadata.targname, Metadata.detector,
