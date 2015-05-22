@@ -64,7 +64,7 @@ def make_composite_lightcurves():
         output_filename = '{}_{}_{}_{}_curve.fits'.format(targname, detector,
             opt_elem, cenwave)
         save_loc = os.path.join(path, output_filename)
-        lightcurve.io.composite(files_to_process, save_loc)
+        lightcurve.composite(files_to_process, save_loc)
         set_permissions(save_loc)
         logging.info('\tComposite lightcurve saved to {}'.format(save_loc))
 
@@ -111,7 +111,7 @@ def make_individual_lightcurve(metadata_dict, outputs_dict):
 
         logging.info('\tCreating lightcurve {}'.format(outputname))
         try:
-            lc = lightcurve.open(filename=inputname, step=1)
+            lc = lightcurve.LightCurve(filename=inputname, step=1)
             lc.write(outputname)
             set_permissions(outputname)
         except Exception as e:

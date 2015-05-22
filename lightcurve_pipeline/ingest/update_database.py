@@ -8,6 +8,7 @@ from lightcurve_pipeline.database.database_interface import engine
 from lightcurve_pipeline.database.database_interface import session
 from lightcurve_pipeline.database.database_interface import Metadata
 from lightcurve_pipeline.database.database_interface import Outputs
+from lightcurve_pipeline.database.database_interface import BadData
 from lightcurve_pipeline.utils.utils import insert_or_update
 
 # -----------------------------------------------------------------------------
