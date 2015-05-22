@@ -23,6 +23,11 @@ from lightcurve_pipeline.ingest.update_database import update_bad_data_table
 from lightcurve_pipeline.ingest.update_database import update_metadata_table
 from lightcurve_pipeline.ingest.update_database import update_outputs_table
 
+# Use matplotlib backend for quicklook images
+import matplotlib as mpl
+mpl.use('Agg')
+import matplotlib.pyplot as plt
+
 os.environ['lref'] = '/grp/hst/cdbs/lref/'
 os.environ['oref'] = '/grp/hst/cdbs/oref/'
 

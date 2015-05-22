@@ -95,6 +95,18 @@ class BadData(base):
     ingest_date = Column(Date, nullable=False)
     reason = Column(Enum('No events', 'Bad EXPFLAG'), nullable=False)
 
+
+class Stats(base):
+    """ORM for stats table"""
+    __tablename__ = 'stats'
+    id = Column(Integer(), nullable=False, primary_key=True)
+    lightcurve_path = Column(String(100), nullable=False)
+    lightcurve_filename = Column(String(100), nullable=False)
+    total = Column(Float(10))
+    stdev = Column(Float(10))
+    pearson_r = Column(Float(10))
+    correlation = Column(Float(10))
+
 # -----------------------------------------------------------------------------
 
 if __name__ == '__main__':
