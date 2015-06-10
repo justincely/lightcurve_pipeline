@@ -1,14 +1,16 @@
-"""Module for updating databases by ingest
+"""Module for updating various tables in the hstlc database
 """
 
 import datetime
 import logging
+import os
 
 from lightcurve_pipeline.database.database_interface import engine
 from lightcurve_pipeline.database.database_interface import session
 from lightcurve_pipeline.database.database_interface import Metadata
 from lightcurve_pipeline.database.database_interface import Outputs
 from lightcurve_pipeline.database.database_interface import BadData
+from lightcurve_pipeline.database.database_interface import Stats
 from lightcurve_pipeline.utils.utils import insert_or_update
 
 # -----------------------------------------------------------------------------
@@ -70,6 +72,31 @@ def update_metadata_table(metadata_dict):
 
     # If id doesn't exist then insert. If id exsits, then update
     insert_or_update(Metadata, metadata_dict, id_num)
+
+# -----------------------------------------------------------------------------
+
+def update_stats_table(stats_dict, dataset):
+    """Insert or update a record in the stats table containing
+    lightcurve product statistics.
+
+    Parameters
+    ----------
+    stats_dict : dict
+        A dictionary containing the lightcurve statistics.
+    dataset : string
+        The path to the lightcurve product.
+    """
+
+    # Get the id of the record, if it exists
+    query = session.query(Stats.id)\
+        .filter(Stats.lightcurve_filename == os.path.basename(dataset)).all()
+    if query == []:
+        id_num = ''
+    else:
+        id_num = query[0][0]
+
+    # If id doesn't exist then instert.  If id exists, then update
+    insert_or_update(Stats, stats_dict, id_num)
 
 # -----------------------------------------------------------------------------
 
