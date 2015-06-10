@@ -1,54 +1,91 @@
 #! /usr/bin/env python
 
 """Regenerate the stats table in the hstlc database, which stores
-statistics for every lightcurve (composite or individual).
+statistics for every lightcurve (composite and individual).
 """
 
 import logging
 import multiprocessing
 import os
 
+import lightcurve
+import numpy as np
+from scipy.stats.stats import pearsonr
+
 from lightcurve_pipeline.utils.utils import insert_or_update
 from lightcurve_pipeline.utils.utils import SETTINGS
+from lightcurve_pipeline.utils.utils import setup_logging
 from lightcurve_pipeline.database.database_interface import engine
 from lightcurve_pipeline.database.database_interface import session
 from lightcurve_pipeline.database.database_interface import Stats
 from lightcurve_pipeline.database.database_interface import Outputs
+from lightcurve_pipeline.ingest.update_database import update_stats_table
 
 # -----------------------------------------------------------------------------
 
-if __name__ == '__main__':
+def get_lightcurves():
+    """Queries the Outputs table to build a list of lightcurves to get
+    stats from.
 
-    # module = os.path.basename(__file__).strip('.py')
-    # setup_logging(module)
+    Returns
+    -------
+    lightcurves : list
+        A list of paths to lightcurve products.
+    """
 
-    # Query the outputs table for a list of lightcurves
     results = session.query(Outputs).all()
     individual_lightcurves = set([os.path.join(result.individual_path, result.individual_filename) for result in results])
     composite_lightcurves = set([os.path.join(result.composite_path, result.composite_filename) for result in results if result.composite_filename != None])
     lightcurves = individual_lightcurves | composite_lightcurves
 
+    return lightcurves
+
+# -----------------------------------------------------------------------------
+
+def get_stats(dataset):
+    """Gathers various statistics for the given lightcurve product.
+
+    Parameters
+    ----------
+    dataset : string
+        The path to the lightcurve product.
+
+    Returns
+    -------
+    stats_dict : dictionary
+        A dictionary whose keys are column names of the Stats table and
+        whose values are the corresponding statistics.
+    """
+
+    stats_dict = {}
+    stats_dict['lightcurve_path'] = os.path.dirname(dataset)
+    stats_dict['lightcurve_filename'] = os.path.basename(dataset)
+
+    # Open lightcurve and extract information
+    lc = lightcurve.LightCurve(filename=dataset, step=1)
+    stats_dict['total'] = int(np.sum(lc.columns['counts']))
+    stats_dict['stdev'] = float(np.std(lc.columns['counts']))
+    pearson_results = pearsonr(lc.columns['mjd'], lc.columns['counts'])
+    stats_dict['pearson_r'] = float(pearson_results[0])
+    stats_dict['pearson_p'] = float(pearson_results[1])
+
+    return stats_dict
+
+# -----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
+
+if __name__ == '__main__':
+
+    module = os.path.basename(__file__).strip('.py')
+    setup_logging(module)
+
+    # Query the outputs table for a list of lightcurves
+    lightcurves = get_lightcurves()
+
     # For each lightcurve, compute statistics and update the database
     for dataset in lightcurves:
-        stats_dict = {}
-        stats_dict['lightcurve_path'] = os.path.dirname(dataset)
-        stats_dict['lightcurve_filename'] = os.path.basename(dataset)
+        logging.info('Processing {}'.format(dataset))
+        stats_dict = get_stats(dataset)
+        update_stats_table(stats_dict, dataset)
 
-        # Populate with bogus stats for now
-        stats_dict['total'] = 0.0
-        stats_dict['stdev'] = 0.0
-        stats_dict['pearson_r'] = 0.0
-        stats_dict['correlation'] = 0.0
-
-        # Get the id of the record, if it exists
-        query = session.query(Stats.id)\
-            .filter(Stats.lightcurve_filename == os.path.basename(dataset)).all()
-        if query == []:
-            id_num = ''
-        else:
-            id_num = query[0][0]
-
-        print id_num
-
-        # If id doesn't exist then instert.  If id exists, then update
-        insert_or_update(Stats, stats_dict, id_num)
+    logging.info('Processing complete')
