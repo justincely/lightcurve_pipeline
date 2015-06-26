@@ -19,9 +19,9 @@ from lightcurve_pipeline.utils.utils import set_permissions
 from lightcurve_pipeline.utils.utils import setup_logging
 from lightcurve_pipeline.ingest.make_lightcurves import make_composite_lightcurves
 from lightcurve_pipeline.ingest.make_lightcurves import make_individual_lightcurve
-from lightcurve_pipeline.ingest.update_database import update_bad_data_table
-from lightcurve_pipeline.ingest.update_database import update_metadata_table
-from lightcurve_pipeline.ingest.update_database import update_outputs_table
+from lightcurve_pipeline.database.update_database import update_bad_data_table
+from lightcurve_pipeline.database.update_database import update_metadata_table
+from lightcurve_pipeline.database.update_database import update_outputs_table
 
 # Use matplotlib backend for quicklook images
 import matplotlib as mpl
@@ -30,6 +30,42 @@ import matplotlib.pyplot as plt
 
 os.environ['lref'] = '/grp/hst/cdbs/lref/'
 os.environ['oref'] = '/grp/hst/cdbs/oref/'
+
+# -----------------------------------------------------------------------------
+
+def get_files_to_ingest():
+    """
+    Return a list of files to ingest.  Since corrtag_a and corrtab_b
+    files are extracted together, the returned list must be void of
+    duplicate corrtag files in order to avoid double extraction.
+
+    Returns
+    -------
+    files_to_ingest : list
+        A list of full paths to files to ingest.
+    """
+
+    logging.info('Gathering files to ingest')
+
+    # Determine which files are corrtag_a or corrtag_b files
+    files_to_ingest = glob.glob(os.path.join(SETTINGS['ingest_dir'], '*tag*.fits'))
+    corrtag_ab_files = [item for item in files_to_ingest if 'corrtag_' in os.path.basename(item)]
+    files_to_remove = []
+
+    # Check to see if both a corrtag_a and corrtag_b file exists for a given rootname
+    for corrtag_file in corrtag_ab_files:
+        corrtag_dirname = os.path.dirname(corrtag_file)
+        corrtag_rootname = os.path.basename(corrtag_file).split('_')[0]
+        corrtag_a_file = '{}/{}_corrtag_a.fits'.format(corrtag_dirname, corrtag_rootname)
+        corrtag_b_file = '{}/{}_corrtag_b.fits'.format(corrtag_dirname, corrtag_rootname)
+        if os.path.exists(corrtag_a_file) and os.path.exists(corrtag_b_file):
+            files_to_remove.append(corrtag_b_file)
+
+    # If both a corrtag_a and a corrtag_b file exists, remove the corrtag_b
+    for file_to_remove in set(files_to_remove):
+        files_to_ingest.remove(file_to_remove)
+    
+    return files_to_ingest
 
 # -----------------------------------------------------------------------------
 
@@ -159,11 +195,25 @@ def move_file(metadata_dict):
 
     # Move the file from ingest directory into filesystem
     src = os.path.join(SETTINGS['ingest_dir'], metadata_dict['filename'])
-    dst = os.path.join(metadata_dict['path'], metadata_dict['filename'])
-    logging.info('\tMoving file.')
-    if os.path.exists(dst):
-        os.remove(dst)
-    shutil.move(src, dst)
+
+    # If the file is a corrtag_a/b file, then move any accompanying corrtag
+    # file.  If not, move the file nominally
+    src_list = []
+    dst_list = []
+    if 'corrtag_' in src:
+        filelist = lightcurve.cos.get_both_filenames(src)
+        for filename in filelist:
+            src_list.append(filename)
+            dst_list.append(os.path.join(metadata_dict['path'], os.path.basename(filename)))
+    else:
+        src_list.append(src)
+        dst_list.append(os.path.join(metadata_dict['path'], metadata_dict['filename'])) 
+    for src, dst in zip(src_list, dst_list):
+        logging.info('\tMoving file {}'.format(dst))
+        if os.path.exists(dst):
+            os.remove(dst)
+        if os.path.exists(src):
+            shutil.move(src, dst)
 
     # Move the accompanying x1d file from ingest directory to filesystem
     x1d_file = '{}_x1d.fits'.format(metadata_dict['filename'].split('_')[0])
@@ -183,9 +233,9 @@ if __name__ == '__main__':
     module = os.path.basename(__file__).strip('.py')
     setup_logging(module)
 
-    filelist = glob.glob(os.path.join(SETTINGS['ingest_dir'], '*tag*.fits*'))
+    files_to_ingest = get_files_to_ingest()
 
-    for file_to_ingest in filelist:
+    for file_to_ingest in files_to_ingest:
 
         logging.info('')
         logging.info('Ingesting {}'.format(file_to_ingest))
