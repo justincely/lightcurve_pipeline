@@ -37,9 +37,24 @@ def move_files_to_ingest():
 
 # -----------------------------------------------------------------------------
 
-def remove_directories():
+def remove_output_directories():
     """
-    Remove parent directories if they are empty
+    Remove all output products and output directories.
+    """
+
+    directories = glob.glob(os.path.join(SETTINGS['outputs_dir'], '*'))
+    for directory in directories:
+        try:
+            shutil.rmtree(directory)
+            print('\tRemoved directory {}'.format(directory))
+        except:
+            print('Could not remove {}'.format(directory))
+
+# -----------------------------------------------------------------------------
+
+def remove_filesystem_directories():
+    """
+    Remove parent directories from the filesystem if they are empty.
     """
 
     dirlist = glob.glob(os.path.join(SETTINGS['filesystem_dir'], '*'))
@@ -61,4 +76,5 @@ if __name__ == '__main__':
     if response.lower() == 'y':
         print('Resetting filesystem')
         move_files_to_ingest()
-        remove_directories()
+        remove_filesystem_directories()
+        remove_output_directories()
