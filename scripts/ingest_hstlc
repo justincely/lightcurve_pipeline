@@ -209,10 +209,10 @@ def move_file(metadata_dict):
         src_list.append(src)
         dst_list.append(os.path.join(metadata_dict['path'], metadata_dict['filename'])) 
     for src, dst in zip(src_list, dst_list):
-        logging.info('\tMoving file {}'.format(dst))
         if os.path.exists(dst):
             os.remove(dst)
         if os.path.exists(src):
+            logging.info('\tMoving file {}'.format(dst))
             shutil.move(src, dst)
 
     # Move the accompanying x1d file from ingest directory to filesystem
