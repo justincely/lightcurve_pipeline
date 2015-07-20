@@ -19,6 +19,7 @@ from lightcurve_pipeline.utils.utils import set_permissions
 from lightcurve_pipeline.utils.utils import setup_logging
 from lightcurve_pipeline.ingest.make_lightcurves import make_composite_lightcurves
 from lightcurve_pipeline.ingest.make_lightcurves import make_individual_lightcurve
+from lightcurve_pipeline.ingest.resolve_target import get_targname
 from lightcurve_pipeline.database.update_database import update_bad_data_table
 from lightcurve_pipeline.database.update_database import update_metadata_table
 from lightcurve_pipeline.database.update_database import update_outputs_table
@@ -64,7 +65,7 @@ def get_files_to_ingest():
     # If both a corrtag_a and a corrtag_b file exists, remove the corrtag_b
     for file_to_remove in set(files_to_remove):
         files_to_ingest.remove(file_to_remove)
-    
+
     return files_to_ingest
 
 # -----------------------------------------------------------------------------
@@ -125,7 +126,7 @@ def make_file_dicts(filename, header):
     # Set header keys
     metadata_dict['telescop'] = header['TELESCOP']
     metadata_dict['instrume'] = header['INSTRUME']
-    metadata_dict['targname'] = header['TARGNAME']
+    metadata_dict['targname'] = get_targname(header['TARGNAME'])
     metadata_dict['cal_ver'] = header['CAL_VER']
     metadata_dict['obstype'] = header['OBSTYPE']
     metadata_dict['aperture'] = header['APERTURE']
@@ -207,7 +208,7 @@ def move_file(metadata_dict):
             dst_list.append(os.path.join(metadata_dict['path'], os.path.basename(filename)))
     else:
         src_list.append(src)
-        dst_list.append(os.path.join(metadata_dict['path'], metadata_dict['filename'])) 
+        dst_list.append(os.path.join(metadata_dict['path'], metadata_dict['filename']))
     for src, dst in zip(src_list, dst_list):
         if os.path.exists(dst):
             os.remove(dst)
