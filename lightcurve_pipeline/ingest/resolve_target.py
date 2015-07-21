@@ -6,6 +6,7 @@ import urllib2
 from xml.dom import minidom
 
 from lightcurve_pipeline.utils.utils import SETTINGS
+from lightcurve_pipeline.utils.targname_dict import targname_dict
 from lightcurve_pipeline.database.database_interface import session
 from lightcurve_pipeline.database.database_interface import Metadata
 
@@ -29,6 +30,11 @@ def get_targname(targname):
     # Assume at first that the targname can't be resolved
     new_targname = targname
 
+    # Try to resolve the target via the target_dict
+    if targname in targname_dict.keys():
+        if len(targname_dict[targname]):
+            new_targname = targname_dict[targname]
+
     # Try to resolve the target name with the online service
     try:
         targname_set = resolve(targname)
@@ -39,18 +45,11 @@ def get_targname(targname):
 
         # For each resolved target name, check to see if it's already
         # in the database.  If it is, then use that one.
-        match = False
         targnames_in_db = session.query(Metadata.targname).all()
         targnames_in_db = [item[0] for item in targnames_in_db]
         for item in targname_set:
             if item in targnames_in_db:
                 new_targname = item
-                match = True
-
-        # If no resolved target name exists in the database, then use
-        # the first resolved target name
-        if not match:
-            new_targname = list(targname_set)[0]
 
     if targname != new_targname:
         logging.info('\tChanged TARGNAME from {} to {}'.format(targname, new_targname))
