@@ -123,6 +123,7 @@ if __name__ == '__main__':
     lightcurves = get_lightcurves(args.product_type)
 
     # For each lightcurve, compute statistics and update the database
+    logging.info('{} datasets to process'.format(len(lightcurves)))
     for dataset in lightcurves:
         logging.info('Processing {}'.format(dataset))
         stats_dict = get_stats(dataset)
