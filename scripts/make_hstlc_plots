@@ -8,6 +8,7 @@ from __future__ import print_function
 
 from astropy.io import fits
 from bokeh import charts
+from bokeh.plotting import figure
 from bokeh.embed import components
 from collections import Counter
 
@@ -145,8 +146,48 @@ def simple_stat_plots():
 
     query = session.query(Stats.total, Stats.stdev).all()
 
-    import pdb
-    pdb.set_trace()
+    counts = []
+    std = []
+    for row in query:
+        counts.append(row['total'])
+        std.append(row['stdev'])
+
+
+#-------------------------------------------------------------------------------
+
+def plot_dataset(filename, plot_file=''):
+    path, name = os.path.split(filename)
+
+    if not plot_file:
+        plot_file = name.replace('.fits', '.html')
+
+    charts.output_file(plot_file)
+
+    TOOLS = "pan,wheel_zoom,box_zoom,reset,resize,save"
+
+    p = figure(tools=TOOLS, toolbar_location="left", logo="grey", plot_width=1200)
+    #p.title = "{} LightCurve".format(name)
+    p.background_fill= "#cccccc"
+
+    with fits.open(filename) as hdu:
+        p.circle(hdu[1].data['MJD'],
+                 hdu[1].data['NET'],
+                 size=12,
+                 line_color="black",
+                 fill_alpha=0.8)
+
+
+    p.xaxis.axis_label="Time (MJD)"
+    p.yaxis.axis_label="Net (cnts/sec)"
+    p.grid.grid_line_color="white"
+
+    charts.show(p)
+
+    script, div = components(p)
+
+    print(div)
+    print()
+    print(script)
 
 #-------------------------------------------------------------------------------
 
@@ -155,3 +196,5 @@ if __name__ == "__main__":
     #histogram_exptime()
     #piechart_config()
     #simple_stat_plots()
+    plot_dataset('/grp/hst/hstlc/hst13902/outputs/composite/V4046SGR_FUV_G130M_1300_curve.fits', 'example_flare.html')
+    plot_dataset('/grp/hst/hstlc/hst13902/outputs/composite/IR-COM_FUV_G140L_1105_curve.fits', 'example_transit.html')
