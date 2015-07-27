@@ -30,7 +30,7 @@ def histogram_exptime():
     #plot_dir = SETTINGS['plot']
 
     exptime_data = {}
-    for dataset in glob.glob(os.path.join(data_dir, '*.fits'))[:100]:
+    for dataset in glob.glob(os.path.join(data_dir, '*.fits')):
         print(dataset)
         with fits.open(dataset) as hdu:
             targname = os.path.split(dataset)[1].split('_')[0] #hdu[0].header['targname']
@@ -54,7 +54,7 @@ def histogram_exptime():
                      cat=names,
                      xlabel='Target',
                      ylabel='Exptime (s)',
-                     width=1200,
+                     width=600,
                      height=600,
                      title='Cumulative Exptime per Target')
     #bar.toolbar_location = None
@@ -165,7 +165,7 @@ def plot_dataset(filename, plot_file=''):
 
     TOOLS = "pan,wheel_zoom,box_zoom,reset,resize,save"
 
-    p = figure(tools=TOOLS, toolbar_location="left", logo="grey", plot_width=1200)
+    p = figure(tools=TOOLS, toolbar_location="above", logo="grey", plot_width=700)
     #p.title = "{} LightCurve".format(name)
     p.background_fill= "#cccccc"
 
