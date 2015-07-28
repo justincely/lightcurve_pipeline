@@ -111,7 +111,7 @@ def make_individual_lightcurve(metadata_dict, outputs_dict):
 
         logging.info('\tCreating lightcurve {}'.format(outputname))
         try:
-            lc = lightcurve.LightCurve(filename=inputname, step=1)
+            lc = lightcurve.LightCurve(filename=inputname, step=1, verbosity=1)
             lc.write(outputname)
             set_permissions(outputname)
         except Exception as e:
