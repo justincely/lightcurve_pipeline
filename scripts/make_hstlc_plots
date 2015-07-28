@@ -1,0 +1,200 @@
+#! /usr/bin/env python
+
+"""
+Reset all tables in the database.
+"""
+
+from __future__ import print_function
+
+from astropy.io import fits
+from bokeh import charts
+from bokeh.plotting import figure
+from bokeh.embed import components
+from collections import Counter
+
+import glob
+import numpy as np
+import os
+
+from lightcurve_pipeline.utils.utils import SETTINGS
+from lightcurve_pipeline.database.database_interface import engine
+from lightcurve_pipeline.database.database_interface import session
+from lightcurve_pipeline.database.database_interface import Stats
+
+#-------------------------------------------------------------------------------
+
+def histogram_exptime():
+    print("Starting the histogram")
+
+    data_dir = SETTINGS['composite_dir']
+    #plot_dir = SETTINGS['plot']
+
+    exptime_data = {}
+    for dataset in glob.glob(os.path.join(data_dir, '*.fits')):
+        print(dataset)
+        with fits.open(dataset) as hdu:
+            targname = os.path.split(dataset)[1].split('_')[0] #hdu[0].header['targname']
+            exptime = hdu[0].header['TOTTIME'] #hdu[0].header['EXPTIME']
+
+            if targname in exptime_data:
+                exptime_data[targname] += exptime
+            else:
+                exptime_data[targname] = exptime
+
+    charts.output_file("exptime_histogram.html")
+
+    times = np.array(exptime_data.values())
+    names = np.array(exptime_data.keys())
+    indx = np.argsort(times)
+
+    times = list(times[indx])[::-1][:50]
+    names = list(names[indx])[::-1][:50]
+
+    bar = charts.Bar(times,
+                     cat=names,
+                     xlabel='Target',
+                     ylabel='Exptime (s)',
+                     width=600,
+                     height=600,
+                     title='Cumulative Exptime per Target')
+    #bar.toolbar_location = None
+    #charts.show(bar)
+
+    script, div = components(bar)
+
+    print(div)
+    print()
+    print(script)
+
+#-------------------------------------------------------------------------------
+
+def piechart_config():
+    print("Starting the piechart")
+
+    data_dir = SETTINGS['composite_dir']
+    #plot_dir = SETTINGS['plot']
+
+    configs = {}
+    for dataset in glob.glob(os.path.join(data_dir, '*.fits')):
+        #with fits.open(dataset) as hdu:
+        #    exptime = hdu[0].header['TOTTIME'] #hdu[0].header['EXPTIME']
+
+        instrument = os.path.split(dataset)[1].split('_')[1]
+        grating = os.path.split(dataset)[1].split('_')[2]
+        cenwave = os.path.split(dataset)[1].split('_')[3]
+
+        if not instrument in configs:
+            configs[instrument] = [grating+'/'+cenwave]
+        else:
+            configs[instrument].append(grating+'/'+cenwave)
+
+        print(instrument, grating, cenwave)
+
+    #-- COS FUV
+    settings = Counter(configs['FUV'])
+    charts.output_file("pie_config_cos_fuv.html")
+
+    plot = charts.Donut(settings.values(),
+                        settings.keys(),
+                        width=1200,
+                        height=600,
+                        title='COS FUV breakdown')
+    charts.show(plot)
+    print(settings)
+
+    '''
+    #-- COS NUV
+    settings = Counter(configs['NUV'])
+    charts.output_file("pie_config_cos_nuv.html")
+
+    plot = charts.Donut(settings.values(),
+                        settings.keys(),
+                        width=1200,
+                        height=600,
+                        title='COS NUV breakdown')
+    charts.show(plot)
+    print(settings)
+    '''
+
+    #-- STIS FUV
+    settings = Counter(configs['FUV-MAMA'])
+    charts.output_file("pie_config_stis_fuv.html")
+
+    plot = charts.Donut(settings.values(),
+                        settings.keys(),
+                        width=1200,
+                        height=600,
+                        title='STIS FUV breakdown')
+    charts.show(plot)
+    print(settings)
+
+    #-- STIS NUV
+    settings = Counter(configs['NUV-MAMA'])
+    charts.output_file("pie_config_stis_nuv.html")
+
+    plot = charts.Donut(settings.values(),
+                        settings.keys(),
+                        width=1200,
+                        height=600,
+                        title='STIS NUV breakdown')
+    charts.show(plot)
+    print(settings)
+
+#-------------------------------------------------------------------------------
+
+def simple_stat_plots():
+
+    query = session.query(Stats.total, Stats.stdev).all()
+
+    counts = []
+    std = []
+    for row in query:
+        counts.append(row['total'])
+        std.append(row['stdev'])
+
+
+#-------------------------------------------------------------------------------
+
+def plot_dataset(filename, plot_file=''):
+    path, name = os.path.split(filename)
+
+    if not plot_file:
+        plot_file = name.replace('.fits', '.html')
+
+    charts.output_file(plot_file)
+
+    TOOLS = "pan,wheel_zoom,box_zoom,reset,resize,save"
+
+    p = figure(tools=TOOLS, toolbar_location="above", logo="grey", plot_width=700)
+    #p.title = "{} LightCurve".format(name)
+    p.background_fill= "#cccccc"
+
+    with fits.open(filename) as hdu:
+        p.circle(hdu[1].data['MJD'],
+                 hdu[1].data['NET'],
+                 size=12,
+                 line_color="black",
+                 fill_alpha=0.8)
+
+
+    p.xaxis.axis_label="Time (MJD)"
+    p.yaxis.axis_label="Net (cnts/sec)"
+    p.grid.grid_line_color="white"
+
+    charts.show(p)
+
+    script, div = components(p)
+
+    print(div)
+    print()
+    print(script)
+
+#-------------------------------------------------------------------------------
+
+if __name__ == "__main__":
+    print("Making plots for HSTLC")
+    #histogram_exptime()
+    #piechart_config()
+    #simple_stat_plots()
+    plot_dataset('/grp/hst/hstlc/hst13902/outputs/composite/V4046SGR_FUV_G130M_1300_curve.fits', 'example_flare.html')
+    plot_dataset('/grp/hst/hstlc/hst13902/outputs/composite/IR-COM_FUV_G140L_1105_curve.fits', 'example_transit.html')
