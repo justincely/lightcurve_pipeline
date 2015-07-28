@@ -19,7 +19,53 @@ import os
 from lightcurve_pipeline.utils.utils import SETTINGS
 from lightcurve_pipeline.database.database_interface import engine
 from lightcurve_pipeline.database.database_interface import session
+from lightcurve_pipeline.database.database_interface import Metadata
 from lightcurve_pipeline.database.database_interface import Stats
+
+#-------------------------------------------------------------------------------
+
+def bar_opt_elem():
+    """
+    Create a bar chart showing the number of composite lightcurves
+    for each COS & STIS optical element
+    """
+
+    # Query for data
+    query = session.query(Metadata.instrume, Metadata.opt_elem).all()
+    instrumes = [result[0] for result in query]
+    opt_elems = [result[1] for result in query]
+    opt_elems_set = sorted(list(set(opt_elems)))
+
+    # Initialize dictionaries that store all optical elements
+    cos_dict, stis_dict = {}, {}
+    for opt_elem in opt_elems_set:
+        cos_dict[opt_elem] = 0
+        stis_dict[opt_elem] = 0
+
+    # Count number of opt_elems
+    for instrument, opt_elem in zip(instrumes, opt_elems):
+        if instrument == 'COS':
+            cos_dict[opt_elem] += 1
+        elif instrument == 'STIS':
+            stis_dict[opt_elem] += 1
+
+    # Determine plotting values
+    cat = list(opt_elems_set)
+    xyvalues = OrderedDict()
+    xyvalues['COS'] = [cos_dict[opt_elem] for opt_elem in opt_elems_set]
+    xyvalues['STIS'] = [stis_dict[opt_elem] for opt_elem in opt_elems_set]
+
+    # Make plots
+    bar = charts.Bar(xyvalues,
+        cat,
+        xlabel="Optical Element",
+        ylabel="# of Lightcurves",
+        stacked=True,
+        legend = "top_right")
+    bar.background_fill = "#cccccc"
+    bar.outline_line_color = 'black'
+    charts.output_file("opt_elem.html")
+    charts.show(bar)
 
 #-------------------------------------------------------------------------------
 
@@ -196,5 +242,6 @@ if __name__ == "__main__":
     #histogram_exptime()
     #piechart_config()
     #simple_stat_plots()
+    #bar_opt_elem
     plot_dataset('/grp/hst/hstlc/hst13902/outputs/composite/V4046SGR_FUV_G130M_1300_curve.fits', 'example_flare.html')
     plot_dataset('/grp/hst/hstlc/hst13902/outputs/composite/IR-COM_FUV_G140L_1105_curve.fits', 'example_transit.html')
