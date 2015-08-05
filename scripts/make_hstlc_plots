@@ -79,8 +79,8 @@ def histogram_exptime():
     for dataset in glob.glob(os.path.join(data_dir, '*.fits')):
         print(dataset)
         with fits.open(dataset) as hdu:
-            targname = os.path.split(dataset)[1].split('_')[0] #hdu[0].header['targname']
-            exptime = hdu[0].header['TOTTIME'] #hdu[0].header['EXPTIME']
+            targname = dataset.split('_')[0] #hdu[0].header['targname']
+            exptime = hdu[0].header['EXPTIME']
 
             if targname in exptime_data:
                 exptime_data[targname] += exptime
@@ -239,9 +239,9 @@ def plot_dataset(filename, plot_file=''):
 
 if __name__ == "__main__":
     print("Making plots for HSTLC")
-    #histogram_exptime()
+    histogram_exptime()
     #piechart_config()
     #simple_stat_plots()
     #bar_opt_elem
-    plot_dataset('/grp/hst/hstlc/hst13902/outputs/composite/V4046SGR_FUV_G130M_1300_curve.fits', 'example_flare.html')
-    plot_dataset('/grp/hst/hstlc/hst13902/outputs/composite/IR-COM_FUV_G140L_1105_curve.fits', 'example_transit.html')
+    #plot_dataset('/grp/hst/hstlc/hst13902/outputs/composite/V4046SGR_FUV_G130M_1300_curve.fits', 'example_flare.html')
+    #plot_dataset('/grp/hst/hstlc/hst13902/outputs/composite/IR-COM_FUV_G140L_1105_curve.fits', 'example_transit.html')
