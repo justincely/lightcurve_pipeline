@@ -74,12 +74,13 @@ def histogram_exptime():
 
     data_dir = SETTINGS['composite_dir']
     #plot_dir = SETTINGS['plot']
+    data_dir = '/Volumes/papers/hst13902/outputs/composite/'
 
     exptime_data = {}
     for dataset in glob.glob(os.path.join(data_dir, '*.fits')):
         print(dataset)
         with fits.open(dataset) as hdu:
-            targname = dataset.split('_')[0] #hdu[0].header['targname']
+            targname = os.path.split(dataset)[-1].split('_')[0] #hdu[0].header['targname']
             exptime = hdu[0].header['EXPTIME']
 
             if targname in exptime_data:
@@ -93,17 +94,29 @@ def histogram_exptime():
     names = np.array(exptime_data.keys())
     indx = np.argsort(times)
 
-    times = list(times[indx])[::-1][:50]
-    names = list(names[indx])[::-1][:50]
+    times = list(times[indx])[::-1][:30]
+    names = list(names[indx])[::-1][:30]
 
     bar = charts.Bar(times,
                      cat=names,
                      xlabel='Target',
                      ylabel='Exptime (s)',
-                     width=600,
-                     height=600,
+                     width=700,
+                     height=400,
                      title='Cumulative Exptime per Target')
+
+    bar.background_fill = "#cccccc"
+    bar.outline_line_color = 'black'
+
+    # change just some things about the x-grid
+    #bar.xgrid.grid_line_color = None
+
+    # change just some things about the y-grid
+    #bar.ygrid.band_fill_alpha = 0.1
+    #bar.ygrid.band_fill_color = "navy"
+
     #bar.toolbar_location = None
+    
     #charts.show(bar)
 
     script, div = components(bar)
