@@ -118,6 +118,8 @@ def make_directory(directory):
     """
 
     if not os.path.exists(directory):
-        logging.info('\tCreating directory {}'.format(directory))
-        os.mkdir(directory)
-        set_permissions(directory)
+        try:
+            os.mkdir(directory)
+            set_permissions(directory)
+        except OSError:
+            pass

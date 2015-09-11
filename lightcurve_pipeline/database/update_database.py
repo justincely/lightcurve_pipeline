@@ -60,8 +60,6 @@ def update_metadata_table(metadata_dict):
         database.
     """
 
-    logging.info('\tUpdating metadata table.')
-
     # Get the id of the record, if it exists
     query = session.query(Metadata.id)\
         .filter(Metadata.filename == metadata_dict['filename']).all()
@@ -111,8 +109,6 @@ def update_outputs_table(metadata_dict, outputs_dict):
     outputs_dict : dict
         A dictionary containing output product information.
     """
-
-    logging.info('\tUpdating outputs table.')
 
     # Get the metadata_id
     session.rollback()
