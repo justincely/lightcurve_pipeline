@@ -1,7 +1,6 @@
 """Resolve the targname to a better option, if available.
 """
 
-import logging
 import urllib2
 from xml.dom import minidom
 
@@ -50,9 +49,6 @@ def get_targname(targname):
         for item in targname_set:
             if item in targnames_in_db:
                 new_targname = item
-
-    if targname != new_targname:
-        logging.info('\tChanged TARGNAME from {} to {}'.format(targname, new_targname))
 
     return new_targname
 
