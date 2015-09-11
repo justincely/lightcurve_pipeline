@@ -1,6 +1,7 @@
 """Connection module for the hstlc database
 """
 
+import argparse
 import pymysql
 
 from lightcurve_pipeline.utils.utils import SETTINGS
@@ -103,10 +104,14 @@ class Stats(base):
     lightcurve_path = Column(String(100), nullable=False)
     lightcurve_filename = Column(String(100), nullable=False)
     total = Column(Integer())
+    mean = Column(Float(10))
+    mu = Column(Float(10))
     stdev = Column(Float(10))
+    poisson_factor = Column(Float(10))
     pearson_r = Column(Float(10))
     pearson_p = Column(Float(10))
 
+# -----------------------------------------------------------------------------
 # -----------------------------------------------------------------------------
 
 if __name__ == '__main__':
