@@ -6,17 +6,83 @@ Reset all tables in the database.
 
 from __future__ import print_function
 
+import argparse
+import inspect
+import sys
+
 from lightcurve_pipeline.utils.utils import SETTINGS
-from lightcurve_pipeline.database.database_interface import base
+from lightcurve_pipeline.database import database_interface
+
+# -----------------------------------------------------------------------------
+
+def get_valid_tables():
+    """Return a list of table names in the hstlc database.
+
+    Returns
+    -------
+    tables : list
+        A list of hstlc table names.
+    """
+
+    tables = []
+    classmembers = inspect.getmembers(database_interface, inspect.isclass)
+    for classmember in classmembers:
+        try:
+            tables.append(classmember[1].__tablename__)
+        except AttributeError:
+            pass
+
+    return tables
+
+# -----------------------------------------------------------------------------
+
+def parse_args():
+    """Parse command line arguments.
+
+    Returns
+    -------
+    args : argparse object
+        An argparse object containing the arguments.
+    """
+
+    reset_table_help = ('The table to reset. Can be any valid database table,'
+        'or "all" to reset all tables.  The default option is "all".')
+
+    parser = argparse.ArgumentParser()
+    parser.add_argument('reset_table', action='store', nargs='?', type=str,
+        default='all', help=reset_table_help)
+    args = parser.parse_args()
+
+    # Make sure the argument is a valid option
+    valid_options = get_valid_tables()
+    valid_options.append('all')
+    explanation = '{} is not a valid table.'.format(args.reset_table)
+    args.reset_table = args.reset_table.lower()
+    assert args.reset_table in valid_options, explanation
+
+    return args
+
+# -----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 
 if __name__ == '__main__':
 
-    prompt = 'About to reset database instance {}. '.format(SETTINGS['db_connection_string'])
-    prompt += 'Do you wish to proceed? (y/n)'
+    args = parse_args()
+
+    prompt = ('About to reset {} table(s) for database instance {}. '
+        'Do you wish to proceed? (y/n)\n'.format(args.reset_table,
+        SETTINGS['db_connection_string']))
 
     response = raw_input(prompt)
 
     if response.lower() == 'y':
-        print('Resetting database')
-        base.metadata.drop_all()
-        base.metadata.create_all()
+        print('Resetting {} table(s)'.format(args.reset_table))
+
+        if args.reset_table == 'all':
+            database_interface.base.metadata.drop_all()
+            database_interface.base.metadata.create_all()
+
+        else:
+            database_interface.base.metadata.tables[args.reset_table].drop()
+            database_interface.base.metadata.tables[args.reset_table].create()
+
