@@ -117,7 +117,7 @@ def ingest(filename):
                 success = make_individual_lightcurve(metadata_dict, outputs_dict)
                 if success:
                     update_outputs_table(metadata_dict, outputs_dict)
-                    make_quicklook(outputs_dict)
+                    #make_quicklook(outputs_dict)
 
                 move_file(metadata_dict)
 

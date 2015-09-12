@@ -7,10 +7,16 @@ Reset all tables in the database.
 from __future__ import print_function
 
 from astropy.io import fits
+from astropy.table import Table
+import bokeh
 from bokeh import charts
 from bokeh.plotting import figure
 from bokeh.embed import components
 from collections import Counter
+import matplotlib as mpl
+mpl.use('Agg')
+import matplotlib.pyplot as plt
+
 
 import glob
 import numpy as np
@@ -116,7 +122,7 @@ def histogram_exptime():
     #bar.ygrid.band_fill_color = "navy"
 
     #bar.toolbar_location = None
-    
+
     #charts.show(bar)
 
     script, div = components(bar)
@@ -220,9 +226,8 @@ def plot_dataset(filename, plot_file=''):
     if not plot_file:
         plot_file = name.replace('.fits', '.html')
 
-    charts.output_file(plot_file)
-
     TOOLS = "pan,wheel_zoom,box_zoom,reset,resize,save"
+
 
     p = figure(tools=TOOLS, toolbar_location="above", logo="grey", plot_width=700)
     #p.title = "{} LightCurve".format(name)
@@ -240,19 +245,82 @@ def plot_dataset(filename, plot_file=''):
     p.yaxis.axis_label="Net (cnts/sec)"
     p.grid.grid_line_color="white"
 
-    charts.show(p)
+    charts.save(obj=p, filename=plot_file)
+    charts.reset_output()
+    del p
 
-    script, div = components(p)
+    #charts.show(p)
 
-    print(div)
-    print()
-    print(script)
+    #script, div = components(p)
+
+    #print(div)
+    #print()
+    #print(script)
+#-------------------------------------------------------------------------------
+
+def plot_dataset_static(filename, plot_file=''):
+    path, name = os.path.split(filename)
+
+    if not plot_file:
+        plot_file = name.replace('.fits', '.png')
+
+    fig = plt.figure(figsize=(30, 5))
+    ax = fig.add_subplot(1, 1, 1)
+
+    with fits.open(filename) as hdu:
+        ax.plot(hdu[1].data['NET'], marker='o', ls='')
+
+    fig.savefig(plot_file)
+    plt.close(fig)
+    del fig
+
+#-------------------------------------------------------------------------------
+
+def make_exploratory_table():
+
+    data_dir = SETTINGS['composite_dir']
+    #plot_dir = SETTINGS['plot']
+
+    info = []
+    for dataset in glob.glob(os.path.join(data_dir, '*.fits')):
+        with fits.open(dataset) as hdu:
+            exptime = hdu[0].header['EXPTIME']
+
+        targname = os.path.split(dataset)[1].split('_')[0]
+        instrument = os.path.split(dataset)[1].split('_')[1]
+        grating = os.path.split(dataset)[1].split('_')[2]
+        cenwave = os.path.split(dataset)[1].split('_')[3]
+
+        print(targname, instrument, grating, cenwave)
+
+        plot_name = dataset.replace('.fits', '.html')
+        plot_name_static = dataset.replace('.fits', '.png')
+
+        if os.path.exists(plot_name):
+            os.remove(plot_name)
+        if os.path.exists(plot_name_static):
+            os.remove(plot_name_static)
+
+        plot_dataset(dataset, plot_name)
+        plot_dataset_static(dataset, plot_name_static)
+
+        plot_html = """<a href="{}"><img width="400" src="{}"><a>""".format(plot_name, plot_name_static)
+        new_row = (targname, instrument, grating, cenwave, exptime, plot_html, dataset)
+        info.append(new_row)
+
+    out_tab = Table(rows=info,
+                    names=('target', 'instrument', 'grating', 'cenwave', 'exptime', 'plot', 'filename'))
+    out_tab.write('hstlc_composites.html', format='jsviewer')
+
+    os.system("""sed -i '' "s/&lt;/</g" {}""".format('hstlc_composites.html'))
+    os.system("""sed -i '' "s/&gt;/>/g" {}""".format('hstlc_composites.html'))
 
 #-------------------------------------------------------------------------------
 
 if __name__ == "__main__":
     print("Making plots for HSTLC")
-    histogram_exptime()
+    make_exploratory_table()
+    #histogram_exptime()
     #piechart_config()
     #simple_stat_plots()
     #bar_opt_elem
