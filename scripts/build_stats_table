@@ -43,7 +43,7 @@ def get_lightcurves(product_type):
         lightcurves = individual_lightcurves
     elif product_type == 'composite':
         lightcurves = composite_lightcurves
-    elif prodcut_type == 'both':
+    elif product_type == 'both':
         lightcurves = individual_lightcurves | composite_lightcurves
 
     return lightcurves
