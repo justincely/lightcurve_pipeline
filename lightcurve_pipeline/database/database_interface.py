@@ -103,13 +103,13 @@ class Stats(base):
     id = Column(Integer(), nullable=False, primary_key=True)
     lightcurve_path = Column(String(100), nullable=False)
     lightcurve_filename = Column(String(100), nullable=False)
-    total = Column(Integer())
-    mean = Column(Float(10))
-    mu = Column(Float(10))
-    stdev = Column(Float(10))
-    poisson_factor = Column(Float(10))
-    pearson_r = Column(Float(10))
-    pearson_p = Column(Float(10))
+    total = Column(Integer(), nullable=False)
+    mean = Column(Float(10), nullable=True)
+    mu = Column(Float(10), nullable=True)
+    stdev = Column(Float(10), nullable=True)
+    poisson_factor = Column(Float(10), nullable=True)
+    pearson_r = Column(Float(10), nullable=True)
+    pearson_p = Column(Float(10), nullable=True)
 
 # -----------------------------------------------------------------------------
 # -----------------------------------------------------------------------------
