@@ -7,8 +7,7 @@ import os
 import traceback
 
 import lightcurve
-from lightcurve_pipeline.database.database_interface import engine
-from lightcurve_pipeline.database.database_interface import session
+from lightcurve_pipeline.database.database_interface import get_session
 from lightcurve_pipeline.database.database_interface import Metadata
 from lightcurve_pipeline.database.database_interface import Outputs
 from lightcurve_pipeline.utils.utils import make_directory
@@ -32,10 +31,12 @@ def make_composite_lightcurves():
 
     # Get list of datasets that need to be (re)processed by querying
     # for empty composite records
+    session = get_session()
     datasets = session.query(Metadata.targname, Metadata.detector,
         Metadata.opt_elem, Metadata.cenwave).join(Outputs)\
         .filter(Outputs.composite_path == None).all()
     datasets = set(datasets)
+    session.close()
 
     # Process each dataset using multiprocessing
     logging.info('Creating {} composites using {} core(s)'.format(len(datasets), SETTINGS['num_cores']))
@@ -110,6 +111,7 @@ def process_dataset(dataset):
         cenwave = dataset[3]
 
         # Get list of files for each dataset to be processed
+        session = get_session()
         filelist = session.query(
             Metadata.id, Metadata.path, Metadata.filename)\
             .filter(Metadata.targname == dataset[0])\
@@ -120,6 +122,7 @@ def process_dataset(dataset):
         files_to_process = [os.path.join(item[1], item[2]) for item in filelist]
         logging.info('Processing dataset: {}\t{}\t{}\t{}: {} files to process'.format(targname,
             detector, opt_elem, cenwave, len(files_to_process)))
+        session.close()
 
         # Perform the extraction
         path = SETTINGS['composite_dir']
@@ -131,12 +134,14 @@ def process_dataset(dataset):
         logging.info('\tComposite lightcurve saved to {}'.format(save_loc))
 
         # Update the outputs table with the composite information
+        session = get_session()
         for metadata_id in metadata_ids:
             session.query(Outputs)\
                 .filter(Outputs.metadata_id == metadata_id)\
                 .update({'composite_path':path,
                     'composite_filename':output_filename})
         session.commit()
+        session.close()
 
     # Track any errors that happen during processing
     except Exception as error:
