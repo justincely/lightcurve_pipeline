@@ -1,7 +1,6 @@
 """Connection module for the hstlc database
 """
 
-import argparse
 import pymysql
 
 from lightcurve_pipeline.utils.utils import SETTINGS
@@ -17,6 +16,27 @@ from sqlalchemy import Float
 from sqlalchemy import ForeignKey
 from sqlalchemy import Integer
 from sqlalchemy import String
+
+# -----------------------------------------------------------------------------
+
+def get_session():
+    """Return just the session object of the database connection.
+
+    In many cases, all that is needed is the session object to interact
+    with the database.  This function can be used just to establish a
+    connection and retreive the session object.
+
+    Returns
+    -------
+
+    session : sesson object
+        Provides a holding zone for all objects loaded or associated
+        with the database.
+    """
+
+    session, base, engine = load_connection(SETTINGS['db_connection_string'])
+
+    return session
 
 # -----------------------------------------------------------------------------
 

@@ -6,7 +6,7 @@ from xml.dom import minidom
 
 from lightcurve_pipeline.utils.utils import SETTINGS
 from lightcurve_pipeline.utils.targname_dict import targname_dict
-from lightcurve_pipeline.database.database_interface import session
+from lightcurve_pipeline.database.database_interface import get_session
 from lightcurve_pipeline.database.database_interface import Metadata
 
 #------------------------------------------------------------------------------
@@ -44,11 +44,13 @@ def get_targname(targname):
 
         # For each resolved target name, check to see if it's already
         # in the database.  If it is, then use that one.
+        session = get_session()
         targnames_in_db = session.query(Metadata.targname).all()
         targnames_in_db = [item[0] for item in targnames_in_db]
         for item in targname_set:
             if item in targnames_in_db:
                 new_targname = item
+        session.close()
 
     return new_targname
 
