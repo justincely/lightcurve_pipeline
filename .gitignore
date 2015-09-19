@@ -55,3 +55,7 @@ target/
 
 # Yaml files
 #.yaml
+
+*.png
+*.html
+*.ipynb_checkpoints/
