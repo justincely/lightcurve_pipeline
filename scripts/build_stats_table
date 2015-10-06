@@ -88,7 +88,7 @@ def get_stats(dataset):
 
         # Populate stats_dict with poisson information
         try:
-            stats_dict['poisson_factor'] = float(stats_dict['mu'] / stats_dict['stdev'])
+            stats_dict['poisson_factor'] = float(stats_dict['stdev'] / stats_dict['mu'])
         except ZeroDivisionError:
             stats_dict['poisson_factor'] = 9999999.
 
