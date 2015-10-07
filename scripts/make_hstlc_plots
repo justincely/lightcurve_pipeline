@@ -13,9 +13,12 @@ from bokeh import charts
 from bokeh.plotting import figure
 from bokeh.embed import components
 from collections import Counter
+import seaborn as sns
 import matplotlib as mpl
 mpl.use('Agg')
 import matplotlib.pyplot as plt
+sns.set(style="dark")
+plt.ioff()
 
 
 import glob
@@ -235,7 +238,7 @@ def plot_dataset(filename, plot_file=''):
 
     with fits.open(filename) as hdu:
         p.circle(hdu[1].data['MJD'],
-                 hdu[1].data['NET'],
+                 hdu[1].data['FLUX'],
                  size=12,
                  line_color="black",
                  fill_alpha=0.8)
@@ -267,10 +270,25 @@ def plot_dataset_static(filename, plot_file=''):
     fig = plt.figure(figsize=(30, 5))
     ax = fig.add_subplot(1, 1, 1)
 
-    with fits.open(filename) as hdu:
-        ax.plot(hdu[1].data['NET'], marker='o', ls='')
+    
 
-    fig.savefig(plot_file)
+    with fits.open(filename) as hdu:
+        indx = np.argsort(hdu[1].data['MJD'])
+        xvals = np.arange(len(hdu[1].data['MJD']))
+        yvals = hdu[1].data['NET']
+
+        try:
+            colors = hdu[1].data['dataset'][indx]
+        except KeyError:
+            colors = np.ones(xvals.shape)       
+ 
+        ax.scatter(xvals, 
+                   yvals[indx], 
+                   c=colors, 
+                   marker='o')
+
+    ax.set_xlim(0, xvals.max())
+    fig.savefig(plot_file, bbox_inches='tight')
     plt.close(fig)
     del fig
 
@@ -285,13 +303,14 @@ def make_exploratory_table():
     for dataset in glob.glob(os.path.join(data_dir, '*.fits')):
         with fits.open(dataset) as hdu:
             exptime = hdu[0].header['EXPTIME']
+            std = hdu[1].data['NET'].std()
 
         targname = os.path.split(dataset)[1].split('_')[0]
         instrument = os.path.split(dataset)[1].split('_')[1]
         grating = os.path.split(dataset)[1].split('_')[2]
         cenwave = os.path.split(dataset)[1].split('_')[3]
 
-        print(targname, instrument, grating, cenwave)
+        print(targname, instrument, grating, cenwave, std)
 
         plot_name = dataset.replace('.fits', '.html')
         plot_name_static = dataset.replace('.fits', '.png')
@@ -305,11 +324,11 @@ def make_exploratory_table():
         plot_dataset_static(dataset, plot_name_static)
 
         plot_html = """<a href="{}"><img width="400" src="{}"><a>""".format(plot_name, plot_name_static)
-        new_row = (targname, instrument, grating, cenwave, exptime, plot_html, dataset)
+        new_row = (targname, instrument, grating, cenwave, exptime, std, plot_html, dataset)
         info.append(new_row)
 
     out_tab = Table(rows=info,
-                    names=('target', 'instrument', 'grating', 'cenwave', 'exptime', 'plot', 'filename'))
+                    names=('target', 'instrument', 'grating', 'cenwave', 'exptime', 'stddev', 'plot', 'filename'))
     out_tab.write('hstlc_composites.html', format='jsviewer')
 
     os.system("""sed -i '' "s/&lt;/</g" {}""".format('hstlc_composites.html'))
