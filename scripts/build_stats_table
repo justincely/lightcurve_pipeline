@@ -43,7 +43,7 @@ def get_lightcurves(product_type):
         lightcurves = individual_lightcurves
     elif product_type == 'composite':
         lightcurves = composite_lightcurves
-    elif prodcut_type == 'both':
+    elif product_type == 'both':
         lightcurves = individual_lightcurves | composite_lightcurves
 
     return lightcurves
@@ -73,17 +73,29 @@ def get_stats(dataset):
     hdulist = fits.open(dataset, mode='readonly')
     counts = hdulist[1].data.counts
     mjd = hdulist[1].data.mjd
-    stats_dict['total'] = int(np.sum(counts))
-    stats_dict['mean'] = float(np.mean(counts))
-    stats_dict['mu'] = np.sqrt(stats_dict['mean'])
-    stats_dict['stdev'] = float(np.std(counts))
-    stats_dict['poisson_factor'] = stats_dict['mu'] / stats_dict['stdev']
-    pearson_results = pearsonr(mjd, counts)
-    stats_dict['pearson_r'] = float(pearson_results[0])
-    stats_dict['pearson_p'] = float(pearson_results[1])
 
-    if np.isnan(stats_dict['pearson_r']):
-        stats_dict['pearson_r'] = 0.0
+    # Populate stats_dict with counts information
+    stats_dict['total'] = int(np.sum(counts))
+
+    # If total counts is zero, there is nothing else to compute
+    # If there are counts, then populate the rest of stats_dict
+    if stats_dict['total'] > 0:
+
+        # Populate stats dict with count stats
+        stats_dict['mean'] = float(np.mean(counts))
+        stats_dict['mu'] = float(np.sqrt(stats_dict['mean']))
+        stats_dict['stdev'] = float(np.std(counts))
+
+        # Populate stats_dict with poisson information
+        try:
+            stats_dict['poisson_factor'] = float(stats_dict['stdev'] / stats_dict['mu'])
+        except ZeroDivisionError:
+            stats_dict['poisson_factor'] = 9999999.
+
+        # Populate stats_dict with pearson information
+        pearson_results = pearsonr(mjd, counts)
+        stats_dict['pearson_r'] = float(pearson_results[0])
+        stats_dict['pearson_p'] = float(pearson_results[1])
 
     return stats_dict
 

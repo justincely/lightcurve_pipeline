@@ -33,7 +33,7 @@ SETTINGS = get_settings()
 # -----------------------------------------------------------------------------
 
 from lightcurve_pipeline.database.database_interface import engine
-from lightcurve_pipeline.database.database_interface import session
+from lightcurve_pipeline.database.database_interface import get_session
 
 def insert_or_update(table, data, id_num):
     """
@@ -51,6 +51,7 @@ def insert_or_update(table, data, id_num):
         inserted.
     """
 
+    session = get_session()
     if id_num == '':
         engine.execute(table.__table__.insert(), data)
     else:
@@ -58,6 +59,7 @@ def insert_or_update(table, data, id_num):
             .filter(table.id == id_num)\
             .update(data)
         session.commit()
+    session.close()
 
 # -----------------------------------------------------------------------------
 
