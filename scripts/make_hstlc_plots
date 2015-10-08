@@ -10,16 +10,18 @@ from astropy.io import fits
 from astropy.table import Table
 import bokeh
 from bokeh import charts
+from bokeh.io import gridplot
 from bokeh.plotting import figure
 from bokeh.embed import components
 from collections import Counter
-import seaborn as sns
+#import seaborn as sns
 import matplotlib as mpl
 mpl.use('Agg')
 import matplotlib.pyplot as plt
-sns.set(style="dark")
-plt.ioff()
+#sns.set(style="dark")
+import multiprocessing as mp
 
+from sqlalchemy.engine import create_engine
 
 import glob
 import numpy as np
@@ -223,13 +225,87 @@ def simple_stat_plots():
 
 #-------------------------------------------------------------------------------
 
+def dataset_dashboard(filename, plot_file=''):
+    if not plot_file:
+        plot_file = filename.replace('.fits', '.html')
+        print(plot_file)
+    if os.path.exists(plot_file):
+        os.remove(plot_file)
+
+    bokeh.io.output_file(plot_file)
+    TOOLS = "pan,wheel_zoom,box_zoom,reset,resize,box_select,lasso_select,save"
+
+    with fits.open(filename) as hdu:
+        #source = bokeh.models.ColumnDataSource(data=hdu[1].data.__dict__['_converted'])
+        source = bokeh.models.ColumnDataSource(data=dict(mjd = hdu[1].data['mjd'],
+                                                         gross = hdu[1].data['gross'],
+                                                         net = hdu[1].data['net'],
+                                                         flux=hdu[1].data['flux'],
+                                                         flux_error=hdu[1].data['flux_error'],
+                                                         background=hdu[1].data['background']))
+        #-- Gross
+        s1 = figure(tools=TOOLS, plot_width=900, plot_height=350, title='GROSS', toolbar_location="right")
+        s1.circle('mjd',
+                  'gross',
+                  source=source,
+                  size=12,
+                  line_color="navy",
+                  fill_alpha=1)
+
+        #-- Net
+        s2 = figure(tools=TOOLS, x_range=s1.x_range, plot_width=900, plot_height=350, title='NET', toolbar_location="right")
+        s2.circle('mjd',
+                  'net',
+                  source=source,
+                  size=12,
+                  line_color="navy",
+                  fill_alpha=1)
+
+        #--Flux
+        s3 = figure(tools=TOOLS, x_range=s1.x_range, plot_width=900, plot_height=350, title='Flux', toolbar_location="right")
+        s3.circle('mjd',
+                  'flux',
+                  source=source,
+                  size=12,
+                  line_color="green",
+                  fill_alpha=1)
+
+        #--Flux error
+        s4 = figure(tools=TOOLS, x_range=s1.x_range, plot_width=900, plot_height=350, title='Error', toolbar_location="right")
+        s4.circle('mjd',
+                  'flux_error',
+                  source=source,
+                  size=12,
+                  line_color="green",
+                  fill_alpha=1)
+
+        #--background
+        s5 = figure(tools=TOOLS, x_range=s1.x_range, plot_width=900, plot_height=350, title='Background', toolbar_location="right")
+        s5.circle('mjd',
+                  'background',
+                  source=source,
+                  size=12,
+                  line_color="green",
+                  fill_alpha=1)
+
+    # put all the plots in a grid layout
+    p = bokeh.io.vplot(s1, s2, s3, s4, s5)
+
+    charts.save(obj=p, filename=plot_file)
+    charts.reset_output()
+    del p
+
+#-------------------------------------------------------------------------------
+
 def plot_dataset(filename, plot_file=''):
     path, name = os.path.split(filename)
 
     if not plot_file:
         plot_file = name.replace('.fits', '.html')
+    if os.path.exists(plot_file):
+        os.remove(plot_file)
 
-    TOOLS = "pan,wheel_zoom,box_zoom,reset,resize,save"
+    TOOLS = "pan,wheel_zoom,box_zoom,box_select,lasso_select,reset,resize,save"
 
 
     p = figure(tools=TOOLS, toolbar_location="above", logo="grey", plot_width=700)
@@ -262,15 +338,14 @@ def plot_dataset(filename, plot_file=''):
 #-------------------------------------------------------------------------------
 
 def plot_dataset_static(filename, plot_file=''):
-    path, name = os.path.split(filename)
-
     if not plot_file:
-        plot_file = name.replace('.fits', '.png')
+        plot_file = filename.replace('.fits', '.png')
+        print(plot_file)
+    if os.path.exists(plot_file):
+        os.remove(plot_file)
 
-    fig = plt.figure(figsize=(30, 5))
+    fig = plt.figure(figsize=(10, 1))
     ax = fig.add_subplot(1, 1, 1)
-
-    
 
     with fits.open(filename) as hdu:
         indx = np.argsort(hdu[1].data['MJD'])
@@ -280,11 +355,11 @@ def plot_dataset_static(filename, plot_file=''):
         try:
             colors = hdu[1].data['dataset'][indx]
         except KeyError:
-            colors = np.ones(xvals.shape)       
- 
-        ax.scatter(xvals, 
-                   yvals[indx], 
-                   c=colors, 
+            colors = np.ones(xvals.shape)
+
+        ax.scatter(xvals,
+                   yvals[indx],
+                   c=colors,
                    marker='o')
 
     ax.set_xlim(0, xvals.max())
@@ -294,13 +369,30 @@ def plot_dataset_static(filename, plot_file=''):
 
 #-------------------------------------------------------------------------------
 
+def make_all_plots():
+    pool = mp.Pool(processes=10)
+
+    data_dir = SETTINGS['composite_dir']
+    datasets = glob.glob(os.path.join(data_dir, '*.fits'))
+    print("Matplotlib")
+    pool.map(plot_dataset_static, datasets)
+    print("bokeh")
+    pool.map(dataset_dashboard, datasets)
+
+#-------------------------------------------------------------------------------
+
 def make_exploratory_table():
 
     data_dir = SETTINGS['composite_dir']
     #plot_dir = SETTINGS['plot']
 
+    engine = create_engine(SETTINGS['db_connection_string'])
+    connection = engine.connect()
+
     info = []
     for dataset in glob.glob(os.path.join(data_dir, '*.fits')):
+        path, name = os.path.split(dataset)
+
         with fits.open(dataset) as hdu:
             exptime = hdu[0].header['EXPTIME']
             std = hdu[1].data['NET'].std()
@@ -310,25 +402,20 @@ def make_exploratory_table():
         grating = os.path.split(dataset)[1].split('_')[2]
         cenwave = os.path.split(dataset)[1].split('_')[3]
 
+        results = connection.execute("""SELECT total,mean,poisson_factor,pearson_r,pearson_p FROM stats WHERE lightcurve_filename='{}';""".format(name))
+        total, mean, poisson_f, pearson_r, pearson_p = results.fetchall()[0]
+
         print(targname, instrument, grating, cenwave, std)
 
         plot_name = dataset.replace('.fits', '.html')
         plot_name_static = dataset.replace('.fits', '.png')
 
-        if os.path.exists(plot_name):
-            os.remove(plot_name)
-        if os.path.exists(plot_name_static):
-            os.remove(plot_name_static)
-
-        plot_dataset(dataset, plot_name)
-        plot_dataset_static(dataset, plot_name_static)
-
-        plot_html = """<a href="{}"><img width="400" src="{}"><a>""".format(plot_name, plot_name_static)
-        new_row = (targname, instrument, grating, cenwave, exptime, std, plot_html, dataset)
+        plot_html = """<a href="{}" target="_blank"><img width="400" src="{}"><a>""".format(plot_name, plot_name_static)
+        new_row = (targname, plot_html, instrument, grating, cenwave, exptime, total, mean, poisson_f, pearson_r, pearson_p, dataset)
         info.append(new_row)
 
     out_tab = Table(rows=info,
-                    names=('target', 'instrument', 'grating', 'cenwave', 'exptime', 'stddev', 'plot', 'filename'))
+                    names=('target', 'plot', 'instrument', 'grating', 'cenwave', 'exptime', 'total', 'mean', 'poisson_f', 'pearson_r', 'pearson_p', 'filename'))
     out_tab.write('hstlc_composites.html', format='jsviewer')
 
     os.system("""sed -i '' "s/&lt;/</g" {}""".format('hstlc_composites.html'))
@@ -338,6 +425,7 @@ def make_exploratory_table():
 
 if __name__ == "__main__":
     print("Making plots for HSTLC")
+    make_all_plots()
     make_exploratory_table()
     #histogram_exptime()
     #piechart_config()
