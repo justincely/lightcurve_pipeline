@@ -79,7 +79,7 @@ def make_individual_lightcurve(metadata_dict, outputs_dict):
             metadata_dict['filename'])
 
         try:
-            lc = lightcurve.LightCurve(filename=inputname, step=1, verbosity=1)
+            lc = lightcurve.LightCurve(filename=inputname, step=2, verbosity=1)
             lc.write(outputname)
             set_permissions(outputname)
         except Exception as e:
@@ -129,7 +129,7 @@ def process_dataset(dataset):
         output_filename = '{}_{}_{}_{}_curve.fits'.format(targname, detector,
             opt_elem, cenwave)
         save_loc = os.path.join(path, output_filename)
-        lightcurve.composite(files_to_process, save_loc)
+        lightcurve.composite(files_to_process, save_loc, step=2)
         set_permissions(save_loc)
         logging.info('\tComposite lightcurve saved to {}'.format(save_loc))
 
