@@ -13,6 +13,9 @@ from bokeh import charts
 from bokeh.io import gridplot
 from bokeh.plotting import figure
 from bokeh.embed import components
+from bokeh import palettes
+
+import itertools
 from collections import Counter
 #import seaborn as sns
 import matplotlib as mpl
@@ -75,8 +78,8 @@ def bar_opt_elem():
         legend = "top_right")
     bar.background_fill = "#cccccc"
     bar.outline_line_color = 'black'
-    charts.output_file("opt_elem.html")
-    charts.show(bar)
+    charts.output_file(os.path.join(SETTINGS['plot_dir'], "opt_elem.html"))
+    #charts.show(bar)
 
 #-------------------------------------------------------------------------------
 
@@ -99,7 +102,7 @@ def histogram_exptime():
             else:
                 exptime_data[targname] = exptime
 
-    charts.output_file("exptime_histogram.html")
+    charts.output_file(os.path.join(SETTINGS['plot_dir'], "exptime_histogram.html"))
 
     times = np.array(exptime_data.values())
     names = np.array(exptime_data.keys())
@@ -169,8 +172,8 @@ def piechart_config():
                         width=1200,
                         height=600,
                         title='COS FUV breakdown')
-    charts.show(plot)
-    print(settings)
+    #charts.show(plot)
+    #print(settings)
 
     '''
     #-- COS NUV
@@ -188,27 +191,27 @@ def piechart_config():
 
     #-- STIS FUV
     settings = Counter(configs['FUV-MAMA'])
-    charts.output_file("pie_config_stis_fuv.html")
+    charts.output_file(os.path.join(SETTINGS['plot_dir'], "pie_config_stis_fuv.html"))
 
     plot = charts.Donut(settings.values(),
                         settings.keys(),
                         width=1200,
                         height=600,
                         title='STIS FUV breakdown')
-    charts.show(plot)
-    print(settings)
+    #charts.show(plot)
+    #print(settings)
 
     #-- STIS NUV
     settings = Counter(configs['NUV-MAMA'])
-    charts.output_file("pie_config_stis_nuv.html")
+    charts.output_file(os.path.join(SETTINGS['plot_dir'], "pie_config_stis_nuv.html"))
 
     plot = charts.Donut(settings.values(),
                         settings.keys(),
                         width=1200,
                         height=600,
                         title='STIS NUV breakdown')
-    charts.show(plot)
-    print(settings)
+    #charts.show(plot)
+    #print(settings)
 
 #-------------------------------------------------------------------------------
 
@@ -236,60 +239,32 @@ def dataset_dashboard(filename, plot_file=''):
     TOOLS = "pan,wheel_zoom,box_zoom,reset,resize,box_select,lasso_select,save"
 
     with fits.open(filename) as hdu:
-        #source = bokeh.models.ColumnDataSource(data=hdu[1].data.__dict__['_converted'])
-        source = bokeh.models.ColumnDataSource(data=dict(mjd = hdu[1].data['mjd'],
-                                                         gross = hdu[1].data['gross'],
-                                                         net = hdu[1].data['net'],
-                                                         flux=hdu[1].data['flux'],
-                                                         flux_error=hdu[1].data['flux_error'],
-                                                         background=hdu[1].data['background']))
-        #-- Gross
-        s1 = figure(tools=TOOLS, plot_width=900, plot_height=350, title='GROSS', toolbar_location="right")
-        s1.circle('mjd',
-                  'gross',
-                  source=source,
-                  size=12,
-                  line_color="navy",
-                  fill_alpha=1)
+        source = bokeh.models.ColumnDataSource(data={col : hdu[1].data[col] for col in hdu[1].data.names})
 
-        #-- Net
-        s2 = figure(tools=TOOLS, x_range=s1.x_range, plot_width=900, plot_height=350, title='NET', toolbar_location="right")
-        s2.circle('mjd',
-                  'net',
-                  source=source,
-                  size=12,
-                  line_color="navy",
-                  fill_alpha=1)
+        endless_colors = itertools.cycle(palettes.Spectral6)
+        colors = [endless_colors.next() for i in np.unique(hdu[1].data['dataset'])]
 
-        #--Flux
-        s3 = figure(tools=TOOLS, x_range=s1.x_range, plot_width=900, plot_height=350, title='Flux', toolbar_location="right")
-        s3.circle('mjd',
-                  'flux',
-                  source=source,
-                  size=12,
-                  line_color="green",
-                  fill_alpha=1)
+        dset_counts = Counter(hdu[1].data['dataset'])
+        repeats = [dset_counts[key] for key in sorted(dset_counts.keys())]
 
-        #--Flux error
-        s4 = figure(tools=TOOLS, x_range=s1.x_range, plot_width=900, plot_height=350, title='Error', toolbar_location="right")
-        s4.circle('mjd',
-                  'flux_error',
-                  source=source,
-                  size=12,
-                  line_color="green",
-                  fill_alpha=1)
+        colors = np.repeat(colors, repeats)
 
-        #--background
-        s5 = figure(tools=TOOLS, x_range=s1.x_range, plot_width=900, plot_height=350, title='Background', toolbar_location="right")
-        s5.circle('mjd',
-                  'background',
-                  source=source,
-                  size=12,
-                  line_color="green",
-                  fill_alpha=1)
+        axes = []
+        for key in ['gross', 'net', 'flux', 'error', 'background']:
+            if len(axes) == 0:
+                axes.append(figure(tools=TOOLS, plot_width=900, plot_height=350, title=key, toolbar_location="right"))
+            else:
+                axes.append(figure(tools=TOOLS, x_range=axes[0].x_range, plot_width=900, plot_height=350, title=key, toolbar_location="right"))
+            axes[-1].circle('mjd',
+                            key,
+                            source=source,
+                            size=12,
+                            color=colors,
+                            fill_alpha=1)
+
 
     # put all the plots in a grid layout
-    p = bokeh.io.vplot(s1, s2, s3, s4, s5)
+    p = bokeh.io.vplot(*axes)
 
     charts.save(obj=p, filename=plot_file)
     charts.reset_output()
@@ -350,7 +325,7 @@ def plot_dataset_static(filename, plot_file=''):
     with fits.open(filename) as hdu:
         indx = np.argsort(hdu[1].data['MJD'])
         xvals = np.arange(len(hdu[1].data['MJD']))
-        yvals = hdu[1].data['NET']
+        yvals = hdu[1].data['FLUX']
 
         try:
             colors = hdu[1].data['dataset'][indx]
@@ -363,6 +338,7 @@ def plot_dataset_static(filename, plot_file=''):
                    marker='o')
 
     ax.set_xlim(0, xvals.max())
+    ax.set_ylim(yvals[indx].min(), yvals[indx].max())
     fig.savefig(plot_file, bbox_inches='tight')
     plt.close(fig)
     del fig
@@ -375,27 +351,19 @@ def make_all_plots():
     data_dir = SETTINGS['composite_dir']
     datasets = glob.glob(os.path.join(data_dir, '*.fits'))
     print("Matplotlib")
-    pool.map(plot_dataset_static, datasets)
+    ###pool.map(plot_dataset_static, datasets)
     print("bokeh")
     pool.map(dataset_dashboard, datasets)
 
 #-------------------------------------------------------------------------------
 
-def make_exploratory_table():
-
-    data_dir = SETTINGS['composite_dir']
-    #plot_dir = SETTINGS['plot']
-
-    engine = create_engine(SETTINGS['db_connection_string'])
-    connection = engine.connect()
-
+def make_exploratory_table(dataset_list, table_name):
     info = []
-    for dataset in glob.glob(os.path.join(data_dir, '*.fits')):
+    for dataset in dataset_list:
         path, name = os.path.split(dataset)
 
         with fits.open(dataset) as hdu:
             exptime = hdu[0].header['EXPTIME']
-            std = hdu[1].data['NET'].std()
 
         targname = os.path.split(dataset)[1].split('_')[0]
         instrument = os.path.split(dataset)[1].split('_')[1]
@@ -405,7 +373,7 @@ def make_exploratory_table():
         results = connection.execute("""SELECT total,mean,poisson_factor,pearson_r,pearson_p FROM stats WHERE lightcurve_filename='{}';""".format(name))
         total, mean, poisson_f, pearson_r, pearson_p = results.fetchall()[0]
 
-        print(targname, instrument, grating, cenwave, std)
+        print(targname, instrument, grating, cenwave, poisson_f)
 
         plot_name = dataset.replace('.fits', '.html')
         plot_name_static = dataset.replace('.fits', '.png')
@@ -416,20 +384,49 @@ def make_exploratory_table():
 
     out_tab = Table(rows=info,
                     names=('target', 'plot', 'instrument', 'grating', 'cenwave', 'exptime', 'total', 'mean', 'poisson_f', 'pearson_r', 'pearson_p', 'filename'))
-    out_tab.write('hstlc_composites.html', format='jsviewer')
+    out_tab.write(table_name, format='jsviewer')
 
-    os.system("""sed -i '' "s/&lt;/</g" {}""".format('hstlc_composites.html'))
-    os.system("""sed -i '' "s/&gt;/>/g" {}""".format('hstlc_composites.html'))
+    os.system("""sed -i '' "s/&lt;/</g" {}""".format(table_name))
+    os.system("""sed -i '' "s/&gt;/>/g" {}""".format(table_name))
 
 #-------------------------------------------------------------------------------
 
 if __name__ == "__main__":
     print("Making plots for HSTLC")
     make_all_plots()
-    make_exploratory_table()
+
+    engine = create_engine(SETTINGS['db_connection_string'])
+    connection = engine.connect()
+
+    #-- find interesting datasets
+    results = connection.execute("""SELECT lightcurve_path,lightcurve_filename
+                                            FROM stats
+                                                WHERE poisson_factor IS NOT NULL
+                                                    AND poisson_factor>=1.2
+                                                    AND lightcurve_path LIKE '%%composite%%';""")
+    interesting_datasets = [os.path.join(item[0], item[1]) for item in results.fetchall()]
+    make_exploratory_table(interesting_datasets, os.path.join(SETTINGS['plot_dir'], 'interesting_hstlc.html'))
+
+    #-- find interesting datasets
+    results = connection.execute("""SELECT lightcurve_path,lightcurve_filename
+                                            FROM stats
+                                                WHERE poisson_factor IS NOT NULL
+                                                    AND poisson_factor<1.2
+                                                    AND lightcurve_path LIKE '%%composite%%';""")
+    boring_datasets = [os.path.join(item[0], item[1]) for item in results.fetchall()]
+    make_exploratory_table(boring_datasets, os.path.join(SETTINGS['plot_dir'], 'boring_hstlc.html'))
+
+    #-- find NULL
+    results = connection.execute("""SELECT lightcurve_path,lightcurve_filename
+                                            FROM stats
+                                                WHERE poisson_factor IS NULL
+                                                    AND lightcurve_path LIKE '%%composite%%';""")
+    null_datasets = [os.path.join(item[0], item[1]) for item in results.fetchall()]
+    make_exploratory_table(null_datasets, os.path.join(SETTINGS['plot_dir'], 'null_hstlc.html'))
+
+
     #histogram_exptime()
     #piechart_config()
-    #simple_stat_plots()
     #bar_opt_elem
     #plot_dataset('/grp/hst/hstlc/hst13902/outputs/composite/V4046SGR_FUV_G130M_1300_curve.fits', 'example_flare.html')
     #plot_dataset('/grp/hst/hstlc/hst13902/outputs/composite/IR-COM_FUV_G140L_1105_curve.fits', 'example_transit.html')
