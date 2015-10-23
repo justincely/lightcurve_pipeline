@@ -351,7 +351,7 @@ def make_all_plots():
     data_dir = SETTINGS['composite_dir']
     datasets = glob.glob(os.path.join(data_dir, '*.fits'))
     print("Matplotlib")
-    ###pool.map(plot_dataset_static, datasets)
+    pool.map(plot_dataset_static, datasets)
     print("bokeh")
     pool.map(dataset_dashboard, datasets)
 
