@@ -4,8 +4,10 @@
 hstlc database.
 """
 
+import argparse
 import datetime
 import glob
+import itertools
 import logging
 import multiprocessing
 import os
@@ -73,15 +75,22 @@ def get_files_to_ingest():
 
 # -----------------------------------------------------------------------------
 
-def ingest(filename):
+def ingest(mp_args):
     """Ingests the file into the hstlc filesystem and database. Also
     produces output lightcurves.
 
     Parameters
     ----------
-    filename : string
-        The absolute path to the file.
+    mp_args : tuple
+        The multiprocessing arguments.  The zeroth value is the
+        filename (i.e. the file to ingest), and the first value is the
+        corrtag_extract switch (i.e. turn on/off stis corrtag
+        re-extraction).
     """
+
+    # Parse args
+    filename = mp_args[0]
+    corrtag_extract = mp_args[1]
 
     try:
 
@@ -106,11 +115,15 @@ def ingest(filename):
             else:
                 metadata_dict, outputs_dict = make_file_dicts(filename, header)
 
-                # If the file is a tag STIS file, then make a corrtag
+                # If the file is a _tag STIS file, then make a corrtag
                 if metadata_dict['instrume'] == 'STIS' and '_tag.fits' in filename:
                     lightcurve.stis.stis_corrtag(filename)
                     new_filename = filename.replace('_tag.fits', '_corrtag.fits')
                     metadata_dict['filename'] = os.path.basename(new_filename)
+
+                # If the file is a corrtag STIS file, then re-extract if stis_extract is on
+                elif metadata_dict['instrume'] == 'STIS' and '_corrtag.fits' in filename and corrtag_extract:
+                    lightcurve.stis.stis_corrtag(filename)
 
                 update_metadata_table(metadata_dict)
 
@@ -250,6 +263,35 @@ def move_file(metadata_dict):
             os.remove(dst)
         shutil.move(src, dst)
 
+# ----------------------------------------------------------------------------
+
+def parse_args():
+    """Parse command line arguments. Returns args object.
+
+    Returns
+    -------
+    args : argparse.Namespace object
+        An argparse object containing all of the added arguments.
+    """
+
+    # Create help strings
+    corrtag_extract_help = 'If provided, STIS corrtag re-extraction is performed.'
+
+    # Add arguments
+    parser = argparse.ArgumentParser()
+    parser.add_argument('-corrtag_extract',
+        dest='corrtag_extract',
+        action='store_true',
+        help=corrtag_extract_help)
+
+    # Set the defaults
+    parser.set_defaults(corrtag_extract=False)
+
+    # Parse args
+    args = parser.parse_args()
+
+    return args
+
 # -----------------------------------------------------------------------------
 # -----------------------------------------------------------------------------
 
@@ -257,6 +299,8 @@ if __name__ == '__main__':
 
     module = os.path.basename(__file__).strip('.py')
     setup_logging(module)
+
+    args = parse_args()
 
     # Get list of files to ingest
     files_to_ingest = get_files_to_ingest()
@@ -266,7 +310,8 @@ if __name__ == '__main__':
     logging.info('Ingesting {} files using {} core(s)'.format(len(files_to_ingest), SETTINGS['num_cores']))
     logging.info('')
     pool = multiprocessing.Pool(processes=SETTINGS['num_cores'])
-    pool.map(ingest, files_to_ingest)
+    mp_args = itertools.izip(files_to_ingest, itertools.repeat(args.corrtag_extract))
+    pool.map(ingest, mp_args)
     pool.close()
     pool.join()
 
