@@ -6,6 +6,12 @@ Reset all tables in the database.
 
 from __future__ import print_function
 
+from collections import Counter
+import glob
+import itertools
+import multiprocessing as mp
+import os
+
 from astropy.io import fits
 from astropy.table import Table
 import bokeh
@@ -14,23 +20,20 @@ from bokeh.io import gridplot
 from bokeh.plotting import figure
 from bokeh.embed import components
 from bokeh import palettes
+import numpy as np
+import scipy
+from scipy.signal import lombscargle
+from sqlalchemy.engine import create_engine
 
-import itertools
-from collections import Counter
-#import seaborn as sns
 import matplotlib as mpl
 mpl.use('Agg')
 import matplotlib.pyplot as plt
+
+#import seaborn as sns
 #sns.set(style="dark")
-import multiprocessing as mp
-
-from sqlalchemy.engine import create_engine
-
-import glob
-import numpy as np
-import os
 
 from lightcurve_pipeline.utils.utils import SETTINGS
+from lightcurve_pipeline.utils.utils import set_permissions
 from lightcurve_pipeline.database.database_interface import engine
 from lightcurve_pipeline.database.database_interface import session
 from lightcurve_pipeline.database.database_interface import Metadata
@@ -272,6 +275,139 @@ def dataset_dashboard(filename, plot_file=''):
 
 #-------------------------------------------------------------------------------
 
+def process_periodograms():
+    """
+    Create periodograms for every dataset (individual and composite)
+    using multiprocessing
+    """
+
+    datasets = glob.glob(os.path.join(SETTINGS['outputs_dir'], '*/*curve.fits'))
+    plt.rcParams['axes.formatter.useoffset'] = False
+
+    print('Making periodograms for {} datasets over {} cores'.format(len(datasets), SETTINGS['num_cores']))
+    pool = mp.Pool(processes=SETTINGS['num_cores'])
+    pool.map(periodogram, datasets)
+    pool.close()
+    pool.join()
+    periodogram(datasets)
+
+#-------------------------------------------------------------------------------
+
+def periodogram(dataset):
+    """
+    Create a periodgram for the given dataset.
+    """
+
+    print('Making periodogram for {}'.format(dataset))
+
+    # Get the data
+    hdulist = fits.open(dataset, mode='readonly')
+    counts = hdulist[1].data['net']
+    times = hdulist[1].data['mjd']
+
+    if max(counts) > 0:
+
+        # Make sure the byte-order is native
+        counts = counts.byteswap().newbyteorder()
+        times = times.byteswap().newbyteorder()
+
+        # Define frequency space (in days)
+        short_freq = (hdulist[0].header['STEPSIZE'] / (60. * 60. * 24.)) # Step size
+        med_freq = (10. / (60. * 24.)) # 10 minutes
+        long_freq = 1. / 24. # 1 hour
+        max_freq = 10. / 24. # 10 hours
+
+        # Build frequency space
+        short_periods = np.linspace(short_freq, med_freq, len(times))
+        med_periods = np.linspace(med_freq, long_freq, len(times))
+        long_periods = np.linspace(long_freq, max_freq, len(times))
+        short_ang_freqs = 2 * np.pi / short_periods
+        med_ang_freqs = 2 * np.pi / med_periods
+        long_ang_freqs = 2 * np.pi / long_periods
+
+        # Find lomb-scargle power
+        short_power = lombscargle(np.asarray(times), np.asarray(counts) - np.asarray(counts).mean(), short_ang_freqs)
+        med_power = lombscargle(np.asarray(times), np.asarray(counts) - np.asarray(counts).mean(), med_ang_freqs)
+        long_power = lombscargle(np.asarray(times), np.asarray(counts) - np.asarray(counts).mean(), long_ang_freqs)
+        short_power *= 2 / (len(times) * np.asarray(counts).std() ** 2)
+        med_power *= 2 / (len(times) * np.asarray(counts).std() ** 2)
+        long_power *= 2 / (len(times) * np.asarray(counts).std() ** 2)
+
+        # Find local maxima
+        short_maxima = scipy.signal.argrelextrema(data=short_power, comparator=np.greater, order=1)[0]
+        med_maxima = scipy.signal.argrelextrema(data=med_power, comparator=np.greater, order=1)[0]
+        long_maxima = scipy.signal.argrelextrema(data=long_power, comparator=np.greater, order=1)[0]
+
+        # Find mean and standard deviation for each frequency space
+        short_mean = np.mean(short_power)
+        med_mean = np.mean(med_power)
+        long_mean = np.mean(long_power)
+        short_std = np.std(short_power)
+        med_std = np.std(med_power)
+        long_std = np.std(long_power)
+        short_three_sigma = short_mean + (3 * short_std)
+        med_three_sigma = med_mean + (3 * med_std)
+        long_three_sigma = long_mean + (3 * long_std)
+
+        # Isolate the maxima above three sigma
+        short_above_three_sigma = np.where(short_power > short_three_sigma)[0]
+        med_above_three_sigma = np.where(med_power > med_three_sigma)[0]
+        long_above_three_sigma = np.where(long_power > long_three_sigma)[0]
+
+        # Find the peaks above three sigma
+        short_significant_indices = [index for index in short_maxima if index in short_above_three_sigma]
+        med_significant_indices = [index for index in med_maxima if index in med_above_three_sigma]
+        long_significant_indices = [index for index in long_maxima if index in long_above_three_sigma]
+        short_significant_periods = short_periods[short_significant_indices]
+        med_significant_periods = med_periods[med_significant_indices]
+        long_significant_periods = long_periods[long_significant_indices]
+
+        # Make plot
+        fig = plt.figure(figsize=(10, 8))
+        ax1 = fig.add_subplot(411)
+        ax2 = fig.add_subplot(412)
+        ax3 = fig.add_subplot(413)
+        ax4 = fig.add_subplot(414)
+        ax1.minorticks_on()
+
+        # Top panel - the data
+        ax1.plot(times, counts, 'b+')
+        ax1.set(xlabel='MJD', ylabel='Net')
+
+        # 2nd panel - short frequency space
+        ax2.plot(short_periods, short_power)
+        ax2.axhline(short_mean, color='r', linestyle='-')
+        ax2.axhline(short_three_sigma, color='g', linestyle='-')
+        for period in short_significant_periods:
+            ax2.axvline(period, color='k', linestyle='--')
+        ax2.set(xlim=(short_freq, med_freq), title='Short Frequency Space')
+
+        # 3rd panal - medium frequency space
+        ax3.plot(med_periods, med_power)
+        ax3.axhline(med_mean, color='r', linestyle='-')
+        ax3.axhline(med_three_sigma, color='g', linestyle='-')
+        for period in med_significant_periods:
+            ax2.axvline(period, color='k', linestyle='--')
+        ax3.set(xlim=(med_freq, long_freq), ylabel='Lomb-Scargle Power', title='Medium Frequency Space')
+
+        # bottom panel - long frequency space
+        ax4.plot(long_periods, long_power)
+        ax4.axhline(long_mean, color='r', linestyle='-')
+        ax4.axhline(long_three_sigma, color='g', linestyle='-')
+        for period in long_significant_periods:
+            ax2.axvline(period, color='k', linestyle='--')
+        ax4.set(xlim=(long_freq, max_freq), xlabel='Period (Days)', title='Long Frequency Space')
+
+        # Save the plot
+        fig.tight_layout()
+        filename = '{}_periodogram.png'.format(os.path.basename(dataset).split('_curve.fits')[0])
+        save_loc = os.path.join(SETTINGS['plot_dir'], filename)
+        plt.savefig(save_loc)
+        plt.close()
+        set_permissions(save_loc)
+
+#-------------------------------------------------------------------------------
+
 def plot_dataset(filename, plot_file=''):
     path, name = os.path.split(filename)
 
@@ -346,6 +482,7 @@ def plot_dataset_static(filename, plot_file=''):
 #-------------------------------------------------------------------------------
 
 def make_all_plots():
+
     pool = mp.Pool(processes=10)
 
     data_dir = SETTINGS['composite_dir']
@@ -390,10 +527,14 @@ def make_exploratory_table(dataset_list, table_name):
     os.system("""sed -i '' "s/&gt;/>/g" {}""".format(table_name))
 
 #-------------------------------------------------------------------------------
+#-------------------------------------------------------------------------------
 
 if __name__ == "__main__":
+
     print("Making plots for HSTLC")
     make_all_plots()
+
+    process_periodograms()
 
     engine = create_engine(SETTINGS['db_connection_string'])
     connection = engine.connect()
