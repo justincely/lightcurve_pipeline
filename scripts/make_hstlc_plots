@@ -361,50 +361,59 @@ def periodogram(dataset):
         short_significant_periods = short_periods[short_significant_indices]
         med_significant_periods = med_periods[med_significant_indices]
         long_significant_periods = long_periods[long_significant_indices]
+        short_significant_powers = short_power[short_significant_indices]
+        med_significant_powers = med_power[med_significant_indices]
+        long_significant_powers = long_power[long_significant_indices]
 
-        # Make plot
-        fig = plt.figure(figsize=(10, 8))
-        ax1 = fig.add_subplot(411)
-        ax2 = fig.add_subplot(412)
-        ax3 = fig.add_subplot(413)
-        ax4 = fig.add_subplot(414)
-        ax1.minorticks_on()
+        # Make plot if there are significant peaks above the threshold
+        significant_threshold = 0.30
+        all_significant_powers = list(short_significant_powers) + list(med_significant_powers) + list(long_significant_powers)
+        if len(all_significant_powers) > 0:
+            max_significant_power = max(all_significant_powers)
+            if max_significant_power >= significant_threshold:
 
-        # Top panel - the data
-        ax1.plot(times, counts, 'b+')
-        ax1.set(xlabel='MJD', ylabel='Net')
+                fig = plt.figure(figsize=(10, 8))
+                ax1 = fig.add_subplot(411)
+                ax2 = fig.add_subplot(412)
+                ax3 = fig.add_subplot(413)
+                ax4 = fig.add_subplot(414)
+                ax1.minorticks_on()
 
-        # 2nd panel - short frequency space
-        ax2.plot(short_periods, short_power)
-        ax2.axhline(short_mean, color='r', linestyle='-')
-        ax2.axhline(short_three_sigma, color='g', linestyle='-')
-        for period in short_significant_periods:
-            ax2.axvline(period, color='k', linestyle='--')
-        ax2.set(xlim=(short_freq, med_freq), title='Short Frequency Space')
+                # Top panel - the data
+                ax1.plot(times, counts, 'b+')
+                ax1.set(xlabel='MJD', ylabel='Net')
 
-        # 3rd panal - medium frequency space
-        ax3.plot(med_periods, med_power)
-        ax3.axhline(med_mean, color='r', linestyle='-')
-        ax3.axhline(med_three_sigma, color='g', linestyle='-')
-        for period in med_significant_periods:
-            ax2.axvline(period, color='k', linestyle='--')
-        ax3.set(xlim=(med_freq, long_freq), ylabel='Lomb-Scargle Power', title='Medium Frequency Space')
+                # 2nd panel - short frequency space
+                ax2.plot(short_periods, short_power)
+                ax2.axhline(short_mean, color='r', linestyle='-')
+                ax2.axhline(short_three_sigma, color='g', linestyle='-')
+                for period in short_significant_periods:
+                    ax2.axvline(period, color='k', linestyle='--')
+                ax2.set(xlim=(short_freq, med_freq), title='Short Frequency Space')
 
-        # bottom panel - long frequency space
-        ax4.plot(long_periods, long_power)
-        ax4.axhline(long_mean, color='r', linestyle='-')
-        ax4.axhline(long_three_sigma, color='g', linestyle='-')
-        for period in long_significant_periods:
-            ax2.axvline(period, color='k', linestyle='--')
-        ax4.set(xlim=(long_freq, max_freq), xlabel='Period (Days)', title='Long Frequency Space')
+                # 3rd panal - medium frequency space
+                ax3.plot(med_periods, med_power)
+                ax3.axhline(med_mean, color='r', linestyle='-')
+                ax3.axhline(med_three_sigma, color='g', linestyle='-')
+                for period in med_significant_periods:
+                    ax3.axvline(period, color='k', linestyle='--')
+                ax3.set(xlim=(med_freq, long_freq), ylabel='Lomb-Scargle Power', title='Medium Frequency Space')
 
-        # Save the plot
-        fig.tight_layout()
-        filename = '{}_periodogram.png'.format(os.path.basename(dataset).split('_curve.fits')[0])
-        save_loc = os.path.join(SETTINGS['plot_dir'], filename)
-        plt.savefig(save_loc)
-        plt.close()
-        set_permissions(save_loc)
+                # bottom panel - long frequency space
+                ax4.plot(long_periods, long_power)
+                ax4.axhline(long_mean, color='r', linestyle='-')
+                ax4.axhline(long_three_sigma, color='g', linestyle='-')
+                for period in long_significant_periods:
+                    ax4.axvline(period, color='k', linestyle='--')
+                ax4.set(xlim=(long_freq, max_freq), xlabel='Period (Days)', title='Long Frequency Space')
+
+                # Save the plot
+                fig.tight_layout()
+                filename = '{}_periodogram.png'.format(os.path.basename(dataset).split('_curve.fits')[0])
+                save_loc = os.path.join(SETTINGS['plot_dir'], 'periodogram_subset', filename)
+                plt.savefig(save_loc)
+                plt.close()
+                set_permissions(save_loc)
 
 #-------------------------------------------------------------------------------
 
