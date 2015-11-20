@@ -4,11 +4,11 @@
 Reset all tables in the database.
 """
 
-from __future__ import print_function
-
 from collections import Counter
+from collections import OrderedDict
 import glob
 import itertools
+import logging
 import multiprocessing as mp
 import os
 
@@ -21,19 +21,19 @@ from bokeh.plotting import figure
 from bokeh.embed import components
 from bokeh import palettes
 import numpy as np
-import scipy
-from scipy.signal import lombscargle
-from sqlalchemy.engine import create_engine
+from scipy import signal
 
 import matplotlib as mpl
 mpl.use('Agg')
 import matplotlib.pyplot as plt
+plt.rcParams['axes.formatter.useoffset'] = False
 
 #import seaborn as sns
 #sns.set(style="dark")
 
 from lightcurve_pipeline.utils.utils import SETTINGS
 from lightcurve_pipeline.utils.utils import set_permissions
+from lightcurve_pipeline.utils.utils import setup_logging
 from lightcurve_pipeline.database.database_interface import engine
 from lightcurve_pipeline.database.database_interface import session
 from lightcurve_pipeline.database.database_interface import Metadata
@@ -46,6 +46,8 @@ def bar_opt_elem():
     Create a bar chart showing the number of composite lightcurves
     for each COS & STIS optical element
     """
+
+    logging.info('Creating optical element bar chart')
 
     # Query for data
     query = session.query(Metadata.instrume, Metadata.opt_elem).all()
@@ -75,171 +77,121 @@ def bar_opt_elem():
     # Make plots
     bar = charts.Bar(xyvalues,
         cat,
-        xlabel="Optical Element",
-        ylabel="# of Lightcurves",
+        xlabel='Optical Element',
+        ylabel='# of Lightcurves',
         stacked=True,
-        legend = "top_right")
-    bar.background_fill = "#cccccc"
+        legend = 'top_right')
+    bar.background_fill = '#cccccc'
     bar.outline_line_color = 'black'
-    charts.output_file(os.path.join(SETTINGS['plot_dir'], "opt_elem.html"))
-    #charts.show(bar)
+    charts.output_file(os.path.join(SETTINGS['plot_dir'], 'opt_elem.html'))
+    plot_file = os.path.join(SETTINGS['plot_dir'], 'opt_elem.html')
+    charts.save(obj=bar, filename=plot_file)
 
 #-------------------------------------------------------------------------------
 
-def histogram_exptime():
-    print("Starting the histogram")
+def configuration_piechart():
+    """
+    Create a piechart showing distribution of configurations for each
+    detector
+    """
+
+    logging.info('Creating target piechart')
 
     data_dir = SETTINGS['composite_dir']
-    #plot_dir = SETTINGS['plot']
-    data_dir = '/Volumes/papers/hst13902/outputs/composite/'
-
-    exptime_data = {}
-    for dataset in glob.glob(os.path.join(data_dir, '*.fits')):
-        print(dataset)
-        with fits.open(dataset) as hdu:
-            targname = os.path.split(dataset)[-1].split('_')[0] #hdu[0].header['targname']
-            exptime = hdu[0].header['EXPTIME']
-
-            if targname in exptime_data:
-                exptime_data[targname] += exptime
-            else:
-                exptime_data[targname] = exptime
-
-    charts.output_file(os.path.join(SETTINGS['plot_dir'], "exptime_histogram.html"))
-
-    times = np.array(exptime_data.values())
-    names = np.array(exptime_data.keys())
-    indx = np.argsort(times)
-
-    times = list(times[indx])[::-1][:30]
-    names = list(names[indx])[::-1][:30]
-
-    bar = charts.Bar(times,
-                     cat=names,
-                     xlabel='Target',
-                     ylabel='Exptime (s)',
-                     width=700,
-                     height=400,
-                     title='Cumulative Exptime per Target')
-
-    bar.background_fill = "#cccccc"
-    bar.outline_line_color = 'black'
-
-    # change just some things about the x-grid
-    #bar.xgrid.grid_line_color = None
-
-    # change just some things about the y-grid
-    #bar.ygrid.band_fill_alpha = 0.1
-    #bar.ygrid.band_fill_color = "navy"
-
-    #bar.toolbar_location = None
-
-    #charts.show(bar)
-
-    script, div = components(bar)
-
-    print(div)
-    print()
-    print(script)
-
-#-------------------------------------------------------------------------------
-
-def piechart_config():
-    print("Starting the piechart")
-
-    data_dir = SETTINGS['composite_dir']
-    #plot_dir = SETTINGS['plot']
 
     configs = {}
     for dataset in glob.glob(os.path.join(data_dir, '*.fits')):
-        #with fits.open(dataset) as hdu:
-        #    exptime = hdu[0].header['TOTTIME'] #hdu[0].header['EXPTIME']
 
         instrument = os.path.split(dataset)[1].split('_')[1]
         grating = os.path.split(dataset)[1].split('_')[2]
         cenwave = os.path.split(dataset)[1].split('_')[3]
 
         if not instrument in configs:
-            configs[instrument] = [grating+'/'+cenwave]
+            configs[instrument] = ['{}/{}'.format(grating, cenwave)]
         else:
-            configs[instrument].append(grating+'/'+cenwave)
+            configs[instrument].append('{}/{}'.format(grating,cenwave))
 
-        print(instrument, grating, cenwave)
+    # COS FUV
+    try:
+        settings = Counter(configs['FUV'])
+        charts.output_file(os.path.join(SETTINGS['plot_dir'], 'pie_config_cos_fuv.html'))
+        plot = charts.Donut(settings.values(),
+                            settings.keys(),
+                            width=1200,
+                            height=600,
+                            title='COS FUV breakdown')
+        plot_file = os.path.join(SETTINGS['plot_dir'], 'pie_config_cos_fuv.html')
+        charts.save(obj=plot, filename=plot_file)
+    except KeyError:
+        logging.info('No COS FUV datasets')
 
-    #-- COS FUV
-    settings = Counter(configs['FUV'])
-    charts.output_file("pie_config_cos_fuv.html")
+    # COS NUV
+    try:
+        settings = Counter(configs['NUV'])
+        charts.output_file(os.path.join(SETTINGS['plot_dir'], 'pie_config_cos_nuv.html'))
+        plot = charts.Donut(settings.values(),
+                            settings.keys(),
+                            width=1200,
+                            height=600,
+                            title='COS NUV breakdown')
+        plot_file = os.path.join(SETTINGS['plot_dir'], 'pie_config_cos_nuv.html')
+        charts.save(obj=plot, filename=plot_file)
+    except KeyError:
+        logging.info('No COS NUV datasets')
 
-    plot = charts.Donut(settings.values(),
-                        settings.keys(),
-                        width=1200,
-                        height=600,
-                        title='COS FUV breakdown')
-    #charts.show(plot)
-    #print(settings)
+    # STIS FUV
+    try:
+        settings = Counter(configs['FUV-MAMA'])
+        charts.output_file(os.path.join(SETTINGS['plot_dir'], 'pie_config_stis_fuv.html'))
+        plot = charts.Donut(settings.values(),
+                            settings.keys(),
+                            width=1200,
+                            height=600,
+                            title='STIS FUV breakdown')
+        plot_file = os.path.join(SETTINGS['plot_dir'], 'pie_config_stis_fuv.html')
+        charts.save(obj=plot, filename=plot_file)
+    except KeyError:
+        logging.info('No STIS FUV-MAMA datasets')
 
-    '''
-    #-- COS NUV
-    settings = Counter(configs['NUV'])
-    charts.output_file("pie_config_cos_nuv.html")
-
-    plot = charts.Donut(settings.values(),
-                        settings.keys(),
-                        width=1200,
-                        height=600,
-                        title='COS NUV breakdown')
-    charts.show(plot)
-    print(settings)
-    '''
-
-    #-- STIS FUV
-    settings = Counter(configs['FUV-MAMA'])
-    charts.output_file(os.path.join(SETTINGS['plot_dir'], "pie_config_stis_fuv.html"))
-
-    plot = charts.Donut(settings.values(),
-                        settings.keys(),
-                        width=1200,
-                        height=600,
-                        title='STIS FUV breakdown')
-    #charts.show(plot)
-    #print(settings)
-
-    #-- STIS NUV
-    settings = Counter(configs['NUV-MAMA'])
-    charts.output_file(os.path.join(SETTINGS['plot_dir'], "pie_config_stis_nuv.html"))
-
-    plot = charts.Donut(settings.values(),
-                        settings.keys(),
-                        width=1200,
-                        height=600,
-                        title='STIS NUV breakdown')
-    #charts.show(plot)
-    #print(settings)
-
-#-------------------------------------------------------------------------------
-
-def simple_stat_plots():
-
-    query = session.query(Stats.total, Stats.stdev).all()
-
-    counts = []
-    std = []
-    for row in query:
-        counts.append(row['total'])
-        std.append(row['stdev'])
+    # STIS NUV
+    try:
+        settings = Counter(configs['NUV-MAMA'])
+        charts.output_file(os.path.join(SETTINGS['plot_dir'], 'pie_config_stis_nuv.html'))
+        plot = charts.Donut(settings.values(),
+                            settings.keys(),
+                            width=1200,
+                            height=600,
+                            title='STIS NUV breakdown')
+        plot_file = os.path.join(SETTINGS['plot_dir'], 'pie_config_stis_nuv.html')
+        charts.save(obj=plot, filename=plot_file)
+    except KeyError:
+        logging.info('No STIS NUV datasets')
 
 
 #-------------------------------------------------------------------------------
 
 def dataset_dashboard(filename, plot_file=''):
+    """
+    Creates interactive bokeh 'dashborad' plot for the given filename
+
+    Parameters
+    ----------
+    filename : str
+        The path to the lightcurve
+    plot_file : str
+        The path to the PNG plot.  The user can supply this argument if
+        they wish to update the plot or save to a specific location
+    """
+
+    logging.info('Creating bokeh dashboard plots for {}'.format(filename))
+
     if not plot_file:
         plot_file = filename.replace('.fits', '.html')
-        print(plot_file)
     if os.path.exists(plot_file):
         os.remove(plot_file)
 
     bokeh.io.output_file(plot_file)
-    TOOLS = "pan,wheel_zoom,box_zoom,reset,resize,box_select,lasso_select,save"
+    TOOLS = 'pan,wheel_zoom,box_zoom,reset,resize,box_select,lasso_select,save'
 
     with fits.open(filename) as hdu:
         source = bokeh.models.ColumnDataSource(data={col : hdu[1].data[col] for col in hdu[1].data.names})
@@ -255,9 +207,9 @@ def dataset_dashboard(filename, plot_file=''):
         axes = []
         for key in ['gross', 'net', 'flux', 'error', 'background']:
             if len(axes) == 0:
-                axes.append(figure(tools=TOOLS, plot_width=900, plot_height=350, title=key, toolbar_location="right"))
+                axes.append(figure(tools=TOOLS, plot_width=900, plot_height=350, title=key, toolbar_location='right'))
             else:
-                axes.append(figure(tools=TOOLS, x_range=axes[0].x_range, plot_width=900, plot_height=350, title=key, toolbar_location="right"))
+                axes.append(figure(tools=TOOLS, x_range=axes[0].x_range, plot_width=900, plot_height=350, title=key, toolbar_location='right'))
             axes[-1].circle('mjd',
                             key,
                             source=source,
@@ -275,30 +227,154 @@ def dataset_dashboard(filename, plot_file=''):
 
 #-------------------------------------------------------------------------------
 
-def process_periodograms():
+def exploratory_tables():
     """
-    Create periodograms for every dataset (individual and composite)
-    using multiprocessing
+    Create html tables containing data from the Stats table as well as
+    plots, broken down into interesting, boring, and null results
     """
 
-    datasets = glob.glob(os.path.join(SETTINGS['outputs_dir'], '*/*curve.fits'))
-    plt.rcParams['axes.formatter.useoffset'] = False
+    # Interesting results
+    logging.info('Creating exploratory table for interesting datasets')
+    interesting_query = session.query(Stats.lightcurve_path, Stats.lightcurve_filename).\
+        filter(Stats.poisson_factor != 'NULL').\
+        filter(Stats.poisson_factor >= 1.2).\
+        filter(Stats.lightcurve_path.like('%composite%')).all()
+    interesting_datasets = [os.path.join(item[0], item[1]) for item in interesting_query]
+    make_exploratory_table(interesting_datasets, os.path.join(SETTINGS['plot_dir'], 'interesting_hstlc.html'))
 
-    print('Making periodograms for {} datasets over {} cores'.format(len(datasets), SETTINGS['num_cores']))
-    pool = mp.Pool(processes=SETTINGS['num_cores'])
-    pool.map(periodogram, datasets)
-    pool.close()
-    pool.join()
-    periodogram(datasets)
+    # Boring results
+    logging.info('Creating exploratory table for boring datasets')
+    boring_query = session.query(Stats.lightcurve_path, Stats.lightcurve_filename).\
+        filter(Stats.poisson_factor != 'NULL').\
+        filter(Stats.poisson_factor < 1.2).\
+        filter(Stats.lightcurve_path.like('%composite%')).all()
+    boring_datasets = [os.path.join(item[0], item[1]) for item in boring_query]
+    make_exploratory_table(boring_datasets, os.path.join(SETTINGS['plot_dir'], 'boring_hstlc.html'))
+
+    # NULL results
+    logging.info('Creating exploratory table for NULL datasets')
+    null_query = session.query(Stats.lightcurve_path, Stats.lightcurve_filename).\
+        filter(Stats.poisson_factor == 'NULL').\
+        filter(Stats.lightcurve_path.like('%composite%')).all()
+    null_datasets = [os.path.join(item[0], item[1]) for item in null_query]
+    make_exploratory_table(null_datasets, os.path.join(SETTINGS['plot_dir'], 'null_hstlc.html'))
+
+#-------------------------------------------------------------------------------
+
+def histogram_exptime():
+    """
+    Create a histogram showing the distribution of expotimes for the
+    composite lightcurves
+    """
+
+    logging.info('Creating exposure time historgram')
+
+    data_dir = SETTINGS['composite_dir']
+
+    exptime_data = {}
+    for dataset in glob.glob(os.path.join(data_dir, '*.fits')):
+        with fits.open(dataset) as hdu:
+            targname = os.path.split(dataset)[-1].split('_')[0]
+            exptime = hdu[0].header['EXPTIME']
+
+            if targname in exptime_data:
+                exptime_data[targname] += exptime
+            else:
+                exptime_data[targname] = exptime
+
+    charts.output_file(os.path.join(SETTINGS['plot_dir'], 'exptime_histogram.html'))
+
+    times = np.array(exptime_data.values())
+    names = np.array(exptime_data.keys())
+    indx = np.argsort(times)
+
+    times = list(times[indx])[::-1][:30]
+    names = list(names[indx])[::-1][:30]
+
+    bar = charts.Bar(times,
+                     cat=names,
+                     xlabel='Target',
+                     ylabel='Exptime (s)',
+                     width=700,
+                     height=400,
+                     title='Cumulative Exptime per Target')
+
+    bar.background_fill = '#cccccc'
+    bar.outline_line_color = 'black'
+
+    # change just some things about the x-grid
+    #bar.xgrid.grid_line_color = None
+
+    # change just some things about the y-grid
+    #bar.ygrid.band_fill_alpha = 0.1
+    #bar.ygrid.band_fill_color = "navy"
+
+    #bar.toolbar_location = None
+
+    #charts.show(bar)
+
+    script, div = components(bar)
+
+    plot_file = os.path.join(SETTINGS['plot_dir'], 'exptime_histogram.html')
+    charts.save(obj=bar, filename=plot_file)
+
+#-------------------------------------------------------------------------------
+
+def make_exploratory_table(dataset_list, table_name):
+    """
+    Create html tables containing data from the Stats table as well as
+    plots
+
+    Parameters
+    ----------
+    dataset_list : list
+        A list of the paths to the datasets to process
+    table_name : str
+        The path to the output file
+    """
+
+    info = []
+
+    if len(dataset_list) > 0:
+
+        for dataset in dataset_list:
+            path, name = os.path.split(dataset)
+
+            with fits.open(dataset) as hdu:
+                exptime = hdu[0].header['EXPTIME']
+
+            targname = os.path.split(dataset)[1].split('_')[0]
+            instrument = os.path.split(dataset)[1].split('_')[1]
+            grating = os.path.split(dataset)[1].split('_')[2]
+            cenwave = os.path.split(dataset)[1].split('_')[3]
+
+            results = session.query(Stats).filter(Stats.lightcurve_filename == name).all()
+            total = results[0].total
+            mean = results[0].mean
+            poisson_f = results[0].poisson_factor
+            pearson_r = results[0].pearson_r
+            pearson_p = results[0].pearson_p
+
+            plot_name = dataset.replace('.fits', '.html')
+            plot_name_static = dataset.replace('.fits', '.png')
+
+            plot_html = """<a href="{}" target="_blank"><img width="400" src="{}"><a>""".format(plot_name, plot_name_static)
+            new_row = (targname, plot_html, instrument, grating, cenwave, exptime, total, mean, poisson_f, pearson_r, pearson_p, dataset)
+            info.append(new_row)
+
+        out_tab = Table(rows=info,
+                        names=('target', 'plot', 'instrument', 'grating', 'cenwave', 'exptime', 'total', 'mean', 'poisson_f', 'pearson_r', 'pearson_p', 'filename'))
+        out_tab.write(table_name, format='jsviewer')
+
+        os.system("""sed -i '' "s/&lt;/</g" {}""".format(table_name))
+        os.system("""sed -i '' "s/&gt;/>/g" {}""".format(table_name))
 
 #-------------------------------------------------------------------------------
 
 def periodogram(dataset):
     """
-    Create a periodgram for the given dataset.
+    Create a periodgram for the given dataset
     """
-
-    print('Making periodogram for {}'.format(dataset))
 
     # Get the data
     hdulist = fits.open(dataset, mode='readonly')
@@ -326,17 +402,17 @@ def periodogram(dataset):
         long_ang_freqs = 2 * np.pi / long_periods
 
         # Find lomb-scargle power
-        short_power = lombscargle(np.asarray(times), np.asarray(counts) - np.asarray(counts).mean(), short_ang_freqs)
-        med_power = lombscargle(np.asarray(times), np.asarray(counts) - np.asarray(counts).mean(), med_ang_freqs)
-        long_power = lombscargle(np.asarray(times), np.asarray(counts) - np.asarray(counts).mean(), long_ang_freqs)
+        short_power = signal.lombscargle(np.asarray(times), np.asarray(counts) - np.asarray(counts).mean(), short_ang_freqs)
+        med_power = signal.lombscargle(np.asarray(times), np.asarray(counts) - np.asarray(counts).mean(), med_ang_freqs)
+        long_power = signal.lombscargle(np.asarray(times), np.asarray(counts) - np.asarray(counts).mean(), long_ang_freqs)
         short_power *= 2 / (len(times) * np.asarray(counts).std() ** 2)
         med_power *= 2 / (len(times) * np.asarray(counts).std() ** 2)
         long_power *= 2 / (len(times) * np.asarray(counts).std() ** 2)
 
         # Find local maxima
-        short_maxima = scipy.signal.argrelextrema(data=short_power, comparator=np.greater, order=1)[0]
-        med_maxima = scipy.signal.argrelextrema(data=med_power, comparator=np.greater, order=1)[0]
-        long_maxima = scipy.signal.argrelextrema(data=long_power, comparator=np.greater, order=1)[0]
+        short_maxima = signal.argrelextrema(data=short_power, comparator=np.greater, order=1)[0]
+        med_maxima = signal.argrelextrema(data=med_power, comparator=np.greater, order=1)[0]
+        long_maxima = signal.argrelextrema(data=long_power, comparator=np.greater, order=1)[0]
 
         # Find mean and standard deviation for each frequency space
         short_mean = np.mean(short_power)
@@ -371,6 +447,8 @@ def periodogram(dataset):
         if len(all_significant_powers) > 0:
             max_significant_power = max(all_significant_powers)
             if max_significant_power >= significant_threshold:
+
+                logging.info('Creating periodogram for dataset {}'.format(dataset))
 
                 fig = plt.figure(figsize=(10, 8))
                 ax1 = fig.add_subplot(411)
@@ -418,6 +496,20 @@ def periodogram(dataset):
 #-------------------------------------------------------------------------------
 
 def plot_dataset(filename, plot_file=''):
+    """
+    Create an interactive bokeh plot for the given filename
+
+    Parameters
+    ----------
+    filename : str
+        The path to the lightcurve
+    plot_file : str
+        The path to the PNG plot.  The user can supply this argument if
+        they wish to update the plot or save to a specific location
+    """
+
+    logging.info('Creating bokeh lightcurve for {}'.format(filename))
+
     path, name = os.path.split(filename)
 
     if not plot_file:
@@ -425,11 +517,10 @@ def plot_dataset(filename, plot_file=''):
     if os.path.exists(plot_file):
         os.remove(plot_file)
 
-    TOOLS = "pan,wheel_zoom,box_zoom,box_select,lasso_select,reset,resize,save"
+    TOOLS = 'pan,wheel_zoom,box_zoom,box_select,lasso_select,reset,resize,save'
 
-
-    p = figure(tools=TOOLS, toolbar_location="above", logo="grey", plot_width=700)
-    #p.title = "{} LightCurve".format(name)
+    charts.output_file(plot_file)
+    p = figure(tools=TOOLS, toolbar_location='above', logo='grey', plot_width=700)
     p.background_fill= "#cccccc"
 
     with fits.open(filename) as hdu:
@@ -439,28 +530,33 @@ def plot_dataset(filename, plot_file=''):
                  line_color="black",
                  fill_alpha=0.8)
 
-
-    p.xaxis.axis_label="Time (MJD)"
-    p.yaxis.axis_label="Net (cnts/sec)"
-    p.grid.grid_line_color="white"
+    p.xaxis.axis_label='Time (MJD)'
+    p.yaxis.axis_label='Net (cnts/sec)'
+    p.grid.grid_line_color='white'
 
     charts.save(obj=p, filename=plot_file)
     charts.reset_output()
     del p
 
-    #charts.show(p)
-
-    #script, div = components(p)
-
-    #print(div)
-    #print()
-    #print(script)
 #-------------------------------------------------------------------------------
 
 def plot_dataset_static(filename, plot_file=''):
+    """
+    Creates static PNG lightcurve plot for the given filename
+
+    Parameters
+    ----------
+    filename : str
+        The path to the lightcurve
+    plot_file : str
+        The path to the PNG plot.  The user can supply this argument if
+        they wish to update the plot or save to a specific location
+    """
+
+    logging.info('Creating static PNG for {}'.format(filename))
+
     if not plot_file:
         plot_file = filename.replace('.fits', '.png')
-        print(plot_file)
     if os.path.exists(plot_file):
         os.remove(plot_file)
 
@@ -489,94 +585,42 @@ def plot_dataset_static(filename, plot_file=''):
     del fig
 
 #-------------------------------------------------------------------------------
-
-def make_all_plots():
-
-    pool = mp.Pool(processes=10)
-
-    data_dir = SETTINGS['composite_dir']
-    datasets = glob.glob(os.path.join(data_dir, '*.fits'))
-    print("Matplotlib")
-    pool.map(plot_dataset_static, datasets)
-    print("bokeh")
-    pool.map(dataset_dashboard, datasets)
-
 #-------------------------------------------------------------------------------
 
-def make_exploratory_table(dataset_list, table_name):
-    info = []
-    for dataset in dataset_list:
-        path, name = os.path.split(dataset)
+if __name__ == '__main__':
 
-        with fits.open(dataset) as hdu:
-            exptime = hdu[0].header['EXPTIME']
+    module = os.path.basename(__file__).strip('.py')
+    setup_logging(module)
 
-        targname = os.path.split(dataset)[1].split('_')[0]
-        instrument = os.path.split(dataset)[1].split('_')[1]
-        grating = os.path.split(dataset)[1].split('_')[2]
-        cenwave = os.path.split(dataset)[1].split('_')[3]
+    # Make matplotlib and bokeh lightcurve plots
+    composite_datasets = glob.glob(os.path.join(SETTINGS['composite_dir'], '*.fits'))
+    logging.info('Creating matplotlib and bokeh lightcurve plots for {} datasets using {} cores'.format(len(composite_datasets), SETTINGS['num_cores']))
+    pool = mp.Pool(processes=SETTINGS['num_cores'])
+    pool.map(plot_dataset_static, composite_datasets)
+    pool.map(dataset_dashboard, composite_datasets)
+    pool.close()
+    pool.join()
 
-        results = connection.execute("""SELECT total,mean,poisson_factor,pearson_r,pearson_p FROM stats WHERE lightcurve_filename='{}';""".format(name))
-        total, mean, poisson_f, pearson_r, pearson_p = results.fetchall()[0]
+    # Make exploratory tables
+    exploratory_tables()
 
-        print(targname, instrument, grating, cenwave, poisson_f)
+    # Make exposure time histogram
+    histogram_exptime()
 
-        plot_name = dataset.replace('.fits', '.html')
-        plot_name_static = dataset.replace('.fits', '.png')
+    # Make configuration piechart
+    configuration_piechart()
 
-        plot_html = """<a href="{}" target="_blank"><img width="400" src="{}"><a>""".format(plot_name, plot_name_static)
-        new_row = (targname, plot_html, instrument, grating, cenwave, exptime, total, mean, poisson_f, pearson_r, pearson_p, dataset)
-        info.append(new_row)
+    # Make optical element bar chart
+    bar_opt_elem()
 
-    out_tab = Table(rows=info,
-                    names=('target', 'plot', 'instrument', 'grating', 'cenwave', 'exptime', 'total', 'mean', 'poisson_f', 'pearson_r', 'pearson_p', 'filename'))
-    out_tab.write(table_name, format='jsviewer')
+    # Make individual bokeh plots for some examples
+    plot_dataset('/grp/hst/hstlc/hst13902/outputs/composite/V4046SGR_FUV_G130M_1300_curve.fits', os.path.join(SETTINGS['plot_dir'], 'example_flare.html'))
+    plot_dataset('/grp/hst/hstlc/hst13902/outputs/composite/IR-COM_FUV_G140L_1105_curve.fits', os.path.join(SETTINGS['plot_dir'], 'example_transit.html'))
 
-    os.system("""sed -i '' "s/&lt;/</g" {}""".format(table_name))
-    os.system("""sed -i '' "s/&gt;/>/g" {}""".format(table_name))
-
-#-------------------------------------------------------------------------------
-#-------------------------------------------------------------------------------
-
-if __name__ == "__main__":
-
-    print("Making plots for HSTLC")
-    make_all_plots()
-
-    process_periodograms()
-
-    engine = create_engine(SETTINGS['db_connection_string'])
-    connection = engine.connect()
-
-    #-- find interesting datasets
-    results = connection.execute("""SELECT lightcurve_path,lightcurve_filename
-                                            FROM stats
-                                                WHERE poisson_factor IS NOT NULL
-                                                    AND poisson_factor>=1.2
-                                                    AND lightcurve_path LIKE '%%composite%%';""")
-    interesting_datasets = [os.path.join(item[0], item[1]) for item in results.fetchall()]
-    make_exploratory_table(interesting_datasets, os.path.join(SETTINGS['plot_dir'], 'interesting_hstlc.html'))
-
-    #-- find interesting datasets
-    results = connection.execute("""SELECT lightcurve_path,lightcurve_filename
-                                            FROM stats
-                                                WHERE poisson_factor IS NOT NULL
-                                                    AND poisson_factor<1.2
-                                                    AND lightcurve_path LIKE '%%composite%%';""")
-    boring_datasets = [os.path.join(item[0], item[1]) for item in results.fetchall()]
-    make_exploratory_table(boring_datasets, os.path.join(SETTINGS['plot_dir'], 'boring_hstlc.html'))
-
-    #-- find NULL
-    results = connection.execute("""SELECT lightcurve_path,lightcurve_filename
-                                            FROM stats
-                                                WHERE poisson_factor IS NULL
-                                                    AND lightcurve_path LIKE '%%composite%%';""")
-    null_datasets = [os.path.join(item[0], item[1]) for item in results.fetchall()]
-    make_exploratory_table(null_datasets, os.path.join(SETTINGS['plot_dir'], 'null_hstlc.html'))
-
-
-    #histogram_exptime()
-    #piechart_config()
-    #bar_opt_elem
-    #plot_dataset('/grp/hst/hstlc/hst13902/outputs/composite/V4046SGR_FUV_G130M_1300_curve.fits', 'example_flare.html')
-    #plot_dataset('/grp/hst/hstlc/hst13902/outputs/composite/IR-COM_FUV_G140L_1105_curve.fits', 'example_transit.html')
+    # Make periodograms
+    datasets = glob.glob(os.path.join(SETTINGS['outputs_dir'], '*/*curve.fits'))
+    logging.info('Making periodograms for {} datasets over {} cores'.format(len(datasets), SETTINGS['num_cores']))
+    pool = mp.Pool(processes=SETTINGS['num_cores'])
+    pool.map(periodogram, datasets)
+    pool.close()
+    pool.join()
