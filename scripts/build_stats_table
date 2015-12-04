@@ -12,8 +12,10 @@ import os
 from astropy.io import fits
 import lightcurve
 import numpy as np
+from scipy import signal
 from scipy.stats.stats import pearsonr
 
+from lightcurve_pipeline.utils.periodogram_stats import get_periodogram_stats
 from lightcurve_pipeline.utils.utils import insert_or_update
 from lightcurve_pipeline.utils.utils import SETTINGS
 from lightcurve_pipeline.utils.utils import setup_logging
@@ -96,6 +98,16 @@ def get_stats(dataset):
         pearson_results = pearsonr(mjd, counts)
         stats_dict['pearson_r'] = float(pearson_results[0])
         stats_dict['pearson_p'] = float(pearson_results[1])
+
+        # Set 'interesting periodogram' flag
+        interesting_periodogram = False
+        significant_threshold = 0.30
+        for freq_space in ['short', 'med', 'long']:
+            periods, power, mean, three_sigma, significant_periods, significant_powers = get_periodogram_stats(dataset, freq_space)
+            if len(significant_powers) > 0:
+                if max(significant_powers) >= significant_threshold:
+                    interesting_periodogram = True
+        stats_dict['periodogram'] = interesting_periodogram
 
     return stats_dict
 

@@ -21,7 +21,6 @@ from bokeh.plotting import figure
 from bokeh.embed import components
 from bokeh import palettes
 import numpy as np
-from scipy import signal
 
 import matplotlib as mpl
 mpl.use('Agg')
@@ -31,6 +30,7 @@ plt.rcParams['axes.formatter.useoffset'] = False
 #import seaborn as sns
 #sns.set(style="dark")
 
+from lightcurve_pipeline.utils.periodogram_stats import get_periodogram_stats
 from lightcurve_pipeline.utils.utils import SETTINGS
 from lightcurve_pipeline.utils.utils import set_permissions
 from lightcurve_pipeline.utils.utils import setup_logging
@@ -381,117 +381,72 @@ def periodogram(dataset):
     counts = hdulist[1].data['net']
     times = hdulist[1].data['mjd']
 
-    if max(counts) > 0:
+    # Make sure the byte-order is native
+    counts = counts.byteswap().newbyteorder()
+    times = times.byteswap().newbyteorder()
 
-        # Make sure the byte-order is native
-        counts = counts.byteswap().newbyteorder()
-        times = times.byteswap().newbyteorder()
+    # Define frequency space (in days)
+    short_freq = (hdulist[0].header['STEPSIZE'] / (60. * 60. * 24.)) # Step size
+    med_freq = (10. / (60. * 24.)) # 10 minutes
+    long_freq = 1. / 24. # 1 hour
+    max_freq = 10. / 24. # 10 hours
 
-        # Define frequency space (in days)
-        short_freq = (hdulist[0].header['STEPSIZE'] / (60. * 60. * 24.)) # Step size
-        med_freq = (10. / (60. * 24.)) # 10 minutes
-        long_freq = 1. / 24. # 1 hour
-        max_freq = 10. / 24. # 10 hours
+    # Get the periodogram information
+    short_periods, short_power, short_mean, short_three_sigma, short_significant_periods, short_significant_powers = get_periodogram_stats(dataset, 'short')
+    med_periods, med_power, med_mean, med_three_sigma, med_significant_periods, med_significant_powers = get_periodogram_stats(dataset, 'med')
+    long_periods, long_power, long_mean, long_three_sigma, long_significant_periods, long_significant_powers = get_periodogram_stats(dataset, 'long')
 
-        # Build frequency space
-        short_periods = np.linspace(short_freq, med_freq, len(times))
-        med_periods = np.linspace(med_freq, long_freq, len(times))
-        long_periods = np.linspace(long_freq, max_freq, len(times))
-        short_ang_freqs = 2 * np.pi / short_periods
-        med_ang_freqs = 2 * np.pi / med_periods
-        long_ang_freqs = 2 * np.pi / long_periods
+    # Make plot if there are significant peaks above the threshold
+    significant_threshold = 0.30
+    all_significant_powers = list(short_significant_powers) + list(med_significant_powers) + list(long_significant_powers)
+    if len(all_significant_powers) > 0:
+        max_significant_power = max(all_significant_powers)
+        if max_significant_power >= significant_threshold:
 
-        # Find lomb-scargle power
-        short_power = signal.lombscargle(np.asarray(times), np.asarray(counts) - np.asarray(counts).mean(), short_ang_freqs)
-        med_power = signal.lombscargle(np.asarray(times), np.asarray(counts) - np.asarray(counts).mean(), med_ang_freqs)
-        long_power = signal.lombscargle(np.asarray(times), np.asarray(counts) - np.asarray(counts).mean(), long_ang_freqs)
-        short_power *= 2 / (len(times) * np.asarray(counts).std() ** 2)
-        med_power *= 2 / (len(times) * np.asarray(counts).std() ** 2)
-        long_power *= 2 / (len(times) * np.asarray(counts).std() ** 2)
+            logging.info('Creating periodogram for dataset {}'.format(dataset))
 
-        # Find local maxima
-        short_maxima = signal.argrelextrema(data=short_power, comparator=np.greater, order=1)[0]
-        med_maxima = signal.argrelextrema(data=med_power, comparator=np.greater, order=1)[0]
-        long_maxima = signal.argrelextrema(data=long_power, comparator=np.greater, order=1)[0]
+            fig = plt.figure(figsize=(10, 8))
+            ax1 = fig.add_subplot(411)
+            ax2 = fig.add_subplot(412)
+            ax3 = fig.add_subplot(413)
+            ax4 = fig.add_subplot(414)
+            ax1.minorticks_on()
 
-        # Find mean and standard deviation for each frequency space
-        short_mean = np.mean(short_power)
-        med_mean = np.mean(med_power)
-        long_mean = np.mean(long_power)
-        short_std = np.std(short_power)
-        med_std = np.std(med_power)
-        long_std = np.std(long_power)
-        short_three_sigma = short_mean + (3 * short_std)
-        med_three_sigma = med_mean + (3 * med_std)
-        long_three_sigma = long_mean + (3 * long_std)
+            # Top panel - the data
+            ax1.plot(times, counts, 'b+')
+            ax1.set(xlabel='MJD', ylabel='Net')
 
-        # Isolate the maxima above three sigma
-        short_above_three_sigma = np.where(short_power > short_three_sigma)[0]
-        med_above_three_sigma = np.where(med_power > med_three_sigma)[0]
-        long_above_three_sigma = np.where(long_power > long_three_sigma)[0]
+            # 2nd panel - short frequency space
+            ax2.plot(short_periods, short_power)
+            ax2.axhline(short_mean, color='r', linestyle='-')
+            ax2.axhline(short_three_sigma, color='g', linestyle='-')
+            for period in short_significant_periods:
+                ax2.axvline(period, color='k', linestyle='--')
+            ax2.set(xlim=(short_freq, med_freq), title='Short Frequency Space')
 
-        # Find the peaks above three sigma
-        short_significant_indices = [index for index in short_maxima if index in short_above_three_sigma]
-        med_significant_indices = [index for index in med_maxima if index in med_above_three_sigma]
-        long_significant_indices = [index for index in long_maxima if index in long_above_three_sigma]
-        short_significant_periods = short_periods[short_significant_indices]
-        med_significant_periods = med_periods[med_significant_indices]
-        long_significant_periods = long_periods[long_significant_indices]
-        short_significant_powers = short_power[short_significant_indices]
-        med_significant_powers = med_power[med_significant_indices]
-        long_significant_powers = long_power[long_significant_indices]
+            # 3rd panal - medium frequency space
+            ax3.plot(med_periods, med_power)
+            ax3.axhline(med_mean, color='r', linestyle='-')
+            ax3.axhline(med_three_sigma, color='g', linestyle='-')
+            for period in med_significant_periods:
+                ax3.axvline(period, color='k', linestyle='--')
+            ax3.set(xlim=(med_freq, long_freq), ylabel='Lomb-Scargle Power', title='Medium Frequency Space')
 
-        # Make plot if there are significant peaks above the threshold
-        significant_threshold = 0.30
-        all_significant_powers = list(short_significant_powers) + list(med_significant_powers) + list(long_significant_powers)
-        if len(all_significant_powers) > 0:
-            max_significant_power = max(all_significant_powers)
-            if max_significant_power >= significant_threshold:
+            # bottom panel - long frequency space
+            ax4.plot(long_periods, long_power)
+            ax4.axhline(long_mean, color='r', linestyle='-')
+            ax4.axhline(long_three_sigma, color='g', linestyle='-')
+            for period in long_significant_periods:
+                ax4.axvline(period, color='k', linestyle='--')
+            ax4.set(xlim=(long_freq, max_freq), xlabel='Period (Days)', title='Long Frequency Space')
 
-                logging.info('Creating periodogram for dataset {}'.format(dataset))
-
-                fig = plt.figure(figsize=(10, 8))
-                ax1 = fig.add_subplot(411)
-                ax2 = fig.add_subplot(412)
-                ax3 = fig.add_subplot(413)
-                ax4 = fig.add_subplot(414)
-                ax1.minorticks_on()
-
-                # Top panel - the data
-                ax1.plot(times, counts, 'b+')
-                ax1.set(xlabel='MJD', ylabel='Net')
-
-                # 2nd panel - short frequency space
-                ax2.plot(short_periods, short_power)
-                ax2.axhline(short_mean, color='r', linestyle='-')
-                ax2.axhline(short_three_sigma, color='g', linestyle='-')
-                for period in short_significant_periods:
-                    ax2.axvline(period, color='k', linestyle='--')
-                ax2.set(xlim=(short_freq, med_freq), title='Short Frequency Space')
-
-                # 3rd panal - medium frequency space
-                ax3.plot(med_periods, med_power)
-                ax3.axhline(med_mean, color='r', linestyle='-')
-                ax3.axhline(med_three_sigma, color='g', linestyle='-')
-                for period in med_significant_periods:
-                    ax3.axvline(period, color='k', linestyle='--')
-                ax3.set(xlim=(med_freq, long_freq), ylabel='Lomb-Scargle Power', title='Medium Frequency Space')
-
-                # bottom panel - long frequency space
-                ax4.plot(long_periods, long_power)
-                ax4.axhline(long_mean, color='r', linestyle='-')
-                ax4.axhline(long_three_sigma, color='g', linestyle='-')
-                for period in long_significant_periods:
-                    ax4.axvline(period, color='k', linestyle='--')
-                ax4.set(xlim=(long_freq, max_freq), xlabel='Period (Days)', title='Long Frequency Space')
-
-                # Save the plot
-                fig.tight_layout()
-                filename = '{}_periodogram.png'.format(os.path.basename(dataset).split('_curve.fits')[0])
-                save_loc = os.path.join(SETTINGS['plot_dir'], 'periodogram_subset', filename)
-                plt.savefig(save_loc)
-                plt.close()
-                set_permissions(save_loc)
+            # Save the plot
+            fig.tight_layout()
+            filename = '{}_periodogram.png'.format(os.path.basename(dataset).split('_curve.fits')[0])
+            save_loc = os.path.join(SETTINGS['plot_dir'], 'periodogram_subset', filename)
+            plt.savefig(save_loc)
+            plt.close()
+            set_permissions(save_loc)
 
 #-------------------------------------------------------------------------------
 
@@ -618,7 +573,9 @@ if __name__ == '__main__':
     plot_dataset('/grp/hst/hstlc/hst13902/outputs/composite/IR-COM_FUV_G140L_1105_curve.fits', os.path.join(SETTINGS['plot_dir'], 'example_transit.html'))
 
     # Make periodograms
-    datasets = glob.glob(os.path.join(SETTINGS['outputs_dir'], '*/*curve.fits'))
+    results = session.query(Stats.lightcurve_path, Stats.lightcurve_filename).\
+        filter(Stats.periodogram == True).all()
+    datasets = [os.path.join(item.lightcurve_path, item.lightcurve_filename) for item in results]
     logging.info('Making periodograms for {} datasets over {} cores'.format(len(datasets), SETTINGS['num_cores']))
     pool = mp.Pool(processes=SETTINGS['num_cores'])
     pool.map(periodogram, datasets)
