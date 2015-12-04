@@ -9,6 +9,7 @@ from sqlalchemy import create_engine
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 
+from sqlalchemy import Boolean
 from sqlalchemy import Column
 from sqlalchemy import Date
 from sqlalchemy import Enum
@@ -130,6 +131,7 @@ class Stats(base):
     poisson_factor = Column(Float(10), nullable=True)
     pearson_r = Column(Float(10), nullable=True)
     pearson_p = Column(Float(10), nullable=True)
+    periodogram = Column(Boolean(), nullable=True)
 
 # -----------------------------------------------------------------------------
 # -----------------------------------------------------------------------------
