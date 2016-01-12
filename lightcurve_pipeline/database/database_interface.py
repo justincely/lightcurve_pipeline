@@ -131,8 +131,8 @@ class Stats(base):
     poisson_factor = Column(Float(10), nullable=True)
     pearson_r = Column(Float(10), nullable=True)
     pearson_p = Column(Float(10), nullable=True)
-    periodogram = Column(Boolean(), nullable=True)
-    deliver = Column(Boolean(), nullable=True)
+    periodogram = Column(Boolean(), nullable=False, default=False)
+    deliver = Column(Boolean(), nullable=False, default=False)
 
 # -----------------------------------------------------------------------------
 # -----------------------------------------------------------------------------
