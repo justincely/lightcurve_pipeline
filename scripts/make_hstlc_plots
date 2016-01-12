@@ -102,9 +102,9 @@ def configuration_piechart():
     configs = {}
     for dataset in glob.glob(os.path.join(data_dir, '*.fits')):
 
-        instrument = os.path.split(dataset)[1].split('_')[1]
-        grating = os.path.split(dataset)[1].split('_')[2]
-        cenwave = os.path.split(dataset)[1].split('_')[3]
+        instrument = os.path.split(dataset)[1].split('_')[3]
+        grating = os.path.split(dataset)[1].split('_')[5]
+        cenwave = os.path.split(dataset)[1].split('_')[6]
 
         if not instrument in configs:
             configs[instrument] = ['{}/{}'.format(grating, cenwave)]
@@ -113,7 +113,7 @@ def configuration_piechart():
 
     # COS FUV
     try:
-        settings = Counter(configs['FUV'])
+        settings = Counter(configs['cos-fuv'])
         charts.output_file(os.path.join(SETTINGS['plot_dir'], 'pie_config_cos_fuv.html'))
         plot = charts.Donut(settings.values(),
                             settings.keys(),
@@ -127,7 +127,7 @@ def configuration_piechart():
 
     # COS NUV
     try:
-        settings = Counter(configs['NUV'])
+        settings = Counter(configs['cos-nuv'])
         charts.output_file(os.path.join(SETTINGS['plot_dir'], 'pie_config_cos_nuv.html'))
         plot = charts.Donut(settings.values(),
                             settings.keys(),
@@ -141,7 +141,7 @@ def configuration_piechart():
 
     # STIS FUV
     try:
-        settings = Counter(configs['FUV-MAMA'])
+        settings = Counter(configs['stis-fuv-mama'])
         charts.output_file(os.path.join(SETTINGS['plot_dir'], 'pie_config_stis_fuv.html'))
         plot = charts.Donut(settings.values(),
                             settings.keys(),
@@ -155,7 +155,7 @@ def configuration_piechart():
 
     # STIS NUV
     try:
-        settings = Counter(configs['NUV-MAMA'])
+        settings = Counter(configs['stis-nuv-mama'])
         charts.output_file(os.path.join(SETTINGS['plot_dir'], 'pie_config_stis_nuv.html'))
         plot = charts.Donut(settings.values(),
                             settings.keys(),
@@ -274,7 +274,7 @@ def histogram_exptime():
     exptime_data = {}
     for dataset in glob.glob(os.path.join(data_dir, '*.fits')):
         with fits.open(dataset) as hdu:
-            targname = os.path.split(dataset)[-1].split('_')[0]
+            targname = os.path.split(dataset)[-1].split('_')[4]
             exptime = hdu[0].header['EXPTIME']
 
             if targname in exptime_data:
@@ -343,10 +343,10 @@ def make_exploratory_table(dataset_list, table_name):
             with fits.open(dataset) as hdu:
                 exptime = hdu[0].header['EXPTIME']
 
-            targname = os.path.split(dataset)[1].split('_')[0]
-            instrument = os.path.split(dataset)[1].split('_')[1]
-            grating = os.path.split(dataset)[1].split('_')[2]
-            cenwave = os.path.split(dataset)[1].split('_')[3]
+            targname = os.path.split(dataset)[1].split('_')[4]
+            instrument = os.path.split(dataset)[1].split('_')[3].split('-')[0]
+            grating = os.path.split(dataset)[1].split('_')[5]
+            cenwave = os.path.split(dataset)[1].split('_')[6]
 
             results = session.query(Stats).filter(Stats.lightcurve_filename == name).all()
             total = results[0].total
@@ -569,8 +569,8 @@ if __name__ == '__main__':
     bar_opt_elem()
 
     # Make individual bokeh plots for some examples
-    plot_dataset('/grp/hst/hstlc/hst13902/outputs/composite/V4046SGR_FUV_G130M_1300_curve.fits', os.path.join(SETTINGS['plot_dir'], 'example_flare.html'))
-    plot_dataset('/grp/hst/hstlc/hst13902/outputs/composite/IR-COM_FUV_G140L_1105_curve.fits', os.path.join(SETTINGS['plot_dir'], 'example_transit.html'))
+    #plot_dataset('/grp/hst/hstlc/hst13902/outputs/composite/V4046SGR_FUV_G130M_1300_curve.fits', os.path.join(SETTINGS['plot_dir'], 'example_flare.html'))
+    #plot_dataset('/grp/hst/hstlc/hst13902/outputs/composite/IR-COM_FUV_G140L_1105_curve.fits', os.path.join(SETTINGS['plot_dir'], 'example_transit.html'))
 
     # Make periodograms
     results = session.query(Stats.lightcurve_path, Stats.lightcurve_filename).\
@@ -581,3 +581,5 @@ if __name__ == '__main__':
     pool.map(periodogram, datasets)
     pool.close()
     pool.join()
+
+    logging.info('Processing complete')
