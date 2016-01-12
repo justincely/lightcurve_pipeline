@@ -132,6 +132,7 @@ class Stats(base):
     pearson_r = Column(Float(10), nullable=True)
     pearson_p = Column(Float(10), nullable=True)
     periodogram = Column(Boolean(), nullable=True)
+    deliver = Column(Boolean(), nullable=True)
 
 # -----------------------------------------------------------------------------
 # -----------------------------------------------------------------------------
