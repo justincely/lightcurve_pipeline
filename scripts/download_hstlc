@@ -1,7 +1,69 @@
 #! /usr/bin/python
 
-"""Download all COS & STIS data that do not already exist in the hstlc
-filesystem.
+"""Download all COS & STIS TIMETAG data that do not already exist in the hstlc
+filesystem/database.
+
+This script retreives COS & STIS TIMETAG data from the MAST archive by
+submitting XML requests.  The datasets to download is determined by
+comparing the contents of the hstlc database to the contents of the
+MAST database; any COS/STIS TIMETAG data that exists in MAST but does
+not exist in the hstlc database is retreived.  Data is downloaded to
+the 'ingest_dir' directory determine by the config file.
+
+Authors:
+    Matthew Bourque, 2015
+
+Use:
+    This script is intended to be executed via the command line as
+    such:
+
+    >>> download_hstlc
+
+    The script can also be placed into a cron job for periodic
+    execution.
+
+Outputs:
+    The following filetypes are retreived (if available) and placed
+    in the 'ingest_dir' directory:
+
+    *_x1d.fits - 1 dimensional extracted spectra
+    *_tag.fits - STIS TIMETAG data
+    *_corrtag.fits - COS NUV TIMETAG data
+    *_corrtag_<a or b>.fits - COS FUV TIMETAG data
+
+    Submission results are also saved to an XML file and stored in the
+    'download_dir' directory determined by the config file.  The
+    submission results indicate if the XML request was sucessful or
+    if there were errors.
+
+    Executing this script creates a log file in the 'log_dir' directory
+    as determined by the config file.
+
+Dependencies:
+    As of early 2016, submission of XML requests to the MAST archive
+    requires a special Python 2.6 environemnt with specific XML
+    libraries installed.  More information can be found here:
+
+    https://confluence.stsci.edu/display/STScISSOPublic/ArchiveXMLsubmitPKImaterial
+
+    Additionally, tsql must be installed and the tsql executable must
+    be placed in the directory ~/freetds/bin/tsql.  tsql can be
+    downloaded using freetds (http://www.freetds.org/).
+
+    Users must have access to the hstlc database.
+
+    Users must also have a config.yaml file located in the
+    lightcurve_pipeline/utils/ directory with the following keys:
+
+    db_connection_string - The hstlc database connection string
+    ingest_dir - The path to where the files will be stored after
+        retreival
+    log_dir - The path to where the log file will be stored
+    download_dir - the path to where XML submission results will be
+        stored
+
+    Other external library dependencies include:
+        lightcurve_pipeline
 """
 
 import glob
@@ -63,6 +125,7 @@ def build_xml_request(datasets):
         The XML request string.
     """
 
+    # The list of datasets must be one string
     datasets = ''.join(['<rootname>{0}</rootname>\n'.format(rootname) for rootname in datasets])
 
     request_string = REQUEST_TEMPLATE.safe_substitute(
@@ -81,7 +144,10 @@ def build_xml_request(datasets):
 # -----------------------------------------------------------------------------
 
 def get_filesystem_rootnames():
-    """Return a list of the rootnames in the hstlc filesystem.
+    """Return a list of the rootnames in the hstlc database.
+
+    This list is compared to the MAST database to determine which
+    datasets to download.
 
     Returns
     -------
@@ -97,13 +163,22 @@ def get_filesystem_rootnames():
 # -----------------------------------------------------------------------------
 
 def get_mast_rootnames():
-    """Return a list of rootnames of all data in MAST for the given
-    detector.
+    """Return a list of rootnames of all COS & STIS TIMETAGE data in
+    MAST.
+
+    The following target names are ignored:
+        DARK
+        BIAS
+        DEUTERIUM
+        WAVE
+        ANY
+        NONE
 
     Returns
     -------
     mast_rootnames : list
-        A list of rootnames of COS/STIS data in the MAST archive.
+        A list of rootnames of COS/STIS TIMETAG data in the MAST
+        archive.
     """
 
     # Gather configuration settings
@@ -145,6 +220,9 @@ def get_mast_rootnames():
 
 def save_submission_results(submission_results):
     """Save the submission results to an XML file.
+
+    Submission results are saved in a separate XML file and stored in
+    the 'download_dir' directory as determine by the config file.
 
     Parameters
     ----------
@@ -200,6 +278,7 @@ def submit_xml_request(xml_request):
 
 if __name__ == '__main__':
 
+    # Set up logging
     module = os.path.basename(__file__).strip('.py')
     setup_logging(module)
 
