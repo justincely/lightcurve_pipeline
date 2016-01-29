@@ -8,7 +8,7 @@ submitting XML requests.  The datasets to download is determined by
 comparing the contents of the hstlc database to the contents of the
 MAST database; any COS/STIS TIMETAG data that exists in MAST but does
 not exist in the hstlc database is retreived.  Data is downloaded to
-the 'ingest_dir' directory determine by the config file.
+the 'ingest_dir' directory determine by the config file (see below).
 
 Authors:
     Matthew Bourque, 2015
@@ -32,12 +32,12 @@ Outputs:
     *_corrtag_<a or b>.fits - COS FUV TIMETAG data
 
     Submission results are also saved to an XML file and stored in the
-    'download_dir' directory determined by the config file.  The
-    submission results indicate if the XML request was sucessful or
+    'download_dir' directory determined by the config file (see below).
+    The submission results indicate if the XML request was sucessful or
     if there were errors.
 
     Executing this script creates a log file in the 'log_dir' directory
-    as determined by the config file.
+    as determined by the config file (see below).
 
 Dependencies:
     As of early 2016, submission of XML requests to the MAST archive
