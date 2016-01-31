@@ -41,6 +41,9 @@ The filenames and headers of the 'composite' lightcurves are configured
 such that they can be delivered to MAST as High Level Science Products
 (HLSPs), though not all composite lightcurves are delivered.
 
+This script uses multiprocessing.  Users can set the number of cores
+used via the 'num_cores' setting in the config file (see below).
+
 
 Authors:
     Matthew Bourque, 2015
@@ -87,6 +90,7 @@ Dependencies:
     composite_dir - The path to where hstlc composite output products
         are stored.
     log_dir - The path to where the log file will be stored
+    num_cores - The number of cores to use during multiprocessing
 
     Other external library dependencies include:
         astropy

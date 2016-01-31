@@ -55,12 +55,24 @@ Dependencies:
     Users must also have a config.yaml file located in the
     lightcurve_pipeline/utils/ directory with the following keys:
 
-    db_connection_string - The hstlc database connection string
-    ingest_dir - The path to where the files will be stored after
+    (1) db_connection_string - The hstlc database connection string
+    (2) ingest_dir - The path to where the files will be stored after
         retreival
-    log_dir - The path to where the log file will be stored
-    download_dir - the path to where XML submission results will be
+    (3) log_dir - The path to where the log file will be stored
+    (4) download_dir - the path to where XML submission results will be
         stored
+    (5) mast_server - The MAST server hostname
+    (6) mast_database - The name of the MAST database
+    (7) mast_account - The MAST account username
+    (8) mast_password - The MAST account password
+    (9) archive_user - The requester username
+    (10) email - the requester email address
+    (11) host - The hostname of the machine used for ftp
+    (12) ftp_user - The username of the account of the machine used for
+         ftp
+    (13) dads_host - The hostname of the machine on which the MAST
+         database resides
+    (14) archive - The HTTPs connection hostname
 
     Other external library dependencies include:
         lightcurve_pipeline
