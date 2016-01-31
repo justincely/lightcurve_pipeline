@@ -124,6 +124,7 @@ import matplotlib as mpl
 mpl.use('Agg')
 import matplotlib.pyplot as plt
 
+# Set CRDS environement for reference files
 os.environ['lref'] = '/grp/hst/cdbs/lref/'
 os.environ['oref'] = '/grp/hst/cdbs/oref/'
 
@@ -179,7 +180,7 @@ def ingest(mp_args):
         re-extraction).
     """
 
-    # Parse args
+    # Parse multiprocessing args
     filename = mp_args[0]
     corrtag_extract = mp_args[1]
 
@@ -223,6 +224,7 @@ def ingest(mp_args):
                     update_outputs_table(metadata_dict, outputs_dict)
                     #make_quicklook(outputs_dict)
 
+                # Move file into the hstlc filesystem
                 move_file(metadata_dict)
 
     # Track any errors that happen during processing
@@ -264,11 +266,13 @@ def make_file_dicts(filename, header):
     metadata_dict['detector'] = header['DETECTOR']
     metadata_dict['opt_elem'] = header['OPT_ELEM']
 
+    # cenwave should be set to 0 for IMAGING OBSTYPE
     if header['OBSTYPE'] == 'SPECTROSCOPIC':
         metadata_dict['cenwave'] = header['CENWAVE']
     elif header['OBSTYPE'] == 'IMAGING':
         metadata_dict['cenwave'] = 0
 
+    # fppos should be set to 0 for STIS data
     if header['INSTRUME'] == 'COS':
         metadata_dict['fppos'] = header['FPPOS']
     elif header['INSTRUME'] == 'STIS':
@@ -276,16 +280,12 @@ def make_file_dicts(filename, header):
 
     # Set image metadata keys
     metadata_dict['filename'] = os.path.basename(filename)
-    metadata_dict['path'] = os.path.join(SETTINGS['filesystem_dir'],
-        metadata_dict['targname'])
-    metadata_dict['ingest_date'] = datetime.datetime.strftime(
-        datetime.datetime.today(), '%Y-%m-%d')
+    metadata_dict['path'] = os.path.join(SETTINGS['filesystem_dir'], metadata_dict['targname'])
+    metadata_dict['ingest_date'] = datetime.datetime.strftime(datetime.datetime.today(), '%Y-%m-%d')
 
     # Set outputs keys
-    outputs_dict['individual_path'] = \
-        metadata_dict['path'].replace('filesystem', 'outputs')
-    outputs_dict['individual_filename'] = \
-        '{}_curve.fits'.format(metadata_dict['filename'].split('_')[0])
+    outputs_dict['individual_path'] = metadata_dict['path'].replace('filesystem', 'outputs')
+    outputs_dict['individual_filename'] = '{}_curve.fits'.format(metadata_dict['filename'].split('_')[0])
 
     return metadata_dict, outputs_dict
 
@@ -300,8 +300,7 @@ def make_quicklook(outputs_dict):
         A dictionary containing output product information.
     """
 
-    lc_name = os.path.join(outputs_dict['individual_path'],
-        outputs_dict['individual_filename'])
+    lc_name = os.path.join(outputs_dict['individual_path'], outputs_dict['individual_filename'])
     lightcurve.io.quicklook(lc_name)
     set_permissions(lc_name.replace('.fits', '.png'))
 
@@ -388,9 +387,11 @@ def parse_args():
 
 if __name__ == '__main__':
 
+    # Configure logging
     module = os.path.basename(__file__).strip('.py')
     setup_logging(module)
 
+    # Parse arguments
     args = parse_args()
 
     # Get list of files to ingest
