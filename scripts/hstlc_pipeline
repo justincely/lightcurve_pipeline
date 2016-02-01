@@ -1,3 +1,20 @@
+# Executing this shell script will execute the hstlc pipeline, which
+# consists of ingesting new hstlc data (ingest_hstlc), computing and
+# storing statistics (build_stats_table), and creating hstlc plots
+# (make_hstlc_plots).
+#
+# Authors:
+#     Matthew Bourque, 2015
+#
+# Use:
+#     After sucessfull installation of the lightcurve_pipeline package,
+#     users can execute this pipeline from the command line:
+#
+#         >>> hstlc_pipeline [-corrtag_extract]
+#
+#        -corrtag_extract (Optional) - (Re)extract corrtag data as it is
+#            ingested, if provided.
+
 ingest_hstlc $1
 build_stats_table both
 make_hstlc_plots
