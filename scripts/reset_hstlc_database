@@ -4,6 +4,37 @@
 Reset all tables in the database.
 """
 
+"""Reset all or specific tables in the hstlc database.
+
+Authors:
+    Matthew Bourque, 2015
+
+Use:
+    This script is intended to be executed via the command line as
+    such:
+
+    >>> reset_hstlc_database [table]
+
+    table (Optional) - Reset the specific table given. Can be any valid
+        table that exists in the hstlc database, or "all" in which all
+        tables will be reset.  If an argument is not provided, the
+        default value of "all" is used.
+
+Dependencies:
+
+    Python 3.0+
+
+    Users must have access to the hstlc database.
+
+    Users must also have a config.yaml file located in the
+    lightcurve_pipeline/utils/ directory with the following keys:
+
+    db_connection_string - The hstlc database connection string
+
+    Other external library dependencies include:
+        lightcurve_pipeline
+"""
+
 from __future__ import print_function
 
 import argparse
@@ -67,8 +98,10 @@ def parse_args():
 
 if __name__ == '__main__':
 
+    # Parse arguments
     args = parse_args()
 
+    # Give user a second chance
     prompt = ('About to reset {} table(s) for database instance {}. '
         'Do you wish to proceed? (y/n)\n'.format(args.reset_table,
         SETTINGS['db_connection_string']))
