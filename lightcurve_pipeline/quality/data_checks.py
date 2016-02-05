@@ -28,6 +28,7 @@ def check_linear(time_data):
     for val in time_data[1:]:
         if not val >= last:
             return False
+        last = val
 
     return True
 
