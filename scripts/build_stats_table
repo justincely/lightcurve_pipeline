@@ -34,6 +34,7 @@ Dependencies:
     Users must also have a config.yaml file located in the
     lightcurve_pipeline/utils/ directory with the following keys:
 
+    db_connection_string - The hstlc database connection string
     log_dir - The path to where the log file will be stored
 
     Other external library dependencies include:

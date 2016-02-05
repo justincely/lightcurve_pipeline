@@ -84,6 +84,7 @@ Dependencies:
     Users must also have a config.yaml file located in the
     lightcurve_pipeline/utils/ directory with the following keys:
 
+    db_connection_string - The hstlc database connection string
     ingest_dir - The path to where files to be ingested are stored
     filesystem_dir - The path to the hstlc filesystem
     outputs_dir - The path to where hstlc output products are stored
@@ -116,12 +117,12 @@ from lightcurve_pipeline.utils.utils import make_directory
 from lightcurve_pipeline.utils.utils import SETTINGS
 from lightcurve_pipeline.utils.utils import set_permissions
 from lightcurve_pipeline.utils.utils import setup_logging
+from lightcurve_pipeline.database.update_database import update_metadata_table
+from lightcurve_pipeline.database.update_database import update_outputs_table
 from lightcurve_pipeline.ingest.make_lightcurves import make_composite_lightcurves
 from lightcurve_pipeline.ingest.make_lightcurves import make_individual_lightcurve
 from lightcurve_pipeline.ingest.resolve_target import get_targname
-from lightcurve_pipeline.database.update_database import update_bad_data_table
-from lightcurve_pipeline.database.update_database import update_metadata_table
-from lightcurve_pipeline.database.update_database import update_outputs_table
+from lightcurve_pipeline.quality.data_checks import dataset_ok
 
 # Use matplotlib backend for quicklook images
 import matplotlib as mpl
@@ -196,19 +197,11 @@ def ingest(mp_args):
         with fits.open(filename, 'readonly') as hdulist:
             header = hdulist[0].header
 
-            # Check that file has events and has NORMAL expflag
-            if len(hdulist[1].data) == 0:
-                update_bad_data_table(os.path.basename(filename),'No events')
-                logging.info('\tNo events, removing file {}'.format(filename))
-                os.remove(filename)
+            # Check that quality of the file before ingesting
+            success = dataset_ok(filename)
 
-            elif hdulist[1].header['EXPFLAG'] != 'NORMAL':
-                update_bad_data_table(os.path.basename(filename),'Bad EXPFLAG')
-                logging.info('\tBad EXPFLAG, removing file {}'.format(filename))
-                os.remove(filename)
-
-            # Ingest the data if it is normal
-            else:
+            # Ingest the data if it is ok
+            if success:
                 metadata_dict, outputs_dict = make_file_dicts(filename, header)
 
                 # If the file is a _tag STIS file, then make a corrtag

@@ -58,6 +58,7 @@ Dependencies:
     Users must also have a config.yaml file located in the
     lightcurve_pipeline/utils/ directory with the following keys:
 
+    db_connection_string - The hstlc database connection string
     plot_dir - The path to where hstlc output plots are stored
     composite_dir - The path to where hstlc composite output products
         are stored.

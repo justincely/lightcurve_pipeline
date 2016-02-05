@@ -34,7 +34,7 @@ def update_bad_data_table(filename, reason):
         datetime.datetime.today(), '%Y-%m-%d')
     bad_data_dict['reason'] = reason
 
-    # The the id of the record, if it exists
+    # Get the id of the record, if it exists
     session = get_session()
     query = session.query(BadData.id)\
         .filter(BadData.filename == filename).all()
