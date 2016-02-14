@@ -19,8 +19,6 @@ Use:
 
 Dependencies:
 
-    Python 3.0+
-
     Users must also have a config.yaml file located in the
     lightcurve_pipeline/utils/ directory with the following keys:
 

@@ -18,14 +18,14 @@ Use:
 
 Dependencies:
 
-    Python 3.0+
-
     Users must have access to the hstlc database.
 
     Users must also have a config.yaml file located in the
     lightcurve_pipeline/utils/ directory with the following keys:
 
     db_connection_string - The hstlc database connection string
+    home_dir - The home hstlc directory, where the bad_data table
+        will be stored in a text file
 
     Other external library dependencies include:
         lightcurve_pipeline
