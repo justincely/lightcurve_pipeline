@@ -29,6 +29,8 @@ Dependencies:
 
     Other external library dependencies include:
         lightcurve_pipeline
+        pymysql
+        sqlalchemy
 """
 
 from __future__ import print_function

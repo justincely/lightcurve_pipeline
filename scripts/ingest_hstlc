@@ -97,7 +97,9 @@ Dependencies:
         astropy
         lightcurve
         lightcurve_pipeline
+        pymysql
         matplotlib
+        sqlalchemy
 """
 
 import argparse

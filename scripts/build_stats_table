@@ -42,7 +42,9 @@ Dependencies:
         lightcurve
         lightcurve_pipeline
         numpy
+        pymysql
         scipy
+        sqlalchemy
 """
 
 import argparse

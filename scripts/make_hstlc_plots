@@ -71,6 +71,8 @@ Dependencies:
         lightcurve_pipeline
         matplotlib
         numpy
+        pymysql
+        sqlalchemy
 """
 
 from collections import Counter

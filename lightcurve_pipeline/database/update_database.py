@@ -1,6 +1,39 @@
 """Module for updating various tables in the hstlc database
 """
 
+"""Updates various tables in the hstlc database
+
+This module serves as an interface for updating the various tables of
+the hstlc database, either by inserting new records, or updating
+existing ones.
+
+Authors:
+    Matthew Bourque, 2015
+
+Use:
+    This module is intended to be imported from the various hstlc
+    scripts, as such:
+
+    from lightcurve_pipeline.database.update_database import update_bad_data_table
+    from lightcurve_pipeline.database.update_database import update_metadata_table
+    from lightcurve_pipeline.database.update_database import update_stats_table
+    from lightcurve_pipeline.database.update_database import update_outputs_table
+
+Dependencies:
+
+    Users must have access to the hstlc database.
+
+    Users must also have a config.yaml file located in the
+    lightcurve_pipeline/utils/ directory with the following keys:
+
+    db_connection_string - The hstlc database connection string
+
+    Other external library dependencies include:
+        pymysql
+        sqlalchemy
+        lightcurve_pipeline
+"""
+
 import datetime
 import logging
 import os
@@ -23,8 +56,8 @@ def update_bad_data_table(filename, reason):
     filename : string
         The filename of the file.
     reason : string
-        The reason that the data is bad. Can either be 'No events' or
-        'Bad EXPFLAG'.
+        The reason that the data is bad. Can either be 'No events',
+        'Bad EXPFLAG', 'Non-linear time', or 'Singular event'.
     """
 
     # Build dictionary containing data to store
@@ -57,8 +90,8 @@ def update_metadata_table(metadata_dict):
     ----------
     metadata_dict : dict
         A dictionary containing metadata of the file.  Each key of the
-        metadata_dict corresponds to a column in the matadata table of the
-        database.
+        metadata_dict corresponds to a column in the matadata table of
+        the database.
     """
 
     # Get the id of the record, if it exists
@@ -77,13 +110,16 @@ def update_metadata_table(metadata_dict):
 # -----------------------------------------------------------------------------
 
 def update_stats_table(stats_dict, dataset):
-    """Insert or update a record in the stats table containing
-    lightcurve product statistics.
+    """Insert or update a record in the stats table for the given
+    dataset containing the lightcurve product statistics given in the
+    stats_dict.
 
     Parameters
     ----------
     stats_dict : dict
-        A dictionary containing the lightcurve statistics.
+        A dictionary containing the lightcurve statistics. Each key of
+        stats_dict corresponds to a column in the stats table of the
+        database.
     dataset : string
         The path to the lightcurve product.
     """
@@ -110,9 +146,13 @@ def update_outputs_table(metadata_dict, outputs_dict):
     Parameters
     ----------
     metadata_dict : dict
-        A dictionary containing metadata of the file.
+        A dictionary containing metadata of the file.  Each key of the
+        metadata_dict corresponds to a column in the matadata table of
+        the database.
     outputs_dict : dict
-        A dictionary containing output product information.
+        A dictionary containing output product information.  Each key
+        of the outputs_dict corresponds to a column in the outputs
+        table of the database.
     """
 
     # Get the metadata_id
