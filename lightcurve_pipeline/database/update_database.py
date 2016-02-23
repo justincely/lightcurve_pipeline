@@ -1,6 +1,3 @@
-"""Module for updating various tables in the hstlc database
-"""
-
 """Updates various tables in the hstlc database
 
 This module serves as an interface for updating the various tables of
