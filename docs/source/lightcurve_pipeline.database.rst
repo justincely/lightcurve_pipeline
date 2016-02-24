@@ -12,6 +12,14 @@ lightcurve_pipeline.database.database_interface module
     :undoc-members:
     :show-inheritance:
 
+lightcurve_pipeline.database.update_database module
+---------------------------------------------------
+
+.. automodule:: lightcurve_pipeline.database.update_database
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
 
 Module contents
 ---------------
