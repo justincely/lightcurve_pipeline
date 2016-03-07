@@ -627,7 +627,7 @@ def plot_dataset_static(filename, plot_file=''):
 #-------------------------------------------------------------------------------
 #-------------------------------------------------------------------------------
 
-if __name__ == '__main__':
+def main():
 
     # Configure logging
     module = os.path.basename(__file__).strip('.py')
@@ -669,3 +669,9 @@ if __name__ == '__main__':
     pool.join()
 
     logging.info('Processing complete')
+
+#-------------------------------------------------------------------------------
+
+if __name__ == '__main__':
+
+    main()

@@ -94,8 +94,9 @@ def remove_filesystem_directories():
             print('Could not remove {}'.format(directory))
 
 # -----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 
-if __name__ == '__main__':
+def main():
 
     # Give the user a second chance
     prompt = 'About to reset filesystem {}. '.format(SETTINGS['filesystem_dir'])
@@ -107,3 +108,9 @@ if __name__ == '__main__':
         move_files_to_ingest()
         remove_filesystem_directories()
         remove_output_directories()
+
+# -----------------------------------------------------------------------------
+
+if __name__ == '__main__':
+
+    main()

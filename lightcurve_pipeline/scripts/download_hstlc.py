@@ -288,7 +288,7 @@ def submit_xml_request(xml_request):
 # -----------------------------------------------------------------------------
 # -----------------------------------------------------------------------------
 
-if __name__ == '__main__':
+def main():
 
     # Set up logging
     module = os.path.basename(__file__).strip('.py')
@@ -332,3 +332,9 @@ if __name__ == '__main__':
 
     # Save submission results
     save_submission_results(submission_results)
+
+# -----------------------------------------------------------------------------
+
+if __name__ == '__main__':
+
+    main()

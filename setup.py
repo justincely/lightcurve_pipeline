@@ -1,6 +1,16 @@
 from distutils.core import setup
 from setuptools import find_packages
 
+# Command line scripts
+scripts = ['reset_hstlc_filesystem = lightcurve_pipeline.scripts.reset_hstlc_filesystem:main',
+           'reset_hstlc_database = lightcurve_pipeline.scripts.reset_hstlc_database:main',
+           'download_hstlc = lightcurve_pipeline.scripts.download_hstlc:main',
+           'ingest_hstlc = lightcurve_pipeline.scripts.ingest_hstlc:main',
+           'build_stats_table = lightcurve_pipeline.scripts.build_stats_table:main',
+           'make_hstlc_plots = lightcurve_pipeline.scripts.make_hstlc_plots:main']
+entry_points = {}
+entry_points['console_scripts'] = scripts
+
 setup(
     name = 'lightcurve_pipeline',
     description = 'Create lightcurves from HST/COS and HST/STIS data',
@@ -16,12 +26,7 @@ setup(
                    'Topic :: Software Development :: Libraries :: Python Modules'],
     packages = find_packages(),
     requires = ['numpy', 'astropy', 'sqlalchemy', 'pyyaml'],
-    scripts = ['scripts/download_hstlc',
-               'scripts/ingest_hstlc',
-               'scripts/reset_hstlc_database',
-               'scripts/reset_hstlc_filesystem',
-               'scripts/build_stats_table',
-               'scripts/make_hstlc_plots',
-               'scripts/hstlc_pipeline'],
-    data_files = [('lightcurve_pipeline/utils/', ['lightcurve_pipeline/utils/config.yaml'])]
+    data_files = [('lightcurve_pipeline/utils/', ['lightcurve_pipeline/utils/config.yaml'])],
+    scripts = ['scripts/hstlc_pipeline'],
+    entry_points = entry_points
     )

@@ -134,7 +134,7 @@ def rebuild_production_tables():
 # -----------------------------------------------------------------------------
 # -----------------------------------------------------------------------------
 
-if __name__ == '__main__':
+def main():
 
     # Parse arguments
     args = parse_args()
@@ -159,3 +159,9 @@ if __name__ == '__main__':
         else:
             database_interface.base.metadata.tables[args.reset_table].drop()
             database_interface.base.metadata.tables[args.reset_table].create()
+
+# -----------------------------------------------------------------------------
+
+if __name__ == '__main__':
+
+    main()
