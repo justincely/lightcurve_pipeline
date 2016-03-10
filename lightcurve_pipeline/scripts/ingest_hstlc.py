@@ -97,7 +97,9 @@ Dependencies:
         astropy
         lightcurve
         lightcurve_pipeline
+        pymysql
         matplotlib
+        sqlalchemy
 """
 
 import argparse
@@ -350,6 +352,7 @@ def move_file(metadata_dict):
             os.remove(dst)
         shutil.move(src, dst)
 
+# -----------------------------------------------------------------------------
 # ----------------------------------------------------------------------------
 
 def parse_args():
@@ -380,9 +383,8 @@ def parse_args():
     return args
 
 # -----------------------------------------------------------------------------
-# -----------------------------------------------------------------------------
 
-if __name__ == '__main__':
+def main():
 
     # Configure logging
     module = os.path.basename(__file__).strip('.py')
@@ -408,3 +410,9 @@ if __name__ == '__main__':
     make_composite_lightcurves()
 
     logging.info('Processing complete.')
+
+# -----------------------------------------------------------------------------
+
+if __name__ == '__main__':
+
+    main()

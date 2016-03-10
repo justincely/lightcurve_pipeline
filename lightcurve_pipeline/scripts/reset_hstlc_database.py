@@ -18,27 +18,34 @@ Use:
 
 Dependencies:
 
-    Python 3.0+
-
     Users must have access to the hstlc database.
 
     Users must also have a config.yaml file located in the
     lightcurve_pipeline/utils/ directory with the following keys:
 
     db_connection_string - The hstlc database connection string
+    home_dir - The home hstlc directory, where the bad_data table
+        will be stored in a text file
 
     Other external library dependencies include:
         lightcurve_pipeline
+        pymysql
+        sqlalchemy
 """
 
 from __future__ import print_function
 
 import argparse
 import inspect
+import os
+import pickle
 import sys
 
 from lightcurve_pipeline.utils.utils import SETTINGS
 from lightcurve_pipeline.database import database_interface
+from lightcurve_pipeline.database.database_interface import session
+from lightcurve_pipeline.database.database_interface import engine
+from lightcurve_pipeline.database.database_interface import BadData
 
 # -----------------------------------------------------------------------------
 
@@ -73,16 +80,19 @@ def parse_args():
     """
 
     reset_table_help = ('The table to reset. Can be any valid database table,'
-        'or "all" to reset all tables.  The default option is "all".')
+        '"all" to reset all tables, or "production" to reset only the '
+        'production tables.  The default option is "production".  The '
+        'production tables constsit of: Metadata, Outputs, and Stats.')
 
     parser = argparse.ArgumentParser()
     parser.add_argument('reset_table', action='store', nargs='?', type=str,
-        default='all', help=reset_table_help)
+        default='production', help=reset_table_help)
     args = parser.parse_args()
 
     # Make sure the argument is a valid option
     valid_options = get_valid_tables()
     valid_options.append('all')
+    valid_options.append('production')
     explanation = '{} is not a valid table.'.format(args.reset_table)
     args.reset_table = args.reset_table.lower()
     assert args.reset_table in valid_options, explanation
@@ -90,9 +100,41 @@ def parse_args():
     return args
 
 # -----------------------------------------------------------------------------
+
+def rebuild_production_tables():
+    """Rebuild the 'prodction' tables of the hstlc database.
+
+    The 'prodction' tables consist of the metadata, outputs, and stats
+    tables.  The bad_data table is treated separately.  Since the
+    bad_data table cannot easily be rebuilt (since bad data is not
+    necessarily re-ingested), the data within the table is written out
+    to a text file and re-ingested after the database is reset.  This
+    essentially results in a reset database for the production tables,
+    but the bad data table effectively remains untouched.
+    """
+
+    # # Write the contents of the bad_data table out to a text file
+    pickle_file = os.path.join(SETTINGS['home_dir'], 'bad_data.pck')
+    query = session.query(BadData).all()
+    session.close()
+    dict_list = [result.__dict__ for result in query]
+    with open(pickle_file, 'w') as f:
+        pickle.dump(dict_list, f)
+
+    # Reset the database
+    database_interface.base.metadata.drop_all()
+    database_interface.base.metadata.create_all()
+
+    # Rebuild the bad_data table
+    with open(pickle_file, 'rb') as f:
+        dict_list = pickle.load(f)
+    for row in dict_list:
+        engine.execute(BadData.__table__.insert(), row)
+
+# -----------------------------------------------------------------------------
 # -----------------------------------------------------------------------------
 
-if __name__ == '__main__':
+def main():
 
     # Parse arguments
     args = parse_args()
@@ -111,7 +153,15 @@ if __name__ == '__main__':
             database_interface.base.metadata.drop_all()
             database_interface.base.metadata.create_all()
 
+        elif args.reset_table == 'production':
+            rebuild_production_tables()
+
         else:
             database_interface.base.metadata.tables[args.reset_table].drop()
             database_interface.base.metadata.tables[args.reset_table].create()
 
+# -----------------------------------------------------------------------------
+
+if __name__ == '__main__':
+
+    main()

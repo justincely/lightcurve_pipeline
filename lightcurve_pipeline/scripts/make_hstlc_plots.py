@@ -71,6 +71,8 @@ Dependencies:
         lightcurve_pipeline
         matplotlib
         numpy
+        pymysql
+        sqlalchemy
 """
 
 from collections import Counter
@@ -155,6 +157,7 @@ def bar_opt_elem():
     charts.output_file(os.path.join(SETTINGS['plot_dir'], 'opt_elem.html'))
     plot_file = os.path.join(SETTINGS['plot_dir'], 'opt_elem.html')
     charts.save(obj=bar, filename=plot_file)
+    set_permissions(plot_file)
 
 #-------------------------------------------------------------------------------
 
@@ -191,6 +194,7 @@ def configuration_piechart():
                             title='COS FUV breakdown')
         plot_file = os.path.join(SETTINGS['plot_dir'], 'pie_config_cos_fuv.html')
         charts.save(obj=plot, filename=plot_file)
+        set_permissions(plot_file)
     except KeyError:
         logging.info('No COS FUV datasets')
 
@@ -205,6 +209,7 @@ def configuration_piechart():
                             title='COS NUV breakdown')
         plot_file = os.path.join(SETTINGS['plot_dir'], 'pie_config_cos_nuv.html')
         charts.save(obj=plot, filename=plot_file)
+        set_permissions(plot_file)
     except KeyError:
         logging.info('No COS NUV datasets')
 
@@ -219,6 +224,7 @@ def configuration_piechart():
                             title='STIS FUV breakdown')
         plot_file = os.path.join(SETTINGS['plot_dir'], 'pie_config_stis_fuv.html')
         charts.save(obj=plot, filename=plot_file)
+        set_permissions(plot_file)
     except KeyError:
         logging.info('No STIS FUV-MAMA datasets')
 
@@ -233,6 +239,7 @@ def configuration_piechart():
                             title='STIS NUV breakdown')
         plot_file = os.path.join(SETTINGS['plot_dir'], 'pie_config_stis_nuv.html')
         charts.save(obj=plot, filename=plot_file)
+        set_permissions(plot_file)
     except KeyError:
         logging.info('No STIS NUV datasets')
 
@@ -293,6 +300,7 @@ def dataset_dashboard(filename, plot_file=''):
     charts.save(obj=p, filename=plot_file)
     charts.reset_output()
     del p
+    set_permissions(plot_file)
 
 #-------------------------------------------------------------------------------
 
@@ -386,6 +394,7 @@ def histogram_exptime():
 
     plot_file = os.path.join(SETTINGS['plot_dir'], 'exptime_histogram.html')
     charts.save(obj=bar, filename=plot_file)
+    set_permissions(plot_file)
 
 #-------------------------------------------------------------------------------
 
@@ -566,6 +575,7 @@ def plot_dataset(filename, plot_file=''):
     charts.save(obj=p, filename=plot_file)
     charts.reset_output()
     del p
+    set_permissions(plot_file)
 
 #-------------------------------------------------------------------------------
 
@@ -612,11 +622,12 @@ def plot_dataset_static(filename, plot_file=''):
     fig.savefig(plot_file, bbox_inches='tight')
     plt.close(fig)
     del fig
+    set_permissions(plot_file)
 
 #-------------------------------------------------------------------------------
 #-------------------------------------------------------------------------------
 
-if __name__ == '__main__':
+def main():
 
     # Configure logging
     module = os.path.basename(__file__).strip('.py')
@@ -658,3 +669,9 @@ if __name__ == '__main__':
     pool.join()
 
     logging.info('Processing complete')
+
+#-------------------------------------------------------------------------------
+
+if __name__ == '__main__':
+
+    main()

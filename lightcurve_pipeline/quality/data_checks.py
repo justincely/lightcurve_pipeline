@@ -25,10 +25,6 @@ Use:
 
     Where 'filename' is the full path to the dataset.
 
-Outputs:
-    A new row in the 'bad_data' table in the hstlc database, indicating
-    the name of the bad dataset and the reason that it is bad.
-
 Dependencies:
 
     Users must have access to the hstlc database.
@@ -42,6 +38,8 @@ Dependencies:
     Other external library dependencies include:
         astropy
         lightcurve_pipeline
+        pymysql
+        sqlalchemy
 """
 
 import inspect

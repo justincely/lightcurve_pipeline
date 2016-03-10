@@ -1,10 +1,55 @@
 """Connection module for the hstlc database
+
+This module serves as the interface to the hstlc database.  The
+load_connection() function within allows the user to conenct to the
+database via the session, base, and engine objects (described below).
+The classes within serve as the object-relational mappings (ORMs) that
+define the individual tables of the database, and are used to build the
+tables via the base object.
+
+The 'engine' object serves as the low-level database API and perhaps
+most importantly contains dialects which allows the sqlalchemy module
+to communicate with the database.
+
+The 'base' object serves as a base class for class definitions.  The
+'base' object produces Table objects and constructs ORMs.
+
+The 'session' object manages operations on ORM-mapped objects, as
+construced by the 'base'.  These operations include querying, for
+example.
+
+Authors:
+    Matthew Bourque, 2015
+
+Use:
+    This module is intended to be imported from various hstlc modules
+    and scripts.  The objects that are importable from this module are
+    as follows:
+
+    from lightcurve_pipeline.database.database_interface import engine
+    from lightcurve_pipeline.database.database_interface import base
+    from lightcurve_pipeline.database.database_interface import session
+    from lightcurve_pipeline.database.database_interface import Metadata
+    from lightcurve_pipeline.database.database_interface import Outputs
+    from lightcurve_pipeline.database.database_interface import BadData
+    from lightcurve_pipeline.database.database_interface import Stats
+
+Dependencies:
+
+    Users must have access to the hstlc database.
+
+    Users must also have a config.yaml file located in the
+    lightcurve_pipeline/utils/ directory with the following keys:
+
+    db_connection_string - The hstlc database connection string
+
+    Other external library dependencies include:
+        pymysql
+        sqlalchemy
+        lightcurve_pipeline
 """
 
 import pymysql
-
-from lightcurve_pipeline.utils.utils import SETTINGS
-
 from sqlalchemy import create_engine
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
@@ -18,10 +63,12 @@ from sqlalchemy import ForeignKey
 from sqlalchemy import Integer
 from sqlalchemy import String
 
+from lightcurve_pipeline.utils.utils import SETTINGS
+
 # -----------------------------------------------------------------------------
 
 def get_session():
-    """Return just the session object of the database connection.
+    """Return the session object of the database connection.
 
     In many cases, all that is needed is the session object to interact
     with the database.  This function can be used just to establish a
@@ -29,8 +76,7 @@ def get_session():
 
     Returns
     -------
-
-    session : sesson object
+    session : sqlalchemy.orm.session.Session
         Provides a holding zone for all objects loaded or associated
         with the database.
     """
@@ -133,10 +179,3 @@ class Stats(base):
     pearson_p = Column(Float(10), nullable=True)
     periodogram = Column(Boolean(), nullable=False, default=False)
     deliver = Column(Boolean(), nullable=False, default=False)
-
-# -----------------------------------------------------------------------------
-# -----------------------------------------------------------------------------
-
-if __name__ == '__main__':
-
-    base.metadata.create_all()

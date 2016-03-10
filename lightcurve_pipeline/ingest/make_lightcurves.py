@@ -1,4 +1,44 @@
-"""Create lightcurves
+"""Create lightcurves from input datasets
+
+This module contains functions that create lightcurves (in the form of
+FITS tables) from both individual and composite datasets.  It is
+essentially a wrapper around the 'lightcurve' library, which makes
+lightcurve objects, for example:
+
+    lc = lightcurve.LightCurve(filename)
+
+This module uses multiprocessing to process the composite lightcurves
+over numerous cores, as given by the 'num_cores' key in the config file
+(see below).
+
+Authors:
+    Matthew Bourque, 2015
+
+Use:
+    This module is intended to be imported from the ingest_hstlc script
+    as such:
+
+    from lightcurve_pipeline.ingest.make_lightcurves import make_composite_lightcurves
+    from lightcurve_pipeline.ingest.make_lightcurves import make_individual_lightcurve
+
+Dependencies:
+
+    Users must have access to the hstlc database.
+
+    Users must also have a config.yaml file located in the
+    lightcurve_pipeline/utils/ directory with the following keys:
+
+    db_connection_string - The hstlc database connection string
+    ingest_dir - The path to where files to be ingested are stored
+    composite_dir - The path to where hstlc composite output products
+        are stored.
+    num_cores - The number of cores to use during multiprocessing
+
+    Other external library dependencies include:
+        pymysql
+        sqlalchemy
+        lightcurve
+        lightcurve_pipeline
 """
 
 import logging
@@ -7,6 +47,7 @@ import os
 import traceback
 
 import lightcurve
+
 from lightcurve_pipeline.database.database_interface import get_session
 from lightcurve_pipeline.database.database_interface import Metadata
 from lightcurve_pipeline.database.database_interface import Outputs
@@ -50,7 +91,7 @@ def make_composite_lightcurves():
 # -----------------------------------------------------------------------------
 
 def make_individual_lightcurve(metadata_dict, outputs_dict):
-    """Extract the spectra and create a lightcurve
+    """Create a lightcurve for an individual dataset.
 
     Parameters
     ----------

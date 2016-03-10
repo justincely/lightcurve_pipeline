@@ -42,7 +42,9 @@ Dependencies:
         lightcurve
         lightcurve_pipeline
         numpy
+        pymysql
         scipy
+        sqlalchemy
 """
 
 import argparse
@@ -163,6 +165,7 @@ def get_stats(dataset):
     return stats_dict
 
 # -----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 
 def parse_args():
     """Parse command line arguments.
@@ -188,9 +191,8 @@ def parse_args():
     return args
 
 # -----------------------------------------------------------------------------
-# -----------------------------------------------------------------------------
 
-if __name__ == '__main__':
+def main():
 
     # Configure logging
     module = os.path.basename(__file__).strip('.py')
@@ -210,3 +212,9 @@ if __name__ == '__main__':
         update_stats_table(stats_dict, dataset)
 
     logging.info('Processing complete')
+
+# -----------------------------------------------------------------------------
+
+if __name__ == '__main__':
+
+    main()
