@@ -57,7 +57,7 @@ from lightcurve_pipeline.database.update_database import update_bad_data_table
 
 #-------------------------------------------------------------------------------
 
-def dataset_ok(filename):
+def dataset_ok(filename, move=True):
     """Perform quality check on the given dataset, and update the
     bad_data table and move the dataset to the bad_data directory if it
     doesn't pass.
@@ -66,6 +66,8 @@ def dataset_ok(filename):
     ----------
     filename : string
         The full path to the dataset.
+    move : bool, optional
+        Whether or not to update the bad data table and move the file.
 
     Returns
     -------
@@ -80,9 +82,10 @@ def dataset_ok(filename):
         for func in all_functions:
             success, reason = func(hdu)
             if not success:
-                logging.info('\tBad data for {}: {}'.format(filename, reason))
-                update_bad_data_table(os.path.basename(filename), reason)
-                move_file(filename)
+                if move:
+                    logging.info('\tBad data for {}: {}'.format(filename, reason))
+                    update_bad_data_table(os.path.basename(filename), reason)
+                    move_file(filename)
                 return False
 
     return True
@@ -200,3 +203,61 @@ def check_not_singular(hdu):
         return False, 'Singular event'
 
     return True, ''
+
+#-------------------------------------------------------------------------------
+
+def check_bad_proposal(hdu):
+    """Check that the proposal ID is not in a list of known 'bad' programs
+
+    Programs can be bad for a number of reasons, typically because of 
+    specialized calibration purposes like focus sweeps or high-voltage tests.
+
+    Parameters
+    ----------
+    hdu : astropy.io.fits.hdu.hdulist.HDUList
+        The hdulist of the dataset
+
+    Returns
+    -------
+    success : boolean
+        True if events are not from a known bad proposal, False otherwise
+    reason : string
+        An empty string if success is True, 'Bad Proposal' otherwise
+    """
+
+    #-- 13635, 'FUV Focus Sweep Enabling Program for COS at LP3 (LENA2)  ???
+    known_issue_proposals = {}
+
+    if hdu[0].header['PROPOSID'] in known_issue_proposals:
+        return False, 'Bad Proposal'
+
+    return True, ''
+
+#-------------------------------------------------------------------------------
+
+def check_exptime(hdu):
+    """Check that the dataset exptime is not too short
+
+    Threshold initially set to 1 second to filter out a small subset of 
+    very short exposures.
+
+    Parameters
+    ----------
+    hdu : astropy.io.fits.hdu.hdulist.HDUList
+        The hdulist of the dataset
+
+    Returns
+    -------
+    success : boolean
+        True if exptime greater than threshold, False otherwise
+    reason : string
+        An empty string if success is True, 'Short Exposure' otherwise
+    """
+
+    if hdu[1].header['EXPTIME'] < 1:
+        return False, 'Short Exposure'
+
+    return True, ''
+
+#-------------------------------------------------------------------------------
+
