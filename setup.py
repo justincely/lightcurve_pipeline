@@ -28,5 +28,6 @@ setup(
     requires = ['numpy', 'astropy', 'sqlalchemy', 'pyyaml'],
     data_files = [('lightcurve_pipeline/utils/', ['lightcurve_pipeline/utils/config.yaml'])],
     scripts = ['scripts/hstlc_pipeline'],
-    entry_points = entry_points
+    entry_points = entry_points,
+    version = '1.0'
     )
