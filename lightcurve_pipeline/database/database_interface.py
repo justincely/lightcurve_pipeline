@@ -161,7 +161,7 @@ class BadData(base):
     id = Column(Integer(), nullable=False, primary_key=True)
     filename = Column(String(30), unique=True, nullable=False, index=True)
     ingest_date = Column(Date, nullable=False)
-    reason = Column(Enum('Bad EXPFLAG', 'Non-linear time', 'No events', 'Singular event'), nullable=False)
+    reason = Column(Enum('Bad EXPFLAG', 'Non-linear time', 'No events', 'Singular event', 'Bad Proposal', 'Short Exposure'), nullable=False)
 
 
 class Stats(base):
