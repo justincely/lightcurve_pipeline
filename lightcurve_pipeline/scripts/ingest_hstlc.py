@@ -1,8 +1,6 @@
 #! /usr/bin/env python
 
-"""Ingest COS & STIS TIMETAG data into the hstlc filesystem and
-database, and create lightcurves.
-
+"""
 This script performs the main ingestion of data into the hstlc
 filesystem and database, as well as creates output lightcurves for both
 individual observations as well as 'composite' (i.e. aggregate)
@@ -11,95 +9,102 @@ algorithm:
 
     1. Configure logging
     2. Parse command line arguments
-    3. Gather *_x1d.fits, *_tag.fits, *_corrtag.fits, *_corrtag_a.fits,
-       and *_corrtag_b.fits files from the 'ingest_dir' directory, as
-       determined by the config file (see below).
-        a. If both a *_corrtag_a.fits and a *_corrtag_b.fits file
-           exists for a given dataset, ignore the *_corrtag_b.fits
-           file (as to avoid redundant extraction).
+    3. Gather ``*_x1d.fits``, ``*_tag.fits``, ``*_corrtag.fits``,
+       ``*_corrtag_a.fits``, and ``*_corrtag_b.fits`` files from the
+       ``ingest_dir`` directory, as determined by the config file (see
+       below):
+        a. If both a ``*_corrtag_a.fits`` and a ``*_corrtag_b.fits``
+        file exists for a given dataset, ignore the
+        ``*_corrtag_b.fits`` file (as to avoid redundant extraction).
     4. For each dataset to ingest:
-        a. If dataset has no events or a bad EXPFLAG header value:
-            i. Update the 'bad_data' table in database
+        a. Perform data quality checks.  If the dataset is deemed bad:
+            i. Update the ``bad_data`` table in database
             ii. Remove dataset
         b. Gather metadata
         c. If dataset is a STIS dataset:
             i. Extract spectra
-            ii. Rename *_tag.fits to *_corrtag.fits
+            ii. Rename ``*_tag.fits`` to ``*_corrtag.fits``
         d. If dataset is a COS dataset:
-            i. Extract spectra (both *_corrtag_a.fits and
-               *_corrtag_b.fits, if necessary)
-        e. Update 'metadata' table in database
+            i. Extract spectra (both ``*_corrtag_a.fits`` and
+            ``*_corrtag_b.fits``, if necessary)
+        e. Update ``metadata`` table in database
         f. Create lightcurve
-        g. Update 'outputs' table in database
-        h. Create 'quicklook' image
+        g. Update ``outputs`` table in database
+        h. Create `quicklook' image
         i. Move file to appropriate location in filesystem
-    5. For each dataset in unique detector-targname-opt_elem-cenwave
-       configuration:
-           Create composite lightcurve
+    5. Create composite lightcurve for each dataset in unique
+       detector-targname-opt_elem-cenwave configuration
 
-The filenames and headers of the 'composite' lightcurves are configured
+The filenames and headers of the composite lightcurves are configured
 such that they can be delivered to MAST as High Level Science Products
 (HLSPs), though not all composite lightcurves are delivered.
 
 This script uses multiprocessing.  Users can set the number of cores
-used via the 'num_cores' setting in the config file (see below).
+used via the ``num_cores`` setting in the config file (see below).
 
 
-Authors:
-    Matthew Bourque, 2015
-    Justin Ely, 2015
+**Authors:**
+
+    Matthew Bourque, Justin Ely
 
 Use:
+
     This script is intended to be executed as part of the
-    hstlc_pipeline shell script.  However, users can also execute this
-    script via the command line as such:
+    ``hstlc_pipeline`` shell script.  However, users can also execute
+    this script via the command line as such:
 
     >>> ingest_hstlc [-corrtag_extract]
 
-    -corrtag_extract (Optional) - (Re)extract corrtag data as it is
-        ingested, if provided.
+    ``-corrtag_extract`` (*optional*) - (Re)extract corrtag data as it
+    is ingested, if provided.
 
 Outputs:
-    (1) New and/or updated entries in the 'metadata', 'outputs', and
-        'bad_data' tables in the hstlc database.
-    (2) x1d, tag, and corrtag files are moved from the 'ingest_dir'
-        directory to the appropriate directory in the 'filesystem_dir'
-        directory, as determined by the config file (see below).
-    (3) *_curve.fits lightcurves for individual observations, placed
-        in the appropriate 'output_dir' directory as determined by
+
+    (1) New and/or updated entries in the ``metadata``, ``outputs``,
+        and ``bad_data`` tables in the hstlc database.
+    (2) ``x1d``, ``tag``, and ``corrtag`` files are moved from the
+        ``ingest_dir`` directory to the appropriate directory in the
+        ``filesystem_dir`` directory, as determined by the config file
+        (see below).
+    (3) ``*_curve.fits`` lightcurves for individual observations,
+        placed in the appropriate ``output_dir`` directory as
+        determined by the config file (see below).
+    (4) ``hlsp_hstlc_*.fits`` lightcurves for composite observations,
+        placed in the ``composite_dir`` directory , as determined by
         the config file (see below).
-    (4) hlsp_hstlc_*.fits lightcures for composite observations,
-        peaced in the 'composite_dir' directory , as determined by the
-        config file (see below).
-    (5) a log file in the 'log_dir' directory as determined by the
+    (5) a log file in the ``log_dir`` directory as determined by the
         config file (see below).
 
 Dependencies:
 
-    Users must have access to the hstlc database.
+    (1) Users must have access to the hstlc database.
+    (2) Users must also have access to the cdbs ``lref`` and ``oref``
+        directories, which hold COS and STIS reference files,
+        respectively.
+    (3) Users must also have a ``config.yaml`` file located in the
+        ``lightcurve_pipeline/utils/`` directory with the following
+        keys:
 
-    Users must also have access to the cdbs 'lref' and 'oref'
-    directories, which hold COS and STIS reference files, respectively.
-
-    Users must also have a config.yaml file located in the
-    lightcurve_pipeline/utils/ directory with the following keys:
-
-    db_connection_string - The hstlc database connection string
-    ingest_dir - The path to where files to be ingested are stored
-    filesystem_dir - The path to the hstlc filesystem
-    outputs_dir - The path to where hstlc output products are stored
-    composite_dir - The path to where hstlc composite output products
-        are stored.
-    log_dir - The path to where the log file will be stored
-    num_cores - The number of cores to use during multiprocessing
+        - ``db_connection_string`` - The hstlc database connection
+          string
+        - ``ingest_dir`` - The path to where files to be ingested are
+          stored
+        - ``filesystem_dir`` - The path to the hstlc filesystem
+        - ``outputs_dir`` - The path to where hstlc output products are
+          stored
+        - ``composite_dir`` - The path to where hstlc composite output
+          products are stored.
+        - ``log_dir`` - The path to where the log file will be stored
+        - ``num_cores`` - The number of cores to use during
+          multiprocessing
 
     Other external library dependencies include:
-        astropy
-        lightcurve
-        lightcurve_pipeline
-        pymysql
-        matplotlib
-        sqlalchemy
+        - ``astropy``
+        - ``lightcurve``
+        - ``lightcurve_pipeline``
+        - ``pymysql``
+        - ``matplotlib``
+        - ``sqlalchemy``
 """
 
 import argparse
@@ -139,14 +144,15 @@ os.environ['oref'] = '/grp/hst/cdbs/oref/'
 
 def get_files_to_ingest():
     """
-    Return a list of files to ingest.  Since corrtag_a and corrtab_b
-    files are extracted together, the returned list must be void of
-    duplicate corrtag files in order to avoid double extraction.
+    Return a list of files to ingest.  Since ``corrtag_a`` and
+    ``corrtab_b`` files are extracted together, the returned list must
+    be void of duplicate ``corrtag`` files in order to avoid double
+    extraction
 
     Returns
     -------
     files_to_ingest : list
-        A list of full paths to files to ingest.
+        A list of full paths to files to ingest
     """
 
     logging.info('')
@@ -176,7 +182,7 @@ def get_files_to_ingest():
 
 def ingest(mp_args):
     """Ingests the file into the hstlc filesystem and database. Also
-    produces output lightcurves.
+    produces output lightcurves
 
     Parameters
     ----------
@@ -184,7 +190,7 @@ def ingest(mp_args):
         The multiprocessing arguments.  The zeroth value is the
         filename (i.e. the file to ingest), and the first value is the
         corrtag_extract switch (i.e. turn on/off stis corrtag
-        re-extraction).
+        re-extraction)
     """
 
     # Parse multiprocessing args
@@ -240,16 +246,16 @@ def make_file_dicts(filename, header):
     Parameters
     ----------
     filename : string
-        The absolute path to the file.
+        The absolute path to the file
     header : astropy.io.fits.header.Header
-        The primary header of the file.
+        The primary header of the file
 
     Returns
     -------
     metadata_dict : dict
-        A dictionary containing metadata of the file.
+        A dictionary containing metadata of the file
     outputs_dict : dict
-        A dictionary containing output product information.
+        A dictionary containing output product information
     """
 
     metadata_dict = {}
@@ -291,12 +297,12 @@ def make_file_dicts(filename, header):
 # -----------------------------------------------------------------------------
 
 def make_quicklook(outputs_dict):
-    """Make a quicklook PNG of the lightcurve.
+    """Make a quicklook PNG of the lightcurve
 
     Parameters
     ----------
     outputs_dict : dict
-        A dictionary containing output product information.
+        A dictionary containing output product information
     """
 
     lc_name = os.path.join(outputs_dict['individual_path'], outputs_dict['individual_filename'])
@@ -306,17 +312,14 @@ def make_quicklook(outputs_dict):
 # -----------------------------------------------------------------------------
 
 def move_file(metadata_dict):
-    """Move the file (and it's accompanying x1d file) from the ingest
-    directory into the filesystem.
+    """Move the file (and it's accompanying ``x1d`` file) from the
+    ingest directory into the filesystem.  The parent directory to the
+    ile is named afer the file's ``TARGNAME``
 
     Parameters
     ----------
     metadata_dict : dict
-        A dictionary containing metadata of the file.
-
-    Notes
-    -----
-    The parent directory to the file is named afer the file's TARGNAME.
+        A dictionary containing metadata of the file
     """
 
     # Create parent directory if necessary
@@ -356,12 +359,12 @@ def move_file(metadata_dict):
 # ----------------------------------------------------------------------------
 
 def parse_args():
-    """Parse command line arguments. Returns args object.
+    """Parse command line arguments. Returns ``args`` object
 
     Returns
     -------
     args : argparse.Namespace object
-        An argparse object containing all of the added arguments.
+        An argparse object containing all of the added arguments
     """
 
     # Create help strings
@@ -385,6 +388,8 @@ def parse_args():
 # -----------------------------------------------------------------------------
 
 def main():
+    """The main function of the ``ingest_hstlc`` script
+    """
 
     # Configure logging
     module = os.path.basename(__file__).strip('.py')
