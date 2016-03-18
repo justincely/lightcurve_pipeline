@@ -48,9 +48,127 @@ The ``hstlc`` pipeline uses a MySQL database to store useful metadata and file l
 
 The ``metadata`` table stores information about each observations location in the HSTLC filesystem as well as useful header keyword values.  The table contains the following columns:
 
+    +-----------------+--------------+------+-----+---------+----------------+
+    | Field           | Type         | Null | Key | Default | Extra          |
+    +-----------------+--------------+------+-----+---------+----------------+
+    | id              | int(11)      | NO   | PRI | NULL    | auto_increment |
+    +-----------------+--------------+------+-----+---------+----------------+
+    | filename        | varchar(30)  | NO   | UNI | NULL    |                |
+    +-----------------+--------------+------+-----+---------+----------------+
+    | path            | varchar(100) | NO   |     | NULL    |                |
+    +-----------------+--------------+------+-----+---------+----------------+
+    | ingest_date     | date         | NO   |     | NULL    |                |
+    +-----------------+--------------+------+-----+---------+----------------+
+    | telescop        | varchar(10)  | NO   |     | NULL    |                |
+    +-----------------+--------------+------+-----+---------+----------------+
+    | instrume        | varchar(10)  | NO   |     | NULL    |                |
+    +-----------------+--------------+------+-----+---------+----------------+
+    | targname        | varchar(30)  | NO   |     | NULL    |                |
+    +-----------------+--------------+------+-----+---------+----------------+
+    | cal_ver         | varchar(30)  | NO   |     | NULL    |                |
+    +-----------------+--------------+------+-----+---------+----------------+
+    | obstype         | varchar(30)  | NO   |     | NULL    |                |
+    +-----------------+--------------+------+-----+---------+----------------+
+    | cenwave         | int(11)      | NO   |     | NULL    |                |
+    +-----------------+--------------+------+-----+---------+----------------+
+    | aperture        | varchar(30)  | NO   |     | NULL    |                |
+    +-----------------+--------------+------+-----+---------+----------------+
+    | detector        | varchar(30)  | NO   |     | NULL    |                |
+    +-----------------+--------------+------+-----+---------+----------------+
+    | opt_elem        | varchar(30)  | NO   |     | NULL    |                |
+    +-----------------+--------------+------+-----+---------+----------------+
+    | fppos           | int(11)      | NO   |     | NULL    |                |
+    +-----------------+--------------+------+-----+---------+----------------+
+
+- **id** - A unique integer ID number that serves as primary key.
+- **filename** - The filename of the observation.
+- **path** - The location of the file in the HSTLC filesystem.
+- **ingest_date** - The date of which the file was last ingested.
+- **telescop** - The value of the observation's ``TELESCOP`` header keyword.  Currently, this is always ``HST``.
+- **instrume** - The value of the observation's  ``INSTRUME`` header keyword. This is either ``COS`` or ``STIS``.
+- **targname** - The value of the observation's ``TARGNAME`` header keyword (i.e. the target name of the                   observation).
+- **cal_ver** - The value of the observation's ``CAL_VER`` header keyword (i.e. the version of the calibration pipeline that was used to calibrate the observation).
+- **obstype** - The value of the observation's ``OBSTYPE`` header keyword.  This is either ``SPECTROSCOPIC`` or ``IMAGING``.
+- **cenwave** - The value of the observation's ``CENWAVE`` header keyword (i.e. the central wavelength of the observation).
+- **aperture** - The value of the observation's ``APERTURE`` header keyword (i.e. the aperture name).
+- **detector** - The value of the observation's ``DETECTOR`` header keyword.  This is either ``FUV-MAMA`` or ``NUV-MAMA`` for STIS, or ``FUV`` or ``NUV`` for COS.
+- **opt_elem** - The value of the observation's ``OPT_ELEM`` header keyword (i.e. the optical element used).
+- **fppos** - The value of the observation's ``FPPOS`` header keyword (i.e. the grating offset index).
+
+
+**Outputs Table**
+
+The ``outputs`` table stores information about the output products associated with each filename from the ``metadata`` table. The table contains the following columns:
+
+    +---------------------+--------------+------+-----+---------+----------------+
+    | Field               | Type         | Null | Key | Default | Extra          |
+    +---------------------+--------------+------+-----+---------+----------------+
+    | id                  | int(11)      | NO   | PRI | NULL    | auto_increment |
+    +---------------------+--------------+------+-----+---------+----------------+
+    | metadata_id         | int(11)      | NO   | UNI | NULL    |                |
+    +---------------------+--------------+------+-----+---------+----------------+
+    | individual_path     | varchar(100) | YES  |     | NULL    |                |
+    +---------------------+--------------+------+-----+---------+----------------+
+    | individual_filename | varchar(30)  | YES  |     | NULL    |                |
+    +---------------------+--------------+------+-----+---------+----------------+
+    | composite_path      | varchar(100) | YES  |     | NULL    |                |
+    +---------------------+--------------+------+-----+---------+----------------+
+    | composite_filename  | varchar(30)  | YES  |     | NULL    |                |
+    +---------------------+--------------+------+-----+---------+----------------+
+
+1. **id** - A unique integer ID number that serves as primary key.
+2. **metadata_id** - A foreign key that points to the primary ID of the ``metadata`` table. This will allow for the ``outputs`` table and the ``metadata`` table to join.
+3. **individual_path** - The path to the individual lightcurve output file.
+4. **individual_filename** - The filename of the individual lightcurve output file.
+5. **composite_path** - The path to the composite lightcurve output file.
+6. **composite_filename** - The filename of the composite lightcurve output file.
+
+
+**Bad Data Table**
+
+The ``bad_data`` table stores information about files that could not be ingested.  The table contains the following columns:
+
+    +-------------+---------------------------------+------+-----+---------+----------------+
+    | Field       | Type                            | Null | Key | Default | Extra          |
+    +-------------+---------------------------------+------+-----+---------+----------------+
+    | id          | int(11)                         | NO   | PRI | NULL    | auto_increment |
+    +-------------+---------------------------------+------+-----+---------+----------------+
+    | filename    | varchar(30)                     | NO   | UNI | NULL    |                |
+    +-------------+---------------------------------+------+-----+---------+----------------+
+    | ingest_date | date                            | NO   |     | NULL    |                |
+    +-------------+---------------------------------+------+-----+---------+----------------+
+    | reason      | enum('No events','Bad EXPFLAG') | NO   |     | NULL    |                |
+    +-------------+---------------------------------+------+-----+---------+----------------+
+
+1. **id** - A unique integer ID number that serves as the primary key.
+2. **filename** - The filename of the observation that couldn't be ingested.
+3. **ingest_date** - The date in which the file was attempted to be ingested.
+4. **reason** - The reason why the file was not ingested.  Can either be ``No events`` (which corresponds to an observation with no observed signal) or ``Bad EXPFLAG`` (which corresponds to observations that have an ``EXPFLAG`` header keyword that is not ``NORMAL``).
+
 
 Filesystem
 ----------
+
+The ``corrtag``, and ``x1d`` files are stored in a directory structure located in the ``filesystem/`` directory on central storage.  The files are stored in a subdirectory associated with their ``TARGNAME`` header keyword.  For example:
+
+```
+filesystem/
+    TARGNAME1/
+        file1_corrtag.fits
+        file1_x1d.fits
+        file2_corrtag.fits
+        file2_x1d.fits
+    TARGNAME2/
+        ...
+    TARGNAME3/
+        ...
+    ...
+```
+
+Files are moved from the ``ingest/`` directory to their appropriate subdirectory in ``filesystem/`` as determined by the logic in the [ingest_hstlc](https://github.com/justincely/lightcurve_pipeline/blob/master/scripts/ingest_hstlc) script.  The permissions of the directories and files are governed by ``set_permissions`` function in the [utils](https://github.com/justincely/lightcurve_pipeline/blob/master/lightcurve_pipeline/utils/utils.py) module.
+
+The filesystem can be "reset" by the [reset_hstlc_filesystem](https://github.com/justincely/lightcurve_pipeline/blob/master/scripts/reset_hstlc_filesystem) script. This will move files from the ``filesystem/`` directory back to the ``ingest/`` directory and remove the subdirectories under ``filesystem/``.
+
 
 Permissions
 -----------
