@@ -46,7 +46,7 @@ Dependencies:
         lightcurve_pipeline
 
 References:
-    [1] Centre de Données astronomiques de Strasbourg
+    [1] Centre de Donnees astronomiques de Strasbourg
         (http://cdsweb.u-strasbg.fr/)
 """
 
