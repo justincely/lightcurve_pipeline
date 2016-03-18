@@ -1,36 +1,41 @@
 #! /usr/bin/env python
 
-"""Reset all or specific tables in the hstlc database.
+"""Reset all or specific tables in the hstlc database
 
-Authors:
-    Matthew Bourque, 2015
+**Authors:**
 
-Use:
+    Matthew Bourque
+
+**Use:**
+
     This script is intended to be executed via the command line as
     such:
 
     >>> reset_hstlc_database [table]
 
-    table (Optional) - Reset the specific table given. Can be any valid
-        table that exists in the hstlc database, or "all" in which all
-        tables will be reset.  If an argument is not provided, the
-        default value of "all" is used.
+    ``table`` (*optional*) - Reset the specific table given. Can be any
+    valid table that exists in the hstlc database, ``all`` in which all
+    tables will be reset, or ``production`` in which only the
+    ``metadata``, ``outputs``, and ``stats`` tables will be reset.  If
+    an argument is not provided, the default value of ``production`` is
+    used.
 
-Dependencies:
+**Dependencies:**
 
-    Users must have access to the hstlc database.
+    (1) Users must have access to the hstlc database
+    (2) Users must also have a ``config.yaml`` file located in the
+        ``lightcurve_pipeline/utils/`` directory with the following
+        keys:
 
-    Users must also have a config.yaml file located in the
-    lightcurve_pipeline/utils/ directory with the following keys:
-
-    db_connection_string - The hstlc database connection string
-    home_dir - The home hstlc directory, where the bad_data table
-        will be stored in a text file
+        - ``db_connection_string`` - The hstlc database connection
+          string
+        - ``home_dir`` - The home hstlc directory, where the
+          ``bad_data`` table will be stored in a text file
 
     Other external library dependencies include:
-        lightcurve_pipeline
-        pymysql
-        sqlalchemy
+        - ``lightcurve_pipeline``
+        - ``pymysql``
+        - ``sqlalchemy``
 """
 
 from __future__ import print_function
@@ -50,12 +55,12 @@ from lightcurve_pipeline.database.database_interface import BadData
 # -----------------------------------------------------------------------------
 
 def get_valid_tables():
-    """Return a list of table names in the hstlc database.
+    """Return a list of table names in the hstlc database
 
     Returns
     -------
     tables : list
-        A list of hstlc table names.
+        A list of hstlc table names
     """
 
     tables = []
@@ -71,12 +76,12 @@ def get_valid_tables():
 # -----------------------------------------------------------------------------
 
 def parse_args():
-    """Parse command line arguments.
+    """Parse command line arguments
 
     Returns
     -------
     args : argparse object
-        An argparse object containing the arguments.
+        An argparse object containing the arguments
     """
 
     reset_table_help = ('The table to reset. Can be any valid database table,'
@@ -102,15 +107,15 @@ def parse_args():
 # -----------------------------------------------------------------------------
 
 def rebuild_production_tables():
-    """Rebuild the 'prodction' tables of the hstlc database.
-
-    The 'prodction' tables consist of the metadata, outputs, and stats
-    tables.  The bad_data table is treated separately.  Since the
-    bad_data table cannot easily be rebuilt (since bad data is not
-    necessarily re-ingested), the data within the table is written out
-    to a text file and re-ingested after the database is reset.  This
-    essentially results in a reset database for the production tables,
-    but the bad data table effectively remains untouched.
+    """Rebuild the ``prodction`` tables of the hstlc database, which
+    consist of the ``metadata``, ``outputs``, and ``stats`` tables.
+    The ``bad_data`` table is treated separately;  Since the
+    ``bad_data`` table cannot easily be reconstructed (since bad data
+    is not necessarily re-ingested), the data within the table is
+    written out to a text file and re-ingested after the database is
+    reset.  This essentially results in a reset database for the
+    production tables, but the bad data table effectively remains
+    untouched.
     """
 
     # # Write the contents of the bad_data table out to a text file
@@ -135,6 +140,8 @@ def rebuild_production_tables():
 # -----------------------------------------------------------------------------
 
 def main():
+    """The main function of the ``reset_hstlc_database`` script
+    """
 
     # Parse arguments
     args = parse_args()

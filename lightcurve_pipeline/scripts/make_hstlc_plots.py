@@ -1,78 +1,84 @@
 #! /usr/bin/env python
 
-"""Create various plots that deal with the hstlc filesystem, database,
-and output products.
+"""
+Create various plots that deal with the hstlc filesystem, database,
+and output products. This script uses multiprocessing.  Users can set
+the number of cores used via the ``num_cores`` setting in the config
+file (see below).
 
-This script uses multiprocessing.  Users can set the number of cores
-used via the 'num_cores' setting in the config file (see below).
+**Authors:**
 
-Authors:
-    Justin Ely, 2015
-    Matthew Bourque, 2015
+    Justin Ely, Matthew Bourque
 
-Use:
+**Use:**
+
     This script is intended to be executed as part of the
-    hstlc_pipeline shell script.  However, users can also execute this
-    script via the command line as such:
+    ``hstlc_pipeline`` shell script.  However, users can also execute
+    this script via the command line as such:
 
     >>> make_hstlc_plots
 
-Outputs:
-    (1) hlsp_hstlc_*.png static lightcurve plots for each composite
-        lightcurve, placed in the 'composite_dir' directory, as
-        determined by the config file (see below).
-    (2) hlsp_hstlc_*.html bokeh plots showing a 'dashboard' of various
-        plots for each composite lightcurve, placed in the
-        'composite_dir' directory, as determined by the config file
-        (see below).
-    (3) interesting_hstlc.html, boring_hstlc.html, and null_hstlc.html
-        'exploratory' tables, which are sortable tables that display
-        statistics and plots for each dataset, placed in the 'plot_dir'
-        directory, as determined by the config file (see below).
-    (4) exptime_histogram.html - A histrogram showing the cumulative
-        exposure time by target in the form of a bokeh plot, placed in
-        the 'plot_dir' directory, as determined by the config file (see
-        below).
-    (5) pie_config_cos_fuv.html, pie_config_cos_nuv.html,
-        pie_config_stis_fuv.html, and pie_config_stis_nuv.html
+**Outputs:**
+
+    (1) ``hlsp_hstlc_*.png`` static lightcurve plots for each composite
+        lightcurve, placed in the ``composite_dir`` directory, as
+        determined by the config file (see below)
+    (2) ``hlsp_hstlc_*.html`` bokeh plots showing a 'dashboard' of
+        various plots for each composite lightcurve, placed in the
+        ``composite_dir`` directory, as determined by the config file
+        (see below)
+    (3) ``interesting_hstlc.html``, ``boring_hstlc.html``, and
+        ``null_hstlc.html`` 'exploratory' tables, which are sortable
+        tables that display statistics and plots for each dataset,
+        placed in the ``plot_dir`` directory, as determined by the
+        config file (see below)
+    (4) ``exptime_histogram.html`` - A histrogram showing the
+        cumulative exposure time by target in the form of a bokeh plot,
+        placed in the ``plot_dir`` directory, as determined by the
+        config file (see below)
+    (5) ``pie_config_cos_fuv.html``, ``pie_config_cos_nuv.html``,
+        ``pie_config_stis_fuv.html``, and ``pie_config_stis_nuv.html``
         'configuration' pie charts that show the breakdown of datasets
         by grating/cenwave for each instrument/detector combination,
-        placed in the 'plot_dir' directory, as determined by the config
-        file (see below).
-    (6) opt_elem.html - a historgram showing the number of datasets for
-        each filter, placed in the 'plot_dir' directory, as determined
-        by the config file (see below).
-    (7) <dataset name>_periodgram.png - Lomb-Scargle periodograms for
-        each dataset (both individual and composite), placed in the
-        'plot_dir' directory, as determined by the config file (see
+        placed in the ``plot_dir`` directory, as determined by the
+        config file (see below)
+    (6) ``opt_elem.html`` - a historgram showing the number of datasets
+        for each filter, placed in the ``plot_dir`` directory, as
+        determined by the config file (see below)
+    (7) ``<dataset name>_periodgram.png`` - Lomb-Scargle periodograms
+        for each dataset (both individual and composite), placed in the
+        ``plot_dir`` directory, as determined by the config file (see
         below). Additionally, periodograms that are deemed interesting
-        are saved in a separate 'periodogram_subset' directory under
-        the 'plot_dir' directory.
-    (8) a log file in the 'log_dir' directory as determined by the
-        config file (see below).
+        are saved in a separate ``periodogram_subset`` directory under
+        the ``plot_dir`` directory.
+    (8) a log file in the ``log_dir`` directory as determined by the
+        config file (see below)
 
-Dependencies:
+**Dependencies:**
 
-    Users must have access to the hstlc database.
+    (1) Users must have access to the hstlc database
+    (2) Users must also have a ``config.yaml`` file located in the
+        ``lightcurve_pipeline/utils/`` directory with the following
+        keys:
 
-    Users must also have a config.yaml file located in the
-    lightcurve_pipeline/utils/ directory with the following keys:
-
-    db_connection_string - The hstlc database connection string
-    plot_dir - The path to where hstlc output plots are stored
-    composite_dir - The path to where hstlc composite output products
-        are stored.
-    log_dir - The path to where the log file will be stored
-    num_cores - The number of cores to use during multiprocessing
+        - ``db_connection_string`` - The hstlc database connection
+          string
+        - ``plot_dir`` - The path to where hstlc output plots are
+          stored
+        - ``composite_dir`` - The path to where hstlc composite output
+          products are stored
+        - ``log_dir`` - The path to where the log file will be stored
+        - ``num_cores`` - The number of cores to use during
+          multiprocessing
 
     Other external library dependencies include:
-        astropy
-        bokeh
-        lightcurve_pipeline
-        matplotlib
-        numpy
-        pymysql
-        sqlalchemy
+        - ``astropy``
+        - ``bokeh``
+        - ``lightcurve_pipeline``
+        - ``matplotlib``
+        - ``numpy``
+        - ``pymysql``
+        - ``sqlalchemy``
 """
 
 from collections import Counter
@@ -115,7 +121,7 @@ from lightcurve_pipeline.database.database_interface import Stats
 def bar_opt_elem():
     """
     Create a bar chart showing the number of composite lightcurves
-    for each COS & STIS optical element.
+    for each COS & STIS optical element
     """
 
     logging.info('Creating optical element bar chart')
@@ -164,7 +170,7 @@ def bar_opt_elem():
 def configuration_piechart():
     """
     Create a piechart showing distribution of configurations for each
-    imstrument/detector combination.
+    imstrument/detector combination
     """
 
     logging.info('Creating target piechart')
@@ -248,7 +254,7 @@ def configuration_piechart():
 
 def dataset_dashboard(filename, plot_file=''):
     """
-    Creates interactive bokeh 'dashboard' plot for the given filename.
+    Creates interactive bokeh 'dashboard' plot for the given filename
 
     Parameters
     ----------
@@ -256,7 +262,7 @@ def dataset_dashboard(filename, plot_file=''):
         The path to the lightcurve
     plot_file : str
         The path to the PNG plot.  The user can supply this argument if
-        they wish to update the plot or save to a specific location
+        they wish to update the plot or save to a specific location.
     """
 
     logging.info('Creating bokeh dashboard plots for {}'.format(filename))
@@ -307,7 +313,7 @@ def dataset_dashboard(filename, plot_file=''):
 def exploratory_tables():
     """
     Create html tables containing data from the stats table as well as
-    plots, broken down into interesting, boring, and null results.
+    plots, broken down into interesting, boring, and null results
     """
 
     # Interesting results
@@ -341,7 +347,7 @@ def exploratory_tables():
 def histogram_exptime():
     """
     Create a histogram showing the distribution of exposure times for
-    the composite lightcurves.
+    the composite lightcurves
     """
 
     logging.info('Creating exposure time historgram')
@@ -451,7 +457,7 @@ def make_exploratory_table(dataset_list, table_name):
 
 def periodogram(dataset):
     """
-    Create a Lomb-Scargle periodgram for the given dataset.
+    Create a Lomb-Scargle periodgram for the given dataset
 
     Parameters
     ----------
@@ -535,7 +541,7 @@ def periodogram(dataset):
 
 def plot_dataset(filename, plot_file=''):
     """
-    Create an interactive bokeh lightcurve plot for the given filename.
+    Create an interactive bokeh lightcurve plot for the given filename
 
     Parameters
     ----------
@@ -581,7 +587,7 @@ def plot_dataset(filename, plot_file=''):
 
 def plot_dataset_static(filename, plot_file=''):
     """
-    Creates static PNG lightcurve plot for the given filename.
+    Creates static PNG lightcurve plot for the given filename
 
     Parameters
     ----------
@@ -628,6 +634,8 @@ def plot_dataset_static(filename, plot_file=''):
 #-------------------------------------------------------------------------------
 
 def main():
+    """The main function of the ``make_hstlc_plots`` script
+    """
 
     # Configure logging
     module = os.path.basename(__file__).strip('.py')

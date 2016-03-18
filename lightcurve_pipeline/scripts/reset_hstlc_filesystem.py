@@ -1,33 +1,37 @@
 #! /usr/bin/env python
 
-"""Reset the hstlc filesystem by moving files back into the ingestion
-directory.
+"""
+Reset the hstlc filesystem by moving files back into the ingestion
+directory.  Files are moved from the ``filesystem_dir`` directory to
+the ``ingest_dir`` directory, as determined by the config file (see
+below).  Additionally, output products located in the ``outputs_dir``
+directory, as determined by the config file (see below) are removed.
 
-Files are moved from the 'filesystem_dir' directory to the 'ingest_dir'
-directory, as determined by the config file (see below).  Additionally,
-output products located in the 'outputs_dir' directory, as determined
-by the config file (see below) are removed.
+**Authors:**
 
-Authors:
-    Matthew Bourque, 2015
+    Matthew Bourque
 
-Use:
+**Use:**
+
     This script is intended to be executed via the command line as
     such:
 
     >>> reset_hstlc_filesystem
 
-Dependencies:
+**Dependencies:**
 
-    Users must also have a config.yaml file located in the
-    lightcurve_pipeline/utils/ directory with the following keys:
+    Users must have a ``config.yaml`` file located in the
+    ``lightcurve_pipeline/utils/`` directory with the following
+    keys:
 
-    ingest_dir - The path to where files to be ingested are stored
-    filesystem_dir - The path to the hstlc filesystem
-    outputs_dir - The path to where hstlc output products are stored
+        - ``ingest_dir`` - The path to where files to be ingested are
+          stored
+        - ``filesystem_dir`` - The path to the hstlc filesystem
+        - ``outputs_dir`` - The path to where hstlc output products are
+          stored
 
     Other external library dependencies include:
-        lightcurve_pipeline
+        - ``lightcurve_pipeline``
 """
 
 from __future__ import print_function
@@ -42,12 +46,9 @@ from lightcurve_pipeline.utils.utils import SETTINGS
 
 def move_files_to_ingest():
     """
-    Move files from filesystem back to the ingestion directory.
-
-    Notes
-    -----
-    If the file already exists in the ingest directory, the file is
-    removed rather than moved.
+    Move files from filesystem back to the ingestion directory. If the
+    file already exists in the ingest directory, the file is removed
+    rather than moved.
     """
 
     # Gather files in the filesystem directory
@@ -67,7 +68,7 @@ def move_files_to_ingest():
 
 def remove_output_directories():
     """
-    Remove all output products and output directories.
+    Remove all output products and output directories
     """
 
     directories = glob.glob(os.path.join(SETTINGS['outputs_dir'], '*'))
@@ -82,7 +83,7 @@ def remove_output_directories():
 
 def remove_filesystem_directories():
     """
-    Remove parent directories from the filesystem if they are empty.
+    Remove parent directories from the filesystem if they are empty
     """
 
     dirlist = glob.glob(os.path.join(SETTINGS['filesystem_dir'], '*'))
@@ -97,6 +98,8 @@ def remove_filesystem_directories():
 # -----------------------------------------------------------------------------
 
 def main():
+    """The main function of the ``reset_hstlc_filesystem`` script
+    """
 
     # Give the user a second chance
     prompt = 'About to reset filesystem {}. '.format(SETTINGS['filesystem_dir'])

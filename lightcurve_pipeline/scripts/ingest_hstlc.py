@@ -40,14 +40,14 @@ such that they can be delivered to MAST as High Level Science Products
 (HLSPs), though not all composite lightcurves are delivered.
 
 This script uses multiprocessing.  Users can set the number of cores
-used via the ``num_cores`` setting in the config file (see below).
+used via the ``num_cores`` setting in the config file (see below)
 
 
 **Authors:**
 
     Matthew Bourque, Justin Ely
 
-Use:
+**Use:**
 
     This script is intended to be executed as part of the
     ``hstlc_pipeline`` shell script.  However, users can also execute
@@ -56,31 +56,31 @@ Use:
     >>> ingest_hstlc [-corrtag_extract]
 
     ``-corrtag_extract`` (*optional*) - (Re)extract corrtag data as it
-    is ingested, if provided.
+    is ingested, if provided
 
-Outputs:
+**Outputs:**
 
     (1) New and/or updated entries in the ``metadata``, ``outputs``,
-        and ``bad_data`` tables in the hstlc database.
+        and ``bad_data`` tables in the hstlc database
     (2) ``x1d``, ``tag``, and ``corrtag`` files are moved from the
         ``ingest_dir`` directory to the appropriate directory in the
         ``filesystem_dir`` directory, as determined by the config file
-        (see below).
+        (see below)
     (3) ``*_curve.fits`` lightcurves for individual observations,
         placed in the appropriate ``output_dir`` directory as
-        determined by the config file (see below).
+        determined by the config file (see below)
     (4) ``hlsp_hstlc_*.fits`` lightcurves for composite observations,
         placed in the ``composite_dir`` directory , as determined by
-        the config file (see below).
+        the config file (see below)
     (5) a log file in the ``log_dir`` directory as determined by the
-        config file (see below).
+        config file (see below)
 
-Dependencies:
+**Dependencies:**
 
-    (1) Users must have access to the hstlc database.
+    (1) Users must have access to the hstlc database
     (2) Users must also have access to the cdbs ``lref`` and ``oref``
         directories, which hold COS and STIS reference files,
-        respectively.
+        respectively
     (3) Users must also have a ``config.yaml`` file located in the
         ``lightcurve_pipeline/utils/`` directory with the following
         keys:
