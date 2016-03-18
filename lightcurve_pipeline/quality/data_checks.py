@@ -8,6 +8,8 @@ The dataset is checked for a number of issues, which include:
     through the TIME column in the dataset
 (3) A dataset not having any events
 (4) A dataset in which all events occur at a single time
+(5) A dataset that is part of a problematic proposal
+(6) A dataset with an exposure time that is too short
 
 Datasets that do not pass these checks are moved to the 'bad_data_dir',
 as determined by the config file (see below).
@@ -207,7 +209,7 @@ def check_not_singular(hdu):
 def check_bad_proposal(hdu):
     """Check that the proposal ID is not in a list of known 'bad' programs
 
-    Programs can be bad for a number of reasons, typically because of 
+    Programs can be bad for a number of reasons, typically because of
     specialized calibration purposes like focus sweeps or high-voltage tests.
 
     Parameters
@@ -236,7 +238,7 @@ def check_bad_proposal(hdu):
 def check_exptime(hdu):
     """Check that the dataset exptime is not too short
 
-    Threshold initially set to 1 second to filter out a small subset of 
+    Threshold initially set to 1 second to filter out a small subset of
     very short exposures.
 
     Parameters
