@@ -74,9 +74,6 @@ SETTINGS = get_settings()
 
 # -----------------------------------------------------------------------------
 
-from lightcurve_pipeline.database.database_interface import engine
-from lightcurve_pipeline.database.database_interface import get_session
-
 def insert_or_update(table, data, id_num):
     """
     Insert or update the given database table with the given data.
@@ -97,6 +94,9 @@ def insert_or_update(table, data, id_num):
         The row ID to update.  If id_num is blank, then a new row is
         inserted instead.
     """
+
+    from lightcurve_pipeline.database.database_interface import engine
+    from lightcurve_pipeline.database.database_interface import get_session
 
     session = get_session()
     if id_num == '':
