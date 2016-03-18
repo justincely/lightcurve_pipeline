@@ -1,9 +1,9 @@
-About HSTLC
+About hstlc
 ===========
 
-Welcome to the HSTLC (**H**\ubble **S**\pace **T**\elescope **L**\ight **C**\urve) project
+Welcome to the hstlc (**H**\ubble **S**\pace **T**\elescope **L**\ight **C**\urve) project
 
-The HSTLC project aims to produce high level science products in the form of flux calibrated, UV lightcurves for all publicly available HST/COS and HST/STIS TIME-TAG datasets. This documenation provides an overview to the project, details about the implemented software systems, and a description of the output products.
+The hstlc project aims to produce high level science products in the form of flux calibrated, UV lightcurves for all publicly available HST/COS and HST/STIS TIME-TAG datasets. This documenation provides an overview to the project, details about the implemented software systems, and a description of the output products.
 
 
 Overview
@@ -11,7 +11,7 @@ Overview
 
 The Cosmic Origins Spectrograph (COS) and the Space Telescope Imaging Spectrograph (STIS) on board the Hubble Space Telescope (HST) continue to capture spectroscopic observations and deliver them to a steadily-growing archive. Observation products are primarily in the form of time-average spectra, however there exist many COS and STIS observations taken in the TIME-TAG observing mode wherein the position and time of each incoming photon is recorded. This results is an observation product in the form of a list of detected events, which can in turn be transformed into a lightcurve that can be used to discover and characterize unique phenomena in scientific observations.
 
-The Hubble Space Telescope Light Curve (HSTLC) project aims to gather TIME-TAG observations and transform them into High Level Science Products (HLSPs) in the form of lightcurves in an automated way for all publicly available COS and STIS TIME-TAG observations. The project software is written in Python, and uses many supporting materials, including a `pipeline <file:///user/bourque/repositories/lightcurve_pipeline/docs/build/html/readme.html#pipeline>`_, `filesystem <file:///user/bourque/repositories/lightcurve_pipeline/docs/build/html/readme.html#filesystem>`_, `database <file:///user/bourque/repositories/lightcurve_pipeline/docs/build/html/readme.html#database>`_, `downloading platform <file:///user/bourque/repositories/lightcurve_pipeline/docs/build/html/readme.html#downloads>`_, and a `lightcurve code library <https://github.com/justincely/lightcurve_pipeline>`_.
+The Hubble Space Telescope Light Curve (hstlc) project aims to gather TIME-TAG observations and transform them into High Level Science Products (HLSPs) in the form of lightcurves in an automated way for all publicly available COS and STIS TIME-TAG observations. The project software is written in Python, and uses many supporting materials, including a `pipeline <file:///user/bourque/repositories/lightcurve_pipeline/docs/build/html/readme.html#pipeline>`_, `filesystem <file:///user/bourque/repositories/lightcurve_pipeline/docs/build/html/readme.html#filesystem>`_, `database <file:///user/bourque/repositories/lightcurve_pipeline/docs/build/html/readme.html#database>`_, `downloading platform <file:///user/bourque/repositories/lightcurve_pipeline/docs/build/html/readme.html#downloads>`_, and a `lightcurve code library <https://github.com/justincely/lightcurve_pipeline>`_.
 
 This project is supported by the `Hubble Archival Research program 13902 <http://www.stsci.edu/cgi-bin/get-proposal-info?id=13902&submit=Go&observatory=HST>`_. (P.I. Justin Ely)
 
