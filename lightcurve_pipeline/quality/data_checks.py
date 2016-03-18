@@ -1,47 +1,50 @@
-"""Perform data quality checks for the given dataset.
+"""
+Perform data quality checks for the given dataset.  The dataset is
+checked for a number of issues, which include:
 
-The dataset is checked for a number of issues, which include:
-
-(1) A non-normal EXPFLAG - indicating that something went wrong during
-    the observation
+(1) A non-normal ``EXPFLAG`` - indicating that something went wrong
+    during the observation
 (2) A non-linear time column in which time does not progress linearly
-    through the TIME column in the dataset
+    through the ``TIME`` column in the dataset
 (3) A dataset not having any events
 (4) A dataset in which all events occur at a single time
 (5) A dataset that is part of a problematic proposal
 (6) A dataset with an exposure time that is too short
 
-Datasets that do not pass these checks are moved to the 'bad_data_dir',
-as determined by the config file (see below).
+Datasets that do not pass these checks are moved to the
+``bad_data_dir``, as determined by the config file (see below)
 
-Authors:
-    Justin Ely, 2016
-    Matthew Bourque, 2016
+**Authors:**
 
-Use:
+    Justin Ely, Matthew Bourque
+
+**Use:**
+
     This module is intended to be imported and used by the
-    'ingest_hstlc' script as such:
+    ``ingest_hstlc`` script as such:
+
+::
 
     from lightcurve_pipeline.quality.data_checks import dataset_ok
-    dataset_ok(filename)
+    dataset_ok(dataset)
 
-    Where 'filename' is the full path to the dataset.
+**Dependencies:**
 
-Dependencies:
+    (1) Users must have access to the hstlc database
+    (2) Users must also have a ``config.yaml`` file located in the
+        ``lightcurve_pipeline/utils/`` directory with the following
+        keys:
 
-    Users must have access to the hstlc database.
-
-    Users must also have a config.yaml file located in the
-    lightcurve_pipeline/utils/ directory with the following keys:
-
-    db_connection_string - The hstlc database connection string
-    bad_data_dir - The directory in which bad data files are stored
+        - ``db_connection_string`` - The hstlc database connection
+          string
+        - ``bad_data_dir`` - The directory in which bad data files are
+          stored
 
     Other external library dependencies include:
-        astropy
-        lightcurve_pipeline
-        pymysql
-        sqlalchemy
+        - ``astropy``
+        - ``lightcurve_pipeline``
+        - ``pymysql``
+        - ``sqlalchemy``
 """
 
 import inspect
@@ -59,20 +62,21 @@ from lightcurve_pipeline.database.update_database import update_bad_data_table
 
 def dataset_ok(filename, move=True):
     """Perform quality check on the given dataset, and update the
-    bad_data table and move the dataset to the bad_data directory if it
-    doesn't pass.
+    ``bad_data`` table and move the dataset to the ``bad_data``
+    directory if it doesn't pass
 
     Parameters
     ----------
     filename : string
-        The full path to the dataset.
+        The full path to the dataset
     move : bool, optional
-        Whether or not to update the bad data table and move the file.
+        Whether or not to update the ``bad_data`` table and move the
+        file
 
     Returns
     -------
-    True if the dataset passes all of the quality checks, False if it
-    doesn't.
+    ``True`` if the dataset passes all of the quality checks, ``False``
+    if it doesn't.
     """
 
     all_functions = [value for key, value in inspect.currentframe().f_globals.iteritems() if key.startswith('check_')]
@@ -93,12 +97,12 @@ def dataset_ok(filename, move=True):
 #-------------------------------------------------------------------------------
 
 def move_file(filename):
-    """Move the given dataset to the bad_data directory.
+    """Move the given dataset to the ``bad_data`` directory
 
     Parameters
     ----------
     filename : string
-        The full path to the dataset.
+        The full path to the dataset
     """
 
     dst = os.path.join(SETTINGS['bad_data_dir'], os.path.basename(filename))
@@ -110,7 +114,7 @@ def move_file(filename):
 #-------------------------------------------------------------------------------
 
 def check_expflag(hdu):
-    """Check that the EXPFLAG keyword is NORMAL.
+    """Check that the ``EXPFLAG`` keyword is ``NORMAL``
 
     Parameters
     ----------
@@ -120,9 +124,10 @@ def check_expflag(hdu):
     Returns
     -------
     success : boolean
-        True if the EXPFLAG is NORMAL, False otherwise
+        ``True`` if the ``EXPFLAG`` is ``NORMAL``, ``False`` otherwise
     reason : string
-        An empty string if success is True, 'Bad EXPFLAG' otherwise
+        An empty string if success is ``True``, ``Bad EXPFLAG``
+        otherwise
     """
 
     if hdu[1].header['EXPFLAG'] != 'NORMAL':
@@ -133,7 +138,7 @@ def check_expflag(hdu):
 #-------------------------------------------------------------------------------
 
 def check_linear(hdu):
-    """Check that the time column linearly progresses.
+    """Check that the time column linearly progresses
 
     Parameters
     ----------
@@ -143,9 +148,10 @@ def check_linear(hdu):
     Returns
     -------
     success : boolean
-        True if time progressing linearly, False otherwise
+        ``True`` if time progressing linearly, ``False`` otherwise
     reason : string
-        An empty string if success is True, 'Non-linear time' otherwise
+        An empty string if success is ``True``, ``Non-linear time``
+        otherwise
     """
 
     time_data = hdu[1].data['time']
@@ -160,7 +166,7 @@ def check_linear(hdu):
 #-------------------------------------------------------------------------------
 
 def check_no_events(hdu):
-    """Check that the dataset has events.
+    """Check that the dataset has events
 
     Parameters
     ----------
@@ -170,9 +176,10 @@ def check_no_events(hdu):
     Returns
     -------
     success : boolean
-        True if the dataset has events, False otherwise
+        ``True`` if the dataset has events, ``False`` otherwise
     reason : string
-        An empty string if success is True, 'No events' otherwise
+        An empty string if success is ``True``, ``No events``
+        otherwise
     """
 
     if len(hdu[1].data) == 0:
@@ -183,7 +190,7 @@ def check_no_events(hdu):
 #-------------------------------------------------------------------------------
 
 def check_not_singular(hdu):
-    """Check that the events in the dataset are not from a single time.
+    """Check that the events in the dataset are not from a single time
 
     Parameters
     ----------
@@ -193,9 +200,11 @@ def check_not_singular(hdu):
     Returns
     -------
     success : boolean
-        True if events are not from a single time, False otherwise
+        ``True`` if events are not from a single time, ``False``
+        otherwise
     reason : string
-        An empty string if success is True, 'Singular event' otherwise
+        An empty string if success is ``True``, ``Singular event``
+        otherwise
     """
 
     time_data = hdu[1].data['time']
@@ -207,10 +216,10 @@ def check_not_singular(hdu):
 #-------------------------------------------------------------------------------
 
 def check_bad_proposal(hdu):
-    """Check that the proposal ID is not in a list of known 'bad' programs
-
-    Programs can be bad for a number of reasons, typically because of
-    specialized calibration purposes like focus sweeps or high-voltage tests.
+    """Check that the proposal ID is not in a list of known 'bad'
+    programs.  Programs can be bad for a number of reasons, typically
+    because of specialized calibration purposes like focus sweeps or
+    high-voltage tests.
 
     Parameters
     ----------
@@ -220,9 +229,11 @@ def check_bad_proposal(hdu):
     Returns
     -------
     success : boolean
-        True if events are not from a known bad proposal, False otherwise
+        ``True`` if events are not from a known bad proposal, ``False``
+        otherwise
     reason : string
-        An empty string if success is True, 'Bad Proposal' otherwise
+        An empty string if success is ``True``, ``Bad Proposal``
+        otherwise
     """
 
     #-- 13635, 'FUV Focus Sweep Enabling Program for COS at LP3 (LENA2)  ???
@@ -236,10 +247,9 @@ def check_bad_proposal(hdu):
 #-------------------------------------------------------------------------------
 
 def check_exptime(hdu):
-    """Check that the dataset exptime is not too short
-
-    Threshold initially set to 1 second to filter out a small subset of
-    very short exposures.
+    """Check that the dataset exptime is not too short.  The threshold
+    is initially set to 1 second to filter out a small subset of very
+    short exposures.
 
     Parameters
     ----------
@@ -249,9 +259,10 @@ def check_exptime(hdu):
     Returns
     -------
     success : boolean
-        True if exptime greater than threshold, False otherwise
+        ``True`` if exptime greater than threshold, ``False`` otherwise
     reason : string
-        An empty string if success is True, 'Short Exposure' otherwise
+        An empty string if success is ``True``, ``Short Exposure``
+        otherwise
     """
 
     if hdu[1].header['EXPTIME'] < 1:
@@ -260,4 +271,3 @@ def check_exptime(hdu):
     return True, ''
 
 #-------------------------------------------------------------------------------
-

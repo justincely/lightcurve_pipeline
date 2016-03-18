@@ -1,44 +1,52 @@
-"""Create lightcurves from input datasets
-
+"""
 This module contains functions that create lightcurves (in the form of
 FITS tables) from both individual and composite datasets.  It is
-essentially a wrapper around the 'lightcurve' library, which makes
+essentially a wrapper around the ``lightcurve`` library, which makes
 lightcurve objects, for example:
+
+::
 
     lc = lightcurve.LightCurve(filename)
 
 This module uses multiprocessing to process the composite lightcurves
-over numerous cores, as given by the 'num_cores' key in the config file
-(see below).
+over numerous cores, as given by the ``num_cores`` key in the config
+file (see below).
 
-Authors:
-    Matthew Bourque, 2015
+**Authors:**
 
-Use:
-    This module is intended to be imported from the ingest_hstlc script
-    as such:
+    Matthew Bourque
+
+**Use:**
+
+    This module is intended to be imported from the ``ingest_hstlc``
+    script as such:
+
+::
 
     from lightcurve_pipeline.ingest.make_lightcurves import make_composite_lightcurves
     from lightcurve_pipeline.ingest.make_lightcurves import make_individual_lightcurve
 
-Dependencies:
+**Dependencies:**
 
-    Users must have access to the hstlc database.
+    (1) Users must have access to the hstlc database
+    (2) Users must also have a ``config.yaml`` file located in the
+        ``lightcurve_pipeline/utils/`` directory with the following
+        keys:
 
-    Users must also have a config.yaml file located in the
-    lightcurve_pipeline/utils/ directory with the following keys:
-
-    db_connection_string - The hstlc database connection string
-    ingest_dir - The path to where files to be ingested are stored
-    composite_dir - The path to where hstlc composite output products
-        are stored.
-    num_cores - The number of cores to use during multiprocessing
+        - ``db_connection_string`` - The hstlc database connection
+          string
+        - ``ingest_dir`` - The path to where files to be ingested are
+          stored
+        - ``composite_dir`` - The path to where hstlc composite output
+          products are stored
+        - ``num_cores`` - The number of cores to use during
+          multiprocessing
 
     Other external library dependencies include:
-        pymysql
-        sqlalchemy
-        lightcurve
-        lightcurve_pipeline
+        - ``pymysql``
+        - ``sqlalchemy``
+        - ``lightcurve``
+        - ``lightcurve_pipeline``
 """
 
 import logging
@@ -59,9 +67,9 @@ from lightcurve_pipeline.utils.utils import set_permissions
 
 def make_composite_lightcurves():
     """Create composite lightcurves made up of datasets with similar
-    targname, detector, opt_elem, and cenwave.  The lightcurves that
-    require processing are determined by NULL composite_path values in
-    the outputs table of the database.
+    ``targname``, ``detector``, ``opt_elem``, and ``cenwave``.  The
+    lightcurves that require processing are determined by ``NULL``
+    ``composite_path`` values in the ``outputs`` table of the database.
     """
 
     logging.info('')
@@ -91,20 +99,19 @@ def make_composite_lightcurves():
 # -----------------------------------------------------------------------------
 
 def make_individual_lightcurve(metadata_dict, outputs_dict):
-    """Create a lightcurve for an individual dataset.
+    """Create a lightcurve for an individual dataset
 
     Parameters
     ----------
     metadata_dict : dict
-        A dictionary containing metadata of the file.
+        A dictionary containing metadata of the file
     outputs_dict : dict
-        A dictionary containing output product information.
+        A dictionary containing output product information
 
     Returns
     -------
     success : bool
         True/False status of successful extraction
-
     """
 
     success = True
@@ -134,14 +141,14 @@ def make_individual_lightcurve(metadata_dict, outputs_dict):
 # -----------------------------------------------------------------------------
 
 def process_dataset(dataset):
-    """Create a composite lightcurve for the given dataset.
+    """Create a composite lightcurve for the given dataset
 
     Parameters
     ----------
     dataset : list
         A list comprised of four elements.  The first element is the
-        targname, the second is the detector, the third is the
-        opt_elem, and the fourth is the cenwave.
+        ``targname``, the second is the ``detector``, the third is the
+        ``opt_elem``, and the fourth is the ``cenwave``.
     """
 
     try:

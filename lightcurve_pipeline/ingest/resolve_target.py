@@ -1,53 +1,56 @@
-"""Resolve a target name to a better option, if available.
-
+"""
 This module contains functions that attempt to resolve target names
-(i.e. TARGNAME) to a more common option, if possible.  The method for
-doing this is as follows:
+(i.e. ``TARGNAME``) to a more common option, if possible.  The method
+for doing this is as follows:
 
-    (1) Look up the targname from the hard-coded targname_dict
-        dictionary. If it exists, then use that targname
-    (2) If no dictionary entry exists, look up the targname in the CDS
-        web service[1].
+    (1) Look up the ``targname`` from the hard-coded ``targname_dict``
+        dictionary. If it exists, then use that ``targname``
+    (2) If no dictionary entry exists, look up the ``targname`` in the
+        CDS web service[1]
     (3) If the CDS web service returns resolved target names, and one
-        of those target names already exists in the hstlc metadata
-        table, then use that targname.
-    (4) If the targname cannot be resolved through any of these steps,
-        then use the original targname.
+        of those target names already exists in the ``metadata`` table,
+        then use that ``targname``
+    (4) If the ``targname`` cannot be resolved through any of these
+        steps, then use the original ``targname``
 
-The hard-coded targname_dict dictionary resides in the
-utils.targname_dict module.
+The hard-coded ``targname_dict`` dictionary resides in the
+``utils.targname_dict`` module.
 
-Authors:
-    Justin Ely, 2015
-    Matthew Bourque, 2015
+**Authors:**
 
-Use:
+    Justin Ely, Matthew Bourque
+
+**Use:**
+
     This module is intended to be imported from and used by the
-    ingest_hstlc script as such:
+    ``ingest_hstlc`` script as such:
+
+::
 
     from lightcurve_pipeline.ingest.resolve_target import get_targname
     get_targname(targname)
 
-Dependencies:
+**Dependencies:**
 
-    Users must have access to the CDS web service.
+    (1) Users must have access to the CDS web service
+    (2) Users must have access to the hstlc database
+    (3) Users must have a ``config.yaml`` file located in the
+        ``lightcurve_pipeline/utils/`` directory with the following
+        keys:
 
-    Users must also have access to the hstlc database.
-
-    Users must also have a config.yaml file located in the
-    lightcurve_pipeline/utils/ directory with the following keys:
-
-    db_connection_string - The hstlc database connection string
+        - ``db_connection_string`` - The hstlc database connection
+          string
 
     Other external library dependencies include:
-        pymysql
-        sqlalchemy
-        lightcurve
-        lightcurve_pipeline
+        - ``pymysql``
+        - ``sqlalchemy``
+        - ``lightcurve``
+        - ``lightcurve_pipeline``
 
-References:
+**References:**
+
     [1] Centre de Donnees astronomiques de Strasbourg
-        (http://cdsweb.u-strasbg.fr/)
+    (http://cdsweb.u-strasbg.fr/)
 """
 
 import urllib2
@@ -61,8 +64,9 @@ from lightcurve_pipeline.database.database_interface import Metadata
 #------------------------------------------------------------------------------
 
 def get_targname(targname):
-    """Resolve the targname to a better option, if available.  If the
-    targname cannot be resolved, the original targname is returned.
+    """Resolve the ``targname`` to a better option, if available.  If
+    the ``targname`` cannot be resolved, the original ``targname`` is
+    returned.
 
     Parameters
     ----------
@@ -107,7 +111,6 @@ def get_targname(targname):
 
 def resolve(targname):
     """Resolve target name via the CDS web service
-    (http://cds.u-strasbg.fr/cgi-bin/Sesame)
 
     Parameters
     ----------

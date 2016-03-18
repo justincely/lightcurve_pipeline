@@ -1,15 +1,17 @@
-"""Various utilities needed by the lightcurve_pipeline package.
-
-This module houses several functions that are key to several modules
+"""This module houses several functions that are key to several modules
 and scripts within the hstlc package.  Please see the individual
-function docstrings for more information.
+function documentation for more information.
 
-Authors:
-    Matthew Bourque, 2015
+**Authors:**
 
-Use:
+    Matthew Bourque
+
+**Use:**
+
     This functions within this module are intended to be imported by
     the various hstlc scripts and modules, as such:
+
+::
 
     from lightcurve_pipeline.utils.utils import SETTINGS
     from lightcurve_pipeline.utils.utils import insert_or_update
@@ -17,13 +19,14 @@ Use:
     from lightcurve_pipeline.utils.utils import setup_logging
     from lightcurve_pipeline.utils.utils import make_directory
 
-Dependencies:
+**Dependencies:**
+
     External library dependencies include:
-        astropy
-        lightcurve_pipeline
-        numpy
-        pymyslq
-        sqlalchemy
+        - ``astropy``
+        - ``lightcurve_pipeline``
+        - ``numpy``
+        - ``pymyslq``
+        - ``sqlalchemy``
 """
 
 import datetime
@@ -43,7 +46,7 @@ import sqlalchemy
 
 def get_settings():
     """Return the setting information located in the configuration file
-    located in the settings/ directory.
+    located in the ``lightcurve_pipeline/utils/`` directory
 
     Returns
     -------
@@ -51,17 +54,19 @@ def get_settings():
         A dictionary containing the settings present in the config.yaml
         configuration file.  Thus, the keys of this dictionary
         presumably are:
-            (1) db_connection_string
-            (2) ingest_dir
-            (3) filesystem_dir
-            (4) outputs_dir
-            (5) composite_dir
-            (6) log_dir
-            (7) download_dir
-            (8) plot_dir
-            (9) bad_data_dir
-            (10) home_dir
-        The values of the keys are the user-supplied configurations.
+
+            (1) ``db_connection_string``
+            (2) ``ingest_dir``
+            (3) ``filesystem_dir``
+            (4) ``outputs_dir``
+            (5) ``composite_dir``
+            (6) ``log_dir``
+            (7) ``download_dir``
+            (8) ``plot_dir``
+            (9) ``bad_data_dir``
+            (10) ``home_dir``
+
+        The values of the keys are the user-supplied configurations
     """
 
     config_file = os.path.join(os.path.dirname(__file__), 'config.yaml')
@@ -77,22 +82,21 @@ SETTINGS = get_settings()
 def insert_or_update(table, data, id_num):
     """
     Insert or update the given database table with the given data.
-
     This function performs the logic of inserting or updating an
-    entry into the hstlc database; if an entry with the given id_num
-    already exists, then the entry is updated, otherwise a new entry is
-    inserted.
+    entry into the hstlc database; if an entry with the given
+    ``id_num`` already exists, then the entry is updated, otherwise a
+    new entry is inserted.
 
     Parameters
     ----------
     table : sqlalchemy.ext.declarative.api.DeclarativeMeta
-        The table of the database to update.
+        The table of the database to update
     data : dict
         A dictionary of the information to update.  Each key of the
-        dictionary must be a column in the given table.
+        dictionary must be a column in the given table
     id_num : string
-        The row ID to update.  If id_num is blank, then a new row is
-        inserted instead.
+        The row ID to update.  If ``id_num`` is blank, then a new row
+        is inserted instead.
     """
 
     from lightcurve_pipeline.database.database_interface import engine
@@ -113,9 +117,8 @@ def insert_or_update(table, data, id_num):
 def set_permissions(path):
     """
     Set the permissions of the file path to hstlc permissions settings.
-
-    The hstlc permissions settings are groupID='hstlc' and permissions
-    of rwxrwx---
+    The hstlc permissions settings are groupID = ``hstlc`` and
+    permissions of ``rwxrwx---``.
 
     Parameters
     ----------
@@ -134,13 +137,10 @@ def set_permissions(path):
 
 def setup_logging(module):
     """
-    Configures and initializes a log to store program execution
-    information.
-
     This function will configure the logging for the execution of the
-    given module.  Logs are written out to the 'log_dir' directory (as
-    determined by the config.yaml file) with the filename
-    <module>_<timestamp>.log.
+    given module.  Logs are written out to the ``log_dir`` directory
+    (as determined by the ``config.yaml`` file) with the filename
+    ``<module>_<timestamp>.log``.
 
     Parameters
     ----------
@@ -176,12 +176,12 @@ def setup_logging(module):
 
 def make_directory(directory):
     """Create a directory if it doesn't already exist and set the hstlc
-    permissions.
+    permissions
 
     Parameters
     ----------
     directory : string
-        The path to the directory.
+        The path to the directory
     """
 
     if not os.path.exists(directory):

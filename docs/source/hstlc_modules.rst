@@ -5,9 +5,8 @@ hstlc Package Modules
 database.database_interface module
 ==================================
 .. automodule:: lightcurve_pipeline.database.database_interface
-    :members:
-    :undoc-members:
-    :show-inheritance:
+.. autofunction:: lightcurve_pipeline.database.database_interface.load_connection
+.. autofunction:: lightcurve_pipeline.database.database_interface.get_session
 
 database.update_database module
 ===============================

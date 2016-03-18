@@ -1,30 +1,33 @@
-"""Connection module for the hstlc database
+"""
+This module serves as the interface and connection module to the hstlc
+database.  The ``load_connection()`` function within allows the user
+to conenct to the database via the ``session``, ``base``, and
+``engine`` objects (described below).  The classes within serve as the
+object-relational mappings (ORMs) that define the individual tables of
+the database, and are used to build the tables via the ``base`` object.
 
-This module serves as the interface to the hstlc database.  The
-load_connection() function within allows the user to conenct to the
-database via the session, base, and engine objects (described below).
-The classes within serve as the object-relational mappings (ORMs) that
-define the individual tables of the database, and are used to build the
-tables via the base object.
-
-The 'engine' object serves as the low-level database API and perhaps
+The ``engine`` object serves as the low-level database API and perhaps
 most importantly contains dialects which allows the sqlalchemy module
 to communicate with the database.
 
-The 'base' object serves as a base class for class definitions.  The
-'base' object produces Table objects and constructs ORMs.
+The ``base`` object serves as a base class for class definitions.  It
+produces ``Table`` objects and constructs ORMs.
 
-The 'session' object manages operations on ORM-mapped objects, as
-construced by the 'base'.  These operations include querying, for
+The ``session`` object manages operations on ORM-mapped objects, as
+construced by the ``base``.  These operations include querying, for
 example.
 
-Authors:
-    Matthew Bourque, 2015
+**Authors:**
 
-Use:
+    Matthew Bourque
+
+**Use:**
+
     This module is intended to be imported from various hstlc modules
     and scripts.  The objects that are importable from this module are
     as follows:
+
+::
 
     from lightcurve_pipeline.database.database_interface import engine
     from lightcurve_pipeline.database.database_interface import base
@@ -34,19 +37,20 @@ Use:
     from lightcurve_pipeline.database.database_interface import BadData
     from lightcurve_pipeline.database.database_interface import Stats
 
-Dependencies:
+**Dependencies:**
 
-    Users must have access to the hstlc database.
+    (1) Users must have access to the hstlc database
+    (2) Users must also have a ``config.yaml`` file located in the
+        ``lightcurve_pipeline/utils/`` directory with the following
+        keys:
 
-    Users must also have a config.yaml file located in the
-    lightcurve_pipeline/utils/ directory with the following keys:
-
-    db_connection_string - The hstlc database connection string
+        - ``db_connection_string`` - The hstlc database connection
+          string
 
     Other external library dependencies include:
-        pymysql
-        sqlalchemy
-        lightcurve_pipeline
+        - ``pymysql``
+        - ``sqlalchemy``
+        - ``lightcurve_pipeline``
 """
 
 import pymysql
@@ -68,11 +72,11 @@ from lightcurve_pipeline.utils.utils import SETTINGS
 # -----------------------------------------------------------------------------
 
 def get_session():
-    """Return the session object of the database connection.
+    """Return the ``session`` object of the database connection
 
-    In many cases, all that is needed is the session object to interact
-    with the database.  This function can be used just to establish a
-    connection and retreive the session object.
+    In many cases, all that is needed is the ``session`` object to
+    interact with the database.  This function can be used just to
+    establish a connection and retreive the ``session`` object.
 
     Returns
     -------
@@ -96,9 +100,9 @@ def load_connection(connection_string, echo=False):
     connection_string : str
         A string that points to the database conenction.  The
         connection string is in the following form:
-        dialect+driver://username:password@host:port/database
+        ``dialect+driver://username:password@host:port/database``
     echo : bool
-        Show all SQL produced.
+        Show all SQL produced
 
     Returns
     -------
@@ -126,6 +130,7 @@ session, base, engine = load_connection(SETTINGS['db_connection_string'])
 
 class Metadata(base):
     """ORM for the metadata table"""
+
     __tablename__ = 'metadata'
     id = Column(Integer(), nullable=False, primary_key=True)
     filename = Column(String(30), unique=True, nullable=False, index=True)

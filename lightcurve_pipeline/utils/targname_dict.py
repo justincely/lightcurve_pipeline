@@ -1,24 +1,29 @@
-"""Define a 'targname_dict' that is used as a look up table for
-resolving target names.
+"""
+Define a ``targname_dict`` that is used as a look up table for
+resolving target names.  The ``targname_dict`` is comrpised of two
+major sets of key/value pairs:
 
-The targname dict is comrpised of two major sets of key/value pairs:
     (1) Target names that need resolving
     (2) Target names that do not need resolving
 
 The target names that need resolving are typically those that use
-a common name, but have variations dealing with hyphens (e.g. "AZV-148"
-instead of "AZV148") or indexing (e.g. "SATURN1" instead of "SATURN").
+a common name, but have variations dealing with hyphens (e.g. *AZV-148*
+instead of *AZV148*) or indexing (e.g. *SATURN1* instead of *SATURN*).
 The target names that don't need resolving are ones that already have
-established common names (e.g. "'CALLISTO'"), or incredibly unique
+established common names (e.g. *CALLISTO*), or incredibly unique
 names that will never be resolved to a common name (e.g.
-"1507476-162738").
+*1507476-162738*).
 
-Authors:
-    Matthew Bourque, 2015
+**Authors:**
 
-Use:
+    Matthew Bourque
+
+**Use:**
+
     This module is intended to be imported and used by the
-    resolve_target module as such:
+    ``resolve_target`` module as such:
+
+::
 
     from lightcurve_pipeline.utils.targname_dict import targname_dict
 """
