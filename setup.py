@@ -1,4 +1,4 @@
-from distutils.core import setup
+from setuptools import setup
 from setuptools import find_packages
 
 # Command line scripts
@@ -12,7 +12,7 @@ entry_points = {}
 entry_points['console_scripts'] = scripts
 
 setup(
-    name = 'lightcurve_pipeline',
+    name = 'lightcurve-pipeline',
     description = 'Create lightcurves from HST/COS and HST/STIS data',
     url = 'https://github.com/justincely/lightcurve_pipeline.git',
     author = 'Matthew Bourque',
@@ -29,5 +29,5 @@ setup(
     data_files = [('lightcurve_pipeline/utils/', ['lightcurve_pipeline/utils/config.yaml'])],
     scripts = ['scripts/hstlc_pipeline'],
     entry_points = entry_points,
-    version = '1.0'
+    version = 1.0
     )
