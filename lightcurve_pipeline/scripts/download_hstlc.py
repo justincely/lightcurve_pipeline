@@ -1,81 +1,82 @@
 #! /usr/bin/python
 
-"""Download all COS & STIS TIMETAG data that do not already exist in the hstlc
-filesystem/database.
-
+"""
 This script retreives COS & STIS TIMETAG data from the MAST archive by
 submitting XML requests.  The datasets to download is determined by
 comparing the contents of the hstlc database to the contents of the
 MAST database; any COS/STIS TIMETAG data that exists in MAST but does
 not exist in the hstlc database is retreived.  Data is downloaded to
-the 'ingest_dir' directory determine by the config file (see below).
+the ``ingest_dir`` directory determine by the config file (see below).
 
-Authors:
-    Matthew Bourque, 2015
+**Authors:**
 
-Use:
+    Matthew Bourque
+
+**Use:**
+
     This script is intended to be executed via the command line as
     such:
 
     >>> download_hstlc
 
-    The script can also be placed into a cron job for periodic
-    execution.
+**Outputs:**
 
-Outputs:
     The following filetypes are retreived (if available) and placed
-    in the 'ingest_dir' directory:
+    in the ``ingest_dir`` directory:
 
-    *_x1d.fits - 1 dimensional extracted spectra
-    *_tag.fits - STIS TIMETAG data
-    *_corrtag.fits - COS NUV TIMETAG data
-    *_corrtag_<a or b>.fits - COS FUV TIMETAG data
+    - ``*_x1d.fits`` - 1 dimensional extracted spectra
+    - ``*_tag.fits`` - STIS TIMETAG data
+    - ``*_corrtag.fits`` - COS NUV TIMETAG data
+    - ``*_corrtag_<a or b>.fits`` - COS FUV TIMETAG data
 
     Submission results are also saved to an XML file and stored in the
-    'download_dir' directory determined by the config file (see below).
-    The submission results indicate if the XML request was sucessful or
-    if there were errors.
+    ``download_dir`` directory determined by the config file (see
+    below). The submission results indicate if the XML request was
+    sucessful or if there were errors.
 
-    Executing this script creates a log file in the 'log_dir' directory
-    as determined by the config file (see below).
+    Executing this script creates a log file in the ``log_dir``
+    directory as determined by the config file (see below)
 
-Dependencies:
-    As of early 2016, submission of XML requests to the MAST archive
-    requires a special Python 2.6 environemnt with specific XML
-    libraries installed.  More information can be found here:
+**Dependencies:**
 
-    https://confluence.stsci.edu/display/STScISSOPublic/ArchiveXMLsubmitPKImaterial
+    (1) As of early 2016, submission of XML requests to the MAST
+        archive requires a special Python 2.6 environemnt with specific
+        XML libraries installed.  More information can be found here:
 
-    Additionally, tsql must be installed and the tsql executable must
-    be placed in the directory ~/freetds/bin/tsql.  tsql can be
-    downloaded using freetds (http://www.freetds.org/).
+        https://confluence.stsci.edu/display/STScISSOPublic/ArchiveXMLsubmitPKImaterial
 
-    Users must have access to the hstlc database.
+        Additionally, ``tsql`` must be installed and the tsql executable
+        must be placed in the directory ``~/freetds/bin/tsql``.  ``tsql``
+        can be downloaded using freetds (http://www.freetds.org/).
 
-    Users must also have a config.yaml file located in the
-    lightcurve_pipeline/utils/ directory with the following keys:
+    (2) Users must have access to the hstlc database
 
-    (1) db_connection_string - The hstlc database connection string
-    (2) ingest_dir - The path to where the files will be stored after
-        retreival
-    (3) log_dir - The path to where the log file will be stored
-    (4) download_dir - the path to where XML submission results will be
-        stored
-    (5) mast_server - The MAST server hostname
-    (6) mast_database - The name of the MAST database
-    (7) mast_account - The MAST account username
-    (8) mast_password - The MAST account password
-    (9) archive_user - The requester username
-    (10) email - the requester email address
-    (11) host - The hostname of the machine used for ftp
-    (12) ftp_user - The username of the account of the machine used for
-         ftp
-    (13) dads_host - The hostname of the machine on which the MAST
-         database resides
-    (14) archive - The HTTPs connection hostname
+    (3) Users must also have a ``config.yaml`` file located in the
+        ``lightcurve_pipeline/utils/`` directory with the following
+        keys:
+
+        - ``db_connection_string`` - The hstlc database connection
+          string
+        - ``ingest_dir`` - The path to where the files will be stored
+          after retreival
+        - ``log_dir`` - The path to where the log file will be stored
+        - ``download_dir`` - the path to where XML submission results
+          will be stored
+        - ``mast_server`` - The MAST server hostname
+        - ``mast_database`` - The name of the MAST database
+        - ``mast_account`` - The MAST account username
+        - ``mast_password`` - The MAST account password
+        - ``archive_user`` - The requester username
+        - ``email`` - the requester email address
+        - ``host`` - The hostname of the machine used for ftp
+        - ``ftp_user`` - The username of the account of the machine
+          used for ftp
+        - ``dads_host`` - The hostname of the machine on which the
+          MAST database resides
+        - ``archive`` - The HTTPs connection hostname
 
     Other external library dependencies include:
-        lightcurve_pipeline
+        - ``lightcurve_pipeline``
 """
 
 import glob
@@ -86,7 +87,7 @@ import os
 import string
 import urllib
 
-from lightcurve_pipeline.download.SignStsciRequest import SignStsciRequest
+#from lightcurve_pipeline.download.SignStsciRequest import SignStsciRequest
 
 from lightcurve_pipeline.utils.utils import SETTINGS
 from lightcurve_pipeline.utils.utils import set_permissions
@@ -289,6 +290,8 @@ def submit_xml_request(xml_request):
 # -----------------------------------------------------------------------------
 
 def main():
+    """The main function of the ``download_hstlc`` script
+    """
 
     # Set up logging
     module = os.path.basename(__file__).strip('.py')
