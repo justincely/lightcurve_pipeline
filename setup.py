@@ -25,7 +25,7 @@ setup(
                    'Topic :: Scientific/Engineering :: Physics',
                    'Topic :: Software Development :: Libraries :: Python Modules'],
     packages = find_packages(),
-    requires = ['numpy', 'astropy', 'sqlalchemy', 'pyyaml'],
+    requires = ['numpy', 'scipy', 'astropy', 'sqlalchemy', 'pyyaml', 'matplotlib', 'bokeh'],
     data_files = [('lightcurve_pipeline/utils/', ['lightcurve_pipeline/utils/config.yaml'])],
     scripts = ['scripts/hstlc_pipeline'],
     entry_points = entry_points,

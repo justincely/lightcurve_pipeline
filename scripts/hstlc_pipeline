@@ -4,9 +4,11 @@
 # (make_hstlc_plots).
 #
 # Authors:
-#     Matthew Bourque, 2015
+#
+#     Matthew Bourque
 #
 # Use:
+#
 #     After sucessfull installation of the lightcurve_pipeline package,
 #     users can execute this pipeline from the command line:
 #
