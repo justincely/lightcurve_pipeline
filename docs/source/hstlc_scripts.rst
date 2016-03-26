@@ -36,3 +36,10 @@ reset_hstlc_database script
     :members:
     :undoc-members:
     :show-inheritance:
+
+download_hstlc script
+---------------------
+.. automodule:: lightcurve_pipeline.scripts.download_hstlc
+    :members:
+    :undoc-members:
+    :show-inheritance:
