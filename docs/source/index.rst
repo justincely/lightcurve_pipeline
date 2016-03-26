@@ -6,6 +6,10 @@
 hstlc Documentation
 =================================
 
+Welcome to the hstlc (**H**\ubble **S**\pace **T**\elescope **L**\ight **C**\urve) project
+
+The hstlc project aims to produce high level science products in the form of flux calibrated, UV lightcurves for all publicly available HST/COS and HST/STIS TIME-TAG datasets. This documentation provides an overview to the project, details about the implemented software systems, and a description of the output products.
+
 .. toctree::
    :maxdepth: 2
 
