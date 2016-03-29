@@ -82,7 +82,7 @@ Lastly, various plots that analyze and describe the individual and composite lig
 Database
 --------
 
-The hstlc project uses a MySQL database to store useful data.  The database schema is defined by the Object-Relational Mappings (ORMs) contained in the `database_interface <https://github.com/justincely/lightcurve_pipeline/blob/master/lightcurve_pipeline/database/database_interface.py>`_ module.  The database is populated by the ``ingest_hstlc`` and ``build_stats_table`` scripts.  The database can also easily be reset by the `reset_hstlc_database <http://pythonhosted.org/lightcurve-pipeline/hstlc_scripts.html#module-lightcurve_pipeline.scripts.reset_hstlc_database`_ script.  Below is a description of each table.
+The hstlc project uses a MySQL database to store useful data.  The database schema is defined by the Object-Relational Mappings (ORMs) contained in the `database_interface <https://github.com/justincely/lightcurve_pipeline/blob/master/lightcurve_pipeline/database/database_interface.py>`_ module.  The database is populated by the ``ingest_hstlc`` and ``build_stats_table`` scripts.  The database can also easily be reset by the `reset_hstlc_database <http://pythonhosted.org/lightcurve-pipeline/hstlc_scripts.html#module-lightcurve_pipeline.scripts.reset_hstlc_database>`_ script.  Below is a description of each table.
 
 **Metadata Table**
 
@@ -339,7 +339,7 @@ where:
 
 
 Installation
-============
+------------
 
 Users must first install the `lightcurve <http://justincely.github.io/lightcurve/>`_ package.  Users can obtain the latest release using pip:
 
@@ -370,7 +370,7 @@ or by downloading/cloning from `GitHub <https://github.com/justincely/lightcurve
 
 
 Package Structure
-=================
+-----------------
 
 The ``lightcurve_pipeline`` package has the following structure:
 
@@ -406,7 +406,7 @@ Note that the ``hstlc_pipeline`` exists outside of the package itself.  Addition
 
 
 System Requirements
-===================
+-------------------
 
 The hstlc software requires Python 2.7 and the following external libraries:
 
@@ -437,7 +437,7 @@ Also required is a configuration files named ``config.yaml`` placed in the ``lig
 Users wishing to run the pipeline must ensure that these directories exist, and have proper `hstlc permissions <file:///user/bourque/repositories/lightcurve_pipeline/docs/build/html/readme.html#permissions>`_.
 
 Useage
-======
+------
 
 Users can run the pipeline by simply executing the ``hstlc_pipeline`` script:
 
