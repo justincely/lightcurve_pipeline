@@ -431,6 +431,7 @@ def make_exploratory_table(dataset_list, table_name):
             instrument = os.path.split(dataset)[1].split('_')[3].split('-')[0]
             grating = os.path.split(dataset)[1].split('_')[5]
             cenwave = os.path.split(dataset)[1].split('_')[6]
+            aperture = os.path.split(dataset)[1].split('_')[7]
 
             results = session.query(Stats).filter(Stats.lightcurve_filename == name).all()
             total = results[0].total
@@ -443,11 +444,11 @@ def make_exploratory_table(dataset_list, table_name):
             plot_name_static = dataset.replace('.fits', '.png')
 
             plot_html = """<a href="{}" target="_blank"><img width="400" src="{}"><a>""".format(plot_name, plot_name_static)
-            new_row = (targname, plot_html, instrument, grating, cenwave, exptime, total, mean, poisson_f, pearson_r, pearson_p, dataset)
+            new_row = (targname, plot_html, instrument, grating, cenwave, aperture, exptime, total, mean, poisson_f, pearson_r, pearson_p, dataset)
             info.append(new_row)
 
         out_tab = Table(rows=info,
-                        names=('target', 'plot', 'instrument', 'grating', 'cenwave', 'exptime', 'total', 'mean', 'poisson_f', 'pearson_r', 'pearson_p', 'filename'))
+                        names=('target', 'plot', 'instrument', 'grating', 'cenwave', 'aperture', 'exptime', 'total', 'mean', 'poisson_f', 'pearson_r', 'pearson_p', 'filename'))
         out_tab.write(table_name, format='jsviewer')
 
         os.system("""sed -i '' "s/&lt;/</g" {}""".format(table_name))
