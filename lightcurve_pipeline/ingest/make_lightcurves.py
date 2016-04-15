@@ -67,9 +67,10 @@ from lightcurve_pipeline.utils.utils import set_permissions
 
 def make_composite_lightcurves():
     """Create composite lightcurves made up of datasets with similar
-    ``targname``, ``detector``, ``opt_elem``, and ``cenwave``.  The
-    lightcurves that require processing are determined by ``NULL``
-    ``composite_path`` values in the ``outputs`` table of the database.
+    ``targname``, ``detector``, ``opt_elem``, ``cenwave``, and
+    ``aperture``.  The lightcurves that require processing are
+    determined by ``NULL`` ``composite_path`` values in the ``outputs``
+    table of the database.
     """
 
     logging.info('')
@@ -82,7 +83,8 @@ def make_composite_lightcurves():
     # for empty composite records
     session = get_session()
     datasets = session.query(Metadata.instrume, Metadata.detector,
-        Metadata.targname, Metadata.opt_elem, Metadata.cenwave).join(Outputs)\
+        Metadata.targname, Metadata.opt_elem, Metadata.cenwave,
+        Metadata.aperture).join(Outputs)\
         .filter(Outputs.composite_path == None).all()
     datasets = set(datasets)
     session.close()
@@ -159,6 +161,7 @@ def process_dataset(dataset):
         targname = dataset[2]
         opt_elem = dataset[3]
         cenwave = dataset[4]
+        aperture = dataset[5]
 
         # Get list of files for each dataset to be processed
         session = get_session()
@@ -168,18 +171,19 @@ def process_dataset(dataset):
             .filter(Metadata.detector == detector)\
             .filter(Metadata.targname == targname)\
             .filter(Metadata.opt_elem == opt_elem)\
-            .filter(Metadata.cenwave == cenwave).all()
+            .filter(Metadata.cenwave == cenwave)\
+            .filter(Metadata.aperture == aperture).all()
         metadata_ids = [item[0] for item in filelist]
         files_to_process = [os.path.join(item[1], item[2]) for item in filelist]
-        logging.info('Processing dataset: {}\t{}\t{}\t{}\t{}: {} files to process'.format(
-            instrume, detector, targname, opt_elem, cenwave,
+        logging.info('Processing dataset: {}\t{}\t{}\t{}\t{}\t{}: {} files to process'.format(
+            instrume, detector, targname, opt_elem, cenwave, aperture,
             len(files_to_process)))
         session.close()
 
         # Perform the extraction
         path = SETTINGS['composite_dir']
-        output_filename = 'hlsp_hstlc_hst_{}-{}_{}_{}_{}_v1_sci.fits'.format(
-            instrume, detector, targname, opt_elem, cenwave).lower()
+        output_filename = 'hlsp_hstlc_hst_{}-{}_{}_{}_{}_{}_v1_sci.fits'.format(
+            instrume, detector, targname, opt_elem, cenwave, aperture).lower()
         save_loc = os.path.join(path, output_filename)
         lightcurve.composite(files_to_process, save_loc, step=2)
         set_permissions(save_loc)
@@ -197,8 +201,9 @@ def process_dataset(dataset):
 
     # Track any errors that happen during processing
     except Exception as error:
-        dataset_name = 'hlsp_hstlc_hst_{}-{}_{}_{}_{}_curve.fits'.format(
-            dataset[0], dataset[1], dataset[2], dataset[3], dataset[4])
+        dataset_name = 'hlsp_hstlc_hst_{}-{}_{}_{}_{}_{}_curve.fits'.format(
+            dataset[0], dataset[1], dataset[2], dataset[3], dataset[4],
+            dataset[5])
         trace = 'Failed to create composite for dataset {}\n{}'.format(
             dataset_name, traceback.format_exc())
         logging.critical(trace)
