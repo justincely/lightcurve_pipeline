@@ -308,7 +308,7 @@ As you can see, the query avoids certain targets that do not contain any useful 
 High Level Science Products
 ---------------------------
 
-The composite lightcurves that are created by the hstlc pipeline are delivered to MAST as High Level Science Products (HLSPs).  A composite lightcurve is comprised of one or more individual lightcurves, all having the same configuration of ``TARGNAME``, ``DETECTOR``, ``OPT_ELEM``, and ``CENWAVE``.  In other words, all datasets taken under the same observing conditions are aggregated together to form a composite lightcurve.
+The composite lightcurves that are created by the hstlc pipeline are delivered to MAST as High Level Science Products (HLSPs).  A composite lightcurve is comprised of one or more individual lightcurves, all having the same configuration of ``TARGNAME``, ``DETECTOR``, ``OPT_ELEM``, ``CENWAVE``, and ``APERTURE``.  In other words, all datasets taken under the same observing conditions are aggregated together to form a composite lightcurve.
 
 The composite lightcurves are FITS binary tables consisting of the following columns:
 
@@ -328,7 +328,7 @@ As to adhere to the `MAST HSLP contribution guidelines for times-series/lightcur
 
 ::
 
-    hlsp_hstlc_hst_<instrument>-<detector>_<targname>_<opt_elem>_<cenwave>_v1_sci.fits
+    hlsp_hstlc_hst_<instrument>-<detector>_<targname>_<opt_elem>_<cenwave>_<aperture>_v1_sci.fits
 
 where:
     - ``instrument`` is the instrument (``cos`` or ``stis``)
@@ -336,6 +336,7 @@ where:
     - ``targname`` is the target name (e.g. ``ngc6905``)
     - ``opt_elem`` is the filter (e.g. ``e230m``)
     - ``cenwave`` is the central wavelength (e.g. ``2561``)
+    - ``aperture`` is the aperture (e.g. ``PSA``)
 
 
 Installation
