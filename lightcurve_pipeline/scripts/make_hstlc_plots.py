@@ -88,6 +88,7 @@ import itertools
 import logging
 import multiprocessing as mp
 import os
+import platform
 
 from astropy.io import fits
 from astropy.table import Table
@@ -451,8 +452,14 @@ def make_exploratory_table(dataset_list, table_name):
                         names=('target', 'plot', 'instrument', 'grating', 'cenwave', 'aperture', 'exptime', 'total', 'mean', 'poisson_f', 'pearson_r', 'pearson_p', 'filename'))
         out_tab.write(table_name, format='jsviewer')
 
-        os.system("""sed -i '' "s/&lt;/</g" {}""".format(table_name))
-        os.system("""sed -i '' "s/&gt;/>/g" {}""".format(table_name))
+        if platform.system() == 'Linux':
+            os.system("""sed -i "s/&lt;/</g" {}""".format(table_name))
+            os.system("""sed -i "s/&gt;/>/g" {}""".format(table_name))
+        elif platform.system() == 'Darwin':
+            os.system("""sed -i '' "s/&lt;/</g" {}""".format(table_name))
+            os.system("""sed -i '' "s/&gt;/>/g" {}""".format(table_name))
+        else:
+            raise ValueError("OS {} is not supported for this operation".format(platform.system()))
 
 #-------------------------------------------------------------------------------
 
