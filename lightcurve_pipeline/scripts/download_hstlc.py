@@ -87,7 +87,7 @@ import os
 import string
 import urllib
 
-#from lightcurve_pipeline.download.SignStsciRequest import SignStsciRequest
+from lightcurve_pipeline.download.SignStsciRequest import SignStsciRequest
 
 from lightcurve_pipeline.utils.utils import SETTINGS
 from lightcurve_pipeline.utils.utils import set_permissions
@@ -205,7 +205,7 @@ def get_mast_rootnames():
     today = today.strftime('%Y-%m-%d')
 
     # Connect to server
-    transmit, receive = os.popen2("~/freetds/bin/tsql -S {0} -D '{1}' -U '{2}' -P '{3}' -t '|'".format(mast_server, mast_database, mast_account, mast_password))
+    transmit, receive = os.popen2("tsql -S {0} -D '{1}' -U '{2}' -P '{3}' -t '|'".format(mast_server, mast_database, mast_account, mast_password))
 
     # Build query
     query = ("SELECT sci_data_set_name "
@@ -322,8 +322,8 @@ def main():
     files_to_download = files_to_download - rootnames_in_ingest
 
     # Limit number of requests to 100
-    if len(files_to_download) > 100:
-        files_to_download = list(files_to_download)[0:100]
+    if len(files_to_download) > 1000:
+        files_to_download = list(files_to_download)[0:1000]
 
     # Build XML request
     logging.info('Building XML request.')
