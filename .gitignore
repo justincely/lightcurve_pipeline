@@ -54,8 +54,7 @@ docs/_build/
 target/
 
 # Yaml files
-#.yaml
-lightcurve_pipeline/utils/config.yaml
+.yaml
 
 *.png
 *.html
