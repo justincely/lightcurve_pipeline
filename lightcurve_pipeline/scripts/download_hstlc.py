@@ -85,7 +85,17 @@ import httplib
 import logging
 import os
 import string
-import urllib
+import getpass
+import re
+
+try:
+    from urllib.request import urlopen
+    from urllib.parse import urlparse, urlencode
+    from http.client import HTTPSConnection
+except ImportError:
+    from urlparse import urlparse
+    from urllib import urlopen, urlencode
+    from httplib import HTTPSConnection
 
 from lightcurve_pipeline.download.SignStsciRequest import SignStsciRequest
 
@@ -205,17 +215,27 @@ def get_mast_rootnames():
     today = today.strftime('%Y-%m-%d')
 
     # Connect to server
+    print("tsql -S {0} -D '{1}' -U '{2}' -P '{3}' -t '|'".format(mast_server, mast_database, mast_account, mast_password))
+    #sys.exit()
     transmit, receive = os.popen2("tsql -S {0} -D '{1}' -U '{2}' -P '{3}' -t '|'".format(mast_server, mast_database, mast_account, mast_password))
 
     # Build query
-    query = ("SELECT sci_data_set_name "
-             "FROM science "
-             "WHERE (sci_instrume = 'COS' OR sci_instrume = 'STIS') "
-             "AND sci_operating_mode = 'TIME-TAG' "
-             "AND sci_release_date < '{0}' "
-             "AND sci_targname NOT IN ('DARK', 'BIAS', 'DEUTERIUM', 'WAVE', 'ANY', 'NONE') "
+    query = ("SELECT assoc_member.asm_member_name,science.sci_data_set_name  "
+             "FROM assoc_member "
+             "JOIN science "
+             "ON assoc_member.asm_asn_id = science.sci_data_set_name "
+             "WHERE (science.sci_instrume = 'COS' OR science.sci_instrume = 'STIS') "
+             "AND science.sci_operating_mode = 'TIME-TAG' "
+             "AND science.sci_release_date < '{0}' "
+             "AND science.sci_targname NOT IN ('DARK', 'BIAS', 'DEUTERIUM', 'WAVE', 'ANY', 'NONE') "
+             "AND assoc_member.asm_member_type != 'PROD-FP' "
+             "AND assoc_member.asm_member_type != 'PRODUCT' "
+             "AND assoc_member.asm_member_type != 'EXP-GWAVE' "
+             "AND assoc_member.asm_member_type != 'EXP-IWAVE' "
+             "AND assoc_member.asm_member_type != 'EXP-AWAVE' "
+             "AND assoc_member.asm_member_type != 'GO-WAVECAL' "
+             "AND assoc_member.asm_member_type != 'AUTO-WAVECAL' "
              "\ngo\n".format(today))
-    print query
 
     # Perform query and capture results
     transmit.write(query)
@@ -225,9 +245,11 @@ def get_mast_rootnames():
 
     # Prune mast_results of unwanted information
     mast_results = mast_results[7:-2]
-    mast_rootnames = [item.lower().strip() for item in mast_results]
 
-    return mast_rootnames
+    mast_datasets = [item.split('|')[0].lower().strip() for item in mast_results]
+    mast_associations = [item.split('|')[1].lower().strip() for item in mast_results]
+
+    return mast_datasets, mast_associations
 
 # -----------------------------------------------------------------------------
 
@@ -273,7 +295,7 @@ def submit_xml_request(xml_request):
 
     signer = SignStsciRequest()
     request_xml_str = signer.signRequest('{0}/.ssh/privkey.pem'.format(home), xml_request)
-    params = urllib.urlencode({
+    params = urlencode({
         'dadshost': SETTINGS['dads_host'],
         'dadsport': 4703,
         'mission':'HST',
@@ -285,6 +307,38 @@ def submit_xml_request(xml_request):
     req.close()
 
     return response
+
+# ------------------------------------------------------------------------------
+
+def everything_retrieved(tracking_id):
+    '''
+    Check every 15 minutes to see if all submitted datasets have been
+    retrieved. Based on code from J. Ely.
+    Parameters:
+        tracking_id : string
+            A submission ID string..
+    Returns:
+        done : bool
+            Boolean specifying is data is retrieved or not.
+        killed : bool
+            Boolean specifying is request was killed.
+    '''
+
+    done = False
+    killed = False
+#    print tracking_id
+    status_url = "http://archive.stsci.edu/cgi-bin/reqstat?reqnum=={0}".format(tracking_id)
+    for line in urlopen(status_url).readlines():
+
+        if isinstance(line, bytes):
+            line = line.decode()
+
+        if "State" in line:
+            if "COMPLETE" in line:
+                done = True
+            elif "KILLED" in line:
+                killed = True
+    return done, killed
 
 # -----------------------------------------------------------------------------
 # -----------------------------------------------------------------------------
@@ -302,39 +356,63 @@ def main():
     logging.info('{0} rootnames in filesystem.'.format(len(filesystem_rootnames)))
 
     # Query MAST for datasets
-    mast_rootnames = set(get_mast_rootnames())
-    logging.info('{0} rootnames in MAST.'.format(len(mast_rootnames)))
-
-    # Compare lists
-    files_to_download = mast_rootnames - filesystem_rootnames
-    logging.info('{0} new rootnames.'.format(len(files_to_download)))
+    mast_datasets, mast_associations = get_mast_rootnames()
+    logging.info('{0} rootnames in MAST.'.format(len(mast_datasets)))
+    logging.info('{0} associations in MAST.'.format(len(mast_associations)))
 
     # Remove bad data rootnames
     bad_rootnames = session.query(BadData.filename).all()
     bad_rootnames = set([item[0][0:9] for item in bad_rootnames])
-    files_to_download = files_to_download - bad_rootnames
+    filesystem_rootnames = filesystem_rootnames.union(bad_rootnames)
 
     # Remove rootnames that already exist in ingest queue
     files_in_ingest = glob.glob(os.path.join(SETTINGS['ingest_dir'], '*_corrtag.fits'))
     files_in_ingest.extend(glob.glob(os.path.join(SETTINGS['ingest_dir'], '*_corrtag_?.fits')))
     files_in_ingest.extend(glob.glob(os.path.join(SETTINGS['ingest_dir'], '*_tag.fits')))
     rootnames_in_ingest = set([os.path.basename(item).split('_')[0] for item in files_in_ingest])
-    files_to_download = files_to_download - rootnames_in_ingest
+    filesystem_rootnames = filesystem_rootnames.union(rootnames_in_ingest)
+
+    # Compare lists
+    files_to_download = list({asn for asn, dset in zip(mast_associations, mast_datasets) if not dset in filesystem_rootnames})
+    logging.info('{0} new associations.'.format(len(files_to_download)))
+
+    ### import pdb; pdb.set_trace()
 
     # Limit number of requests to 100
-    if len(files_to_download) > 1000:
-        files_to_download = list(files_to_download)[0:1000]
+    logging.info('{0} Total files found to download.'.format(len(files_to_download)))
+    request_stepsize = 20
 
-    # Build XML request
-    logging.info('Building XML request.')
-    xml_request = build_xml_request(files_to_download)
+    for start in range(0, len(files_to_download), request_stepsize):
+        logging.info('Downloading {}'.format(len(files_to_download[start:start+request_stepsize])))
+        print('Downloading {}'.format(len(files_to_download[start:start+request_stepsize])))
+        subset_to_download = files_to_download[start:start+request_stepsize]
 
-    # Send request
-    logging.info('Submitting XML request.')
-    submission_results = submit_xml_request(xml_request)
+        # Build XML request
+        logging.info('Building XML request.')
+        print('Building XML request.')
+        xml_request = build_xml_request(subset_to_download)
 
-    # Save submission results
-    save_submission_results(submission_results)
+        # Send request
+        logging.info('Submitting XML request.')
+        print('Building XML request.')
+        submission_results = submit_xml_request(xml_request)
+
+        username = getpass.getuser()
+        tracking_id = re.search("("+username+"[0-9]{5})", submission_results).group()
+
+        # Save submission results
+        save_submission_results(submission_results)
+
+        done = False
+        killed = False
+
+        while not done:
+            print("waiting for files to be delivered")
+            time.sleep(60)
+            done, killed = everything_retrieved(tracking_id)
+
+            if killed:
+                return False
 
 # -----------------------------------------------------------------------------
 
