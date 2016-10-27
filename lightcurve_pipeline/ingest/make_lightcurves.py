@@ -54,7 +54,7 @@ import multiprocessing
 import os
 import traceback
 
-import lightcurve
+from lightcurve import io
 
 from lightcurve_pipeline.database.database_interface import get_session
 from lightcurve_pipeline.database.database_interface import Metadata
@@ -130,7 +130,7 @@ def make_individual_lightcurve(metadata_dict, outputs_dict):
             metadata_dict['filename'])
 
         try:
-            lc = lightcurve.LightCurve(filename=inputname, step=2, verbosity=1)
+            lc = io.read(inputname, step=2, verbosity=1)
             lc.write(outputname)
             set_permissions(outputname)
         except Exception as e:
@@ -185,7 +185,7 @@ def process_dataset(dataset):
         output_filename = 'hlsp_hstlc_hst_{}-{}_{}_{}_{}_{}_v1_sci.fits'.format(
             instrume, detector, targname, opt_elem, cenwave, aperture).lower()
         save_loc = os.path.join(path, output_filename)
-        lightcurve.composite(files_to_process, save_loc, step=2)
+        io.composite(files_to_process, save_loc, step=2)
         set_permissions(save_loc)
         logging.info('\tComposite lightcurve saved to {}'.format(save_loc))
 
