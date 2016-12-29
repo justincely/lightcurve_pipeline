@@ -87,6 +87,7 @@ import os
 import string
 import getpass
 import re
+import time
 
 try:
     from urllib.request import urlopen
@@ -220,10 +221,10 @@ def get_mast_rootnames():
     transmit, receive = os.popen2("tsql -S {0} -D '{1}' -U '{2}' -P '{3}' -t '|'".format(mast_server, mast_database, mast_account, mast_password))
 
     # Build query
-    query = ("SELECT assoc_member.asm_member_name,science.sci_data_set_name  "
+    query = ("SELECT assoc_member.asm_data_set_name,assoc_member.asm_asn_id "
              "FROM assoc_member "
              "JOIN science "
-             "ON assoc_member.asm_asn_id = science.sci_data_set_name "
+             "ON assoc_member.asm_asn_id = science.sci_asn_id "
              "WHERE (science.sci_instrume = 'COS' OR science.sci_instrume = 'STIS') "
              "AND science.sci_operating_mode = 'TIME-TAG' "
              "AND science.sci_release_date < '{0}' "
@@ -237,6 +238,7 @@ def get_mast_rootnames():
              "AND assoc_member.asm_member_type != 'AUTO-WAVECAL' "
              "\ngo\n".format(today))
 
+    print(query)
     # Perform query and capture results
     transmit.write(query)
     transmit.close()
@@ -357,6 +359,7 @@ def main():
 
     # Query MAST for datasets
     mast_datasets, mast_associations = get_mast_rootnames()
+
     logging.info('{0} rootnames in MAST.'.format(len(mast_datasets)))
     logging.info('{0} associations in MAST.'.format(len(mast_associations)))
 
@@ -371,16 +374,19 @@ def main():
     files_in_ingest.extend(glob.glob(os.path.join(SETTINGS['ingest_dir'], '*_tag.fits')))
     rootnames_in_ingest = set([os.path.basename(item).split('_')[0] for item in files_in_ingest])
     filesystem_rootnames = filesystem_rootnames.union(rootnames_in_ingest)
+    logging.info("{0} datasets in the filesystem".format(len(filesystem_rootnames)))
 
     # Compare lists
     files_to_download = list({asn for asn, dset in zip(mast_associations, mast_datasets) if not dset in filesystem_rootnames})
     logging.info('{0} new associations.'.format(len(files_to_download)))
 
-    ### import pdb; pdb.set_trace()
+    #import pdb; pdb.set_trace()
 
     # Limit number of requests to 100
-    logging.info('{0} Total files found to download.'.format(len(files_to_download)))
-    request_stepsize = 20
+    msg = '{0} Total files found to download.'.format(len(files_to_download))
+    print(msg)
+    logging.info(msg)
+    request_stepsize = 50
 
     for start in range(0, len(files_to_download), request_stepsize):
         logging.info('Downloading {}'.format(len(files_to_download[start:start+request_stepsize])))
@@ -389,12 +395,10 @@ def main():
 
         # Build XML request
         logging.info('Building XML request.')
-        print('Building XML request.')
         xml_request = build_xml_request(subset_to_download)
 
         # Send request
         logging.info('Submitting XML request.')
-        print('Building XML request.')
         submission_results = submit_xml_request(xml_request)
 
         username = getpass.getuser()
