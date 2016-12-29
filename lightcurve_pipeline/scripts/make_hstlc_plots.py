@@ -154,11 +154,11 @@ def bar_opt_elem():
 
     # Make plots
     bar = charts.Bar(xyvalues,
-        cat,
-        xlabel='Optical Element',
-        ylabel='# of Lightcurves',
-        stacked=True,
-        legend = 'top_right')
+                     label=cat,
+                     xlabel='Optical Element',
+                     ylabel='# of Lightcurves',
+                     stacked=True,
+                     legend = 'top_right')
     bar.background_fill = '#cccccc'
     bar.outline_line_color = 'black'
     charts.output_file(os.path.join(SETTINGS['plot_dir'], 'opt_elem.html'))
@@ -376,7 +376,7 @@ def histogram_exptime():
     names = list(names[indx])[::-1][:30]
 
     bar = charts.Bar(times,
-                     cat=names,
+                     label=names,
                      xlabel='Target',
                      ylabel='Exptime (s)',
                      width=700,
@@ -443,6 +443,8 @@ def make_exploratory_table(dataset_list, table_name):
 
             plot_name = dataset.replace('.fits', '.html')
             plot_name_static = dataset.replace('.fits', '.png')
+            if not os.path.exists(plot_name):
+                continue
 
             plot_html = """<a href="{}" target="_blank"><img width="400" src="{}"><a>""".format(plot_name, plot_name_static)
             new_row = (targname, plot_html, instrument, grating, cenwave, aperture, exptime, total, mean, poisson_f, pearson_r, pearson_p, dataset)
