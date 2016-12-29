@@ -345,7 +345,7 @@ def everything_retrieved(tracking_id):
 # -----------------------------------------------------------------------------
 # -----------------------------------------------------------------------------
 
-def main():
+def main(maxdownload=50):
     """The main function of the ``download_hstlc`` script
     """
 
@@ -386,40 +386,36 @@ def main():
     msg = '{0} Total files found to download.'.format(len(files_to_download))
     print(msg)
     logging.info(msg)
-    request_stepsize = 50
 
-    for start in range(0, len(files_to_download), request_stepsize):
-        logging.info('Downloading {}'.format(len(files_to_download[start:start+request_stepsize])))
-        print('Downloading {}'.format(len(files_to_download[start:start+request_stepsize])))
-        subset_to_download = files_to_download[start:start+request_stepsize]
+    logging.info('Downloading {}'.format(len(files_to_download[0:maxdownload])))
+    print('Downloading {}'.format(len(files_to_download[0:maxdownload])))
+    subset_to_download = files_to_download[0:maxdownload]
 
-        # Build XML request
-        logging.info('Building XML request.')
-        xml_request = build_xml_request(subset_to_download)
+    # Build XML request
+    logging.info('Building XML request.')
+    print('Building XML request.')
+    xml_request = build_xml_request(subset_to_download)
 
-        # Send request
-        logging.info('Submitting XML request.')
-        submission_results = submit_xml_request(xml_request)
+    # Send request
+    logging.info('Submitting XML request.')
+    print('Building XML request.')
+    submission_results = submit_xml_request(xml_request)
 
-        username = getpass.getuser()
-        tracking_id = re.search("("+username+"[0-9]{5})", submission_results).group()
+    username = getpass.getuser()
+    tracking_id = re.search("("+username+"[0-9]{5})", submission_results).group()
 
-        # Save submission results
-        save_submission_results(submission_results)
+    # Save submission results
+    save_submission_results(submission_results)
 
-        done = False
-        killed = False
+    done = False
+    killed = False
 
-        while not done:
-            print("waiting for files to be delivered")
-            time.sleep(60)
-            done, killed = everything_retrieved(tracking_id)
+    while not done:
+        print("waiting for files to be delivered")
+        time.sleep(60)
+        done, killed = everything_retrieved(tracking_id)
 
-            if killed:
-                return False
+        if killed:
+            return False
 
 # -----------------------------------------------------------------------------
-
-if __name__ == '__main__':
-
-    main()
