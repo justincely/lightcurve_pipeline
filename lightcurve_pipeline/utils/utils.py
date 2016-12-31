@@ -120,6 +120,9 @@ def set_permissions(path):
     The hstlc permissions settings are groupID = ``hstlc`` and
     permissions of ``rwxrwx---``.
 
+    If hstlc group is not found, then the permissions will default to the
+    currently logged on user.
+
     Parameters
     ----------
     path : string
@@ -127,7 +130,10 @@ def set_permissions(path):
     """
 
     uid = os.stat(path).st_uid
-    gid = grp.getgrnam("hstlc").gr_gid
+    try:
+        gid = grp.getgrnam("hstlc").gr_gid
+    except KeyError:
+        gid = grp.getgrnam(getpass.getuser()).gr_gid
 
     if uid == os.getuid():
         os.chown(path, uid, gid)

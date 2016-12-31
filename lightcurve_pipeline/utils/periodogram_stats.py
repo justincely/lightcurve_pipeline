@@ -78,7 +78,7 @@ def get_periodogram_stats(dataset, freq_space):
     times = times.byteswap().newbyteorder()
 
     # Define frequency space (in days)
-    short_freq = (hdulist[1].header['STEPSIZE'] / (60. * 60. * 24.)) # Step size
+    short_freq = (5 / (60. * 60. * 24.)) #  5 seconds Step size
     med_freq = (10. / (60. * 24.)) # 10 minutes
     long_freq = 1. / 24. # 1 hour
     max_freq = 10. / 24. # 10 hours

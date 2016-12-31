@@ -66,6 +66,7 @@ from lightcurve_pipeline.utils.periodogram_stats import get_periodogram_stats
 from lightcurve_pipeline.utils.utils import insert_or_update
 from lightcurve_pipeline.utils.utils import SETTINGS
 from lightcurve_pipeline.utils.utils import setup_logging
+from lightcurve_pipeline.database import database_interface
 from lightcurve_pipeline.database.database_interface import engine
 from lightcurve_pipeline.database.database_interface import session
 from lightcurve_pipeline.database.database_interface import Stats
@@ -208,6 +209,8 @@ def main():
     # Parse arguments
     args = parse_args()
 
+    database_interface.base.metadata.create_all()
+
     # Query the outputs table for a list of lightcurves
     lightcurves = get_lightcurves(args.product_type)
 
@@ -221,7 +224,3 @@ def main():
     logging.info('Processing complete')
 
 # -----------------------------------------------------------------------------
-
-if __name__ == '__main__':
-
-    main()
