@@ -137,7 +137,7 @@ def set_permissions(path):
 
     if uid == os.getuid():
         os.chown(path, uid, gid)
-        os.chmod(path, 0770)
+        os.chmod(path, 0o770)
 
 # -----------------------------------------------------------------------------
 
