@@ -26,13 +26,12 @@ env:
         # overidden underneath. They are defined here in order to save having
         # to repeat them for all configurations.
         - ASTROPY_VERSION=stable
-        - SETUP_CMD='test'
         - PIP_DEPENDENCIES='lightcurve>=0.6.0'
         # For this package-template, we include examples of Cython modules,
         # so Cython is required for testing. If your package does not include
         # Cython code, you can set CONDA_DEPENDENCIES=''
-        - CONDA_CHANNELS='http://ssb.stsci.edu/astroconda astropy-ci-extras'
-        - CONDA_DEPENDENCIES='numpy scipy cython astropy numba>=0.24.0 llvmlite>=0.9.0 sqlalchemy pymysql pyyaml matplotlib bokeh'
+        - CONDA_CHANNELS=''
+        - CONDA_DEPENDENCIES='numpy scipy cython numba>=0.24.0 llvmlite>=0.9.0 sqlalchemy pymysql pyyaml matplotlib bokeh'
 
     matrix:
         - PYTHON_VERSION=2.7 SETUP_CMD='install'
