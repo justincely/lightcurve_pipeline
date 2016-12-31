@@ -26,6 +26,7 @@ env:
         # overidden underneath. They are defined here in order to save having
         # to repeat them for all configurations.
         - ASTROPY_VERSION=stable
+        - SETUP_CMD='test'
         - PIP_DEPENDENCIES='lightcurve>=0.6.0'
         # For this package-template, we include examples of Cython modules,
         # so Cython is required for testing. If your package does not include

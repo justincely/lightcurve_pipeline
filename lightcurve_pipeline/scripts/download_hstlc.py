@@ -100,7 +100,7 @@ except ImportError:
 
 from lightcurve_pipeline.download.SignStsciRequest import SignStsciRequest
 
-from lightcurve_pipeline.utils.utils import SETTINGS
+from lightcurve_pipeline.utils.utils import get_settings
 from lightcurve_pipeline.utils.utils import set_permissions
 from lightcurve_pipeline.utils.utils import setup_logging
 from lightcurve_pipeline.database.database_interface import engine
@@ -153,11 +153,11 @@ def build_xml_request(datasets):
     datasets = ''.join(['<rootname>{0}</rootname>\n'.format(rootname) for rootname in datasets])
 
     request_string = REQUEST_TEMPLATE.safe_substitute(
-        archive_user=SETTINGS['archive_user'],
-        archiveUserEmail=SETTINGS['email'],
-        ftpHost=SETTINGS['host'],
-        ftpDir=SETTINGS['ingest_dir'],
-        ftpUser=SETTINGS['ftp_user'],
+        archive_user=get_settings()['archive_user'],
+        archiveUserEmail=get_settings()['email'],
+        ftpHost=get_settings()['host'],
+        ftpDir=get_settings()['ingest_dir'],
+        ftpUser=get_settings()['ftp_user'],
         datasets=datasets)
 
     xml_request = string.Template(request_string)
@@ -206,10 +206,10 @@ def get_mast_rootnames():
     """
 
     # Gather configuration settings
-    mast_server = SETTINGS['mast_server']
-    mast_database = SETTINGS['mast_database']
-    mast_account = SETTINGS['mast_account']
-    mast_password = SETTINGS['mast_password']
+    mast_server = get_settings()['mast_server']
+    mast_database = get_settings()['mast_database']
+    mast_account = get_settings()['mast_account']
+    mast_password = get_settings()['mast_password']
 
     # Build comparison date
     today = datetime.datetime.utcnow()
@@ -270,7 +270,7 @@ def save_submission_results(submission_results):
 
     today = datetime.datetime.strftime(datetime.datetime.now(), '%Y_%m_%d')
     xml_filename = 'result_{0}.xml'.format(today)
-    xml_output_file = os.path.join(SETTINGS['download_dir'], xml_filename)
+    xml_output_file = os.path.join(get_settings()['download_dir'], xml_filename)
     with open(xml_output_file, 'w') as f:
         f.write(submission_results)
     set_permissions(xml_output_file)
@@ -298,12 +298,12 @@ def submit_xml_request(xml_request):
     signer = SignStsciRequest()
     request_xml_str = signer.signRequest('{0}/.ssh/privkey.pem'.format(home), xml_request)
     params = urlencode({
-        'dadshost': SETTINGS['dads_host'],
+        'dadshost': get_settings()['dads_host'],
         'dadsport': 4703,
         'mission':'HST',
         'request': request_xml_str})
     headers = {"Accept": "text/html", "User-Agent":"{0}PythonScript".format(user)}
-    req = httplib.HTTPSConnection(SETTINGS['archive'])
+    req = httplib.HTTPSConnection(get_settings()['archive'])
     req.request("POST", "/cgi-bin/dads.cgi", params, headers)
     response = req.getresponse().read()
     req.close()
@@ -369,9 +369,9 @@ def main(maxdownload=50):
     filesystem_rootnames = filesystem_rootnames.union(bad_rootnames)
 
     # Remove rootnames that already exist in ingest queue
-    files_in_ingest = glob.glob(os.path.join(SETTINGS['ingest_dir'], '*_corrtag.fits'))
-    files_in_ingest.extend(glob.glob(os.path.join(SETTINGS['ingest_dir'], '*_corrtag_?.fits')))
-    files_in_ingest.extend(glob.glob(os.path.join(SETTINGS['ingest_dir'], '*_tag.fits')))
+    files_in_ingest = glob.glob(os.path.join(get_settings()['ingest_dir'], '*_corrtag.fits'))
+    files_in_ingest.extend(glob.glob(os.path.join(get_settings()['ingest_dir'], '*_corrtag_?.fits')))
+    files_in_ingest.extend(glob.glob(os.path.join(get_settings()['ingest_dir'], '*_tag.fits')))
     rootnames_in_ingest = set([os.path.basename(item).split('_')[0] for item in files_in_ingest])
     filesystem_rootnames = filesystem_rootnames.union(rootnames_in_ingest)
     logging.info("{0} datasets in the filesystem".format(len(filesystem_rootnames)))

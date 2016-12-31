@@ -109,7 +109,7 @@ plt.rcParams['axes.formatter.useoffset'] = False
 #sns.set(style="dark")
 
 from lightcurve_pipeline.utils.periodogram_stats import get_periodogram_stats
-from lightcurve_pipeline.utils.utils import SETTINGS
+from lightcurve_pipeline.utils.utils import get_settings
 from lightcurve_pipeline.utils.utils import set_permissions
 from lightcurve_pipeline.utils.utils import setup_logging
 from lightcurve_pipeline.database.database_interface import engine
@@ -161,8 +161,8 @@ def bar_opt_elem():
                      legend = 'top_right')
     bar.background_fill = '#cccccc'
     bar.outline_line_color = 'black'
-    charts.output_file(os.path.join(SETTINGS['plot_dir'], 'opt_elem.html'))
-    plot_file = os.path.join(SETTINGS['plot_dir'], 'opt_elem.html')
+    charts.output_file(os.path.join(get_settings()['plot_dir'], 'opt_elem.html'))
+    plot_file = os.path.join(get_settings()['plot_dir'], 'opt_elem.html')
     charts.save(obj=bar, filename=plot_file)
     set_permissions(plot_file)
 
@@ -176,7 +176,7 @@ def configuration_piechart():
 
     logging.info('Creating target piechart')
 
-    data_dir = SETTINGS['composite_dir']
+    data_dir = get_settings()['composite_dir']
 
     configs = {}
     for dataset in glob.glob(os.path.join(data_dir, '*.fits')):
@@ -193,13 +193,13 @@ def configuration_piechart():
     # COS FUV
     try:
         settings = Counter(configs['cos-fuv'])
-        charts.output_file(os.path.join(SETTINGS['plot_dir'], 'pie_config_cos_fuv.html'))
+        charts.output_file(os.path.join(get_settings()['plot_dir'], 'pie_config_cos_fuv.html'))
         plot = charts.Donut(settings.values(),
                             settings.keys(),
                             width=1200,
                             height=600,
                             title='COS FUV breakdown')
-        plot_file = os.path.join(SETTINGS['plot_dir'], 'pie_config_cos_fuv.html')
+        plot_file = os.path.join(get_settings()['plot_dir'], 'pie_config_cos_fuv.html')
         charts.save(obj=plot, filename=plot_file)
         set_permissions(plot_file)
     except KeyError:
@@ -208,13 +208,13 @@ def configuration_piechart():
     # COS NUV
     try:
         settings = Counter(configs['cos-nuv'])
-        charts.output_file(os.path.join(SETTINGS['plot_dir'], 'pie_config_cos_nuv.html'))
+        charts.output_file(os.path.join(get_settings()['plot_dir'], 'pie_config_cos_nuv.html'))
         plot = charts.Donut(settings.values(),
                             settings.keys(),
                             width=1200,
                             height=600,
                             title='COS NUV breakdown')
-        plot_file = os.path.join(SETTINGS['plot_dir'], 'pie_config_cos_nuv.html')
+        plot_file = os.path.join(get_settings()['plot_dir'], 'pie_config_cos_nuv.html')
         charts.save(obj=plot, filename=plot_file)
         set_permissions(plot_file)
     except KeyError:
@@ -223,13 +223,13 @@ def configuration_piechart():
     # STIS FUV
     try:
         settings = Counter(configs['stis-fuv-mama'])
-        charts.output_file(os.path.join(SETTINGS['plot_dir'], 'pie_config_stis_fuv.html'))
+        charts.output_file(os.path.join(get_settings()['plot_dir'], 'pie_config_stis_fuv.html'))
         plot = charts.Donut(settings.values(),
                             settings.keys(),
                             width=1200,
                             height=600,
                             title='STIS FUV breakdown')
-        plot_file = os.path.join(SETTINGS['plot_dir'], 'pie_config_stis_fuv.html')
+        plot_file = os.path.join(get_settings()['plot_dir'], 'pie_config_stis_fuv.html')
         charts.save(obj=plot, filename=plot_file)
         set_permissions(plot_file)
     except KeyError:
@@ -238,13 +238,13 @@ def configuration_piechart():
     # STIS NUV
     try:
         settings = Counter(configs['stis-nuv-mama'])
-        charts.output_file(os.path.join(SETTINGS['plot_dir'], 'pie_config_stis_nuv.html'))
+        charts.output_file(os.path.join(get_settings()['plot_dir'], 'pie_config_stis_nuv.html'))
         plot = charts.Donut(settings.values(),
                             settings.keys(),
                             width=1200,
                             height=600,
                             title='STIS NUV breakdown')
-        plot_file = os.path.join(SETTINGS['plot_dir'], 'pie_config_stis_nuv.html')
+        plot_file = os.path.join(get_settings()['plot_dir'], 'pie_config_stis_nuv.html')
         charts.save(obj=plot, filename=plot_file)
         set_permissions(plot_file)
     except KeyError:
@@ -317,13 +317,13 @@ def exploratory_tables():
     """
 
     # Interesting results
-    logging.info('Creating exploratory table for interesting datasets to: {}'.format( os.path.join(SETTINGS['plot_dir'])))
+    logging.info('Creating exploratory table for interesting datasets to: {}'.format( os.path.join(get_settings()['plot_dir'])))
     interesting_query = session.query(Stats.lightcurve_path, Stats.lightcurve_filename).\
         filter(Stats.poisson_factor != 'NULL').\
         filter(Stats.poisson_factor >= 1.2).\
         filter(Stats.lightcurve_path.like('%composite%')).all()
     interesting_datasets = [os.path.join(item[0], item[1]) for item in interesting_query]
-    make_exploratory_table(interesting_datasets, os.path.join(SETTINGS['plot_dir'], 'interesting_hstlc.html'))
+    make_exploratory_table(interesting_datasets, os.path.join(get_settings()['plot_dir'], 'interesting_hstlc.html'))
 
     # Boring results
     logging.info('Creating exploratory table for boring datasets')
@@ -332,7 +332,7 @@ def exploratory_tables():
         filter(Stats.poisson_factor < 1.2).\
         filter(Stats.lightcurve_path.like('%composite%')).all()
     boring_datasets = [os.path.join(item[0], item[1]) for item in boring_query]
-    make_exploratory_table(boring_datasets, os.path.join(SETTINGS['plot_dir'], 'boring_hstlc.html'))
+    make_exploratory_table(boring_datasets, os.path.join(get_settings()['plot_dir'], 'boring_hstlc.html'))
 
     # NULL results
     logging.info('Creating exploratory table for NULL datasets')
@@ -340,7 +340,7 @@ def exploratory_tables():
         filter(Stats.poisson_factor == 'NULL').\
         filter(Stats.lightcurve_path.like('%composite%')).all()
     null_datasets = [os.path.join(item[0], item[1]) for item in null_query]
-    make_exploratory_table(null_datasets, os.path.join(SETTINGS['plot_dir'], 'null_hstlc.html'))
+    make_exploratory_table(null_datasets, os.path.join(get_settings()['plot_dir'], 'null_hstlc.html'))
 
 #-------------------------------------------------------------------------------
 
@@ -352,7 +352,7 @@ def histogram_exptime():
 
     logging.info('Creating exposure time historgram')
 
-    data_dir = SETTINGS['composite_dir']
+    data_dir = get_settings()['composite_dir']
 
     exptime_data = {}
     for dataset in glob.glob(os.path.join(data_dir, '*.fits')):
@@ -365,7 +365,7 @@ def histogram_exptime():
             else:
                 exptime_data[targname] = exptime
 
-    charts.output_file(os.path.join(SETTINGS['plot_dir'], 'exptime_histogram.html'))
+    charts.output_file(os.path.join(get_settings()['plot_dir'], 'exptime_histogram.html'))
 
     times = np.array(exptime_data.values())
     names = np.array(exptime_data.keys())
@@ -398,7 +398,7 @@ def histogram_exptime():
 
     script, div = components(bar)
 
-    plot_file = os.path.join(SETTINGS['plot_dir'], 'exptime_histogram.html')
+    plot_file = os.path.join(get_settings()['plot_dir'], 'exptime_histogram.html')
     charts.save(obj=bar, filename=plot_file)
     set_permissions(plot_file)
 
@@ -541,7 +541,7 @@ def periodogram(dataset):
             # Save the plot
             fig.tight_layout()
             filename = '{}_periodogram.png'.format(os.path.basename(dataset).split('_curve.fits')[0])
-            save_loc = os.path.join(SETTINGS['plot_dir'], 'periodogram_subset', filename)
+            save_loc = os.path.join(get_settings()['plot_dir'], 'periodogram_subset', filename)
             plt.savefig(save_loc)
             plt.close()
             set_permissions(save_loc)
@@ -651,9 +651,9 @@ def main():
     setup_logging(module)
 
     # Make matplotlib and bokeh lightcurve plots
-    composite_datasets = glob.glob(os.path.join(SETTINGS['composite_dir'], '*.fits'))
-    logging.info('Creating matplotlib and bokeh lightcurve plots for {} datasets using {} cores'.format(len(composite_datasets), SETTINGS['num_cores']))
-    pool = mp.Pool(processes=SETTINGS['num_cores'])
+    composite_datasets = glob.glob(os.path.join(get_settings()['composite_dir'], '*.fits'))
+    logging.info('Creating matplotlib and bokeh lightcurve plots for {} datasets using {} cores'.format(len(composite_datasets), get_settings()['num_cores']))
+    pool = mp.Pool(processes=get_settings()['num_cores'])
     pool.map(plot_dataset_static, composite_datasets)
     pool.map(dataset_dashboard, composite_datasets)
     pool.close()
@@ -672,15 +672,15 @@ def main():
     bar_opt_elem()
 
     # Make individual bokeh plots for some examples
-    #plot_dataset('/grp/hst/hstlc/hst13902/outputs/composite/V4046SGR_FUV_G130M_1300_curve.fits', os.path.join(SETTINGS['plot_dir'], 'example_flare.html'))
-    #plot_dataset('/grp/hst/hstlc/hst13902/outputs/composite/IR-COM_FUV_G140L_1105_curve.fits', os.path.join(SETTINGS['plot_dir'], 'example_transit.html'))
+    #plot_dataset('/grp/hst/hstlc/hst13902/outputs/composite/V4046SGR_FUV_G130M_1300_curve.fits', os.path.join(get_settings()['plot_dir'], 'example_flare.html'))
+    #plot_dataset('/grp/hst/hstlc/hst13902/outputs/composite/IR-COM_FUV_G140L_1105_curve.fits', os.path.join(get_settings()['plot_dir'], 'example_transit.html'))
 
     # Make periodograms
     results = session.query(Stats.lightcurve_path, Stats.lightcurve_filename).\
         filter(Stats.periodogram == True).all()
     datasets = [os.path.join(item.lightcurve_path, item.lightcurve_filename) for item in results]
-    logging.info('Making periodograms for {} datasets over {} cores'.format(len(datasets), SETTINGS['num_cores']))
-    pool = mp.Pool(processes=SETTINGS['num_cores'])
+    logging.info('Making periodograms for {} datasets over {} cores'.format(len(datasets), get_settings()['num_cores']))
+    pool = mp.Pool(processes=get_settings()['num_cores'])
     pool.map(periodogram, datasets)
     pool.close()
     pool.join()

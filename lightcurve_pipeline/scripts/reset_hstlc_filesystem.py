@@ -40,7 +40,7 @@ import glob
 import os
 import shutil
 
-from lightcurve_pipeline.utils.utils import SETTINGS
+from lightcurve_pipeline.utils.utils import get_settings
 
 # -----------------------------------------------------------------------------
 
@@ -52,15 +52,15 @@ def move_files_to_ingest():
     """
 
     # Gather files in the filesystem directory
-    filelist = glob.glob(os.path.join(SETTINGS['filesystem_dir'], '*/*.fits'))
+    filelist = glob.glob(os.path.join(get_settings()['filesystem_dir'], '*/*.fits'))
     for filename in filelist:
 
-        dst = os.path.join(SETTINGS['ingest_dir'], os.path.basename(filename))
+        dst = os.path.join(get_settings()['ingest_dir'], os.path.basename(filename))
 
         # Move the file if it doesn't already exist, otherwise simply remove it
         if not os.path.exists(dst):
-            shutil.move(filename, SETTINGS['ingest_dir'])
-            print('\tMoved {} to {}'.format(filename, SETTINGS['ingest_dir']))
+            shutil.move(filename, get_settings()['ingest_dir'])
+            print('\tMoved {} to {}'.format(filename, get_settings()['ingest_dir']))
         else:
             os.remove(filename)
 
@@ -71,7 +71,7 @@ def remove_output_directories():
     Remove all output products and output directories
     """
 
-    directories = glob.glob(os.path.join(SETTINGS['outputs_dir'], '*'))
+    directories = glob.glob(os.path.join(get_settings()['outputs_dir'], '*'))
     for directory in directories:
         try:
             shutil.rmtree(directory)
@@ -86,7 +86,7 @@ def remove_filesystem_directories():
     Remove parent directories from the filesystem if they are empty
     """
 
-    dirlist = glob.glob(os.path.join(SETTINGS['filesystem_dir'], '*'))
+    dirlist = glob.glob(os.path.join(get_settings()['filesystem_dir'], '*'))
     for directory in dirlist:
         try:
             os.rmdir(directory)
@@ -102,7 +102,7 @@ def main():
     """
 
     # Give the user a second chance
-    prompt = 'About to reset filesystem {}. '.format(SETTINGS['filesystem_dir'])
+    prompt = 'About to reset filesystem {}. '.format(get_settings()['filesystem_dir'])
     prompt += 'Do you wish to proceed? (y/n)'
     response = raw_input(prompt)
 

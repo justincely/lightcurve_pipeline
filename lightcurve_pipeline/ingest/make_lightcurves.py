@@ -60,7 +60,7 @@ from lightcurve_pipeline.database.database_interface import get_session
 from lightcurve_pipeline.database.database_interface import Metadata
 from lightcurve_pipeline.database.database_interface import Outputs
 from lightcurve_pipeline.utils.utils import make_directory
-from lightcurve_pipeline.utils.utils import SETTINGS
+from lightcurve_pipeline.utils.utils import get_settings
 from lightcurve_pipeline.utils.utils import set_permissions
 
 # -----------------------------------------------------------------------------
@@ -77,7 +77,7 @@ def make_composite_lightcurves():
     logging.info('Creating composite lightcurves')
 
     # Create composite directory if it doesn't already exist
-    make_directory(SETTINGS['composite_dir'])
+    make_directory(get_settings()['composite_dir'])
 
     # Get list of datasets that need to be (re)processed by querying
     # for empty composite records
@@ -91,9 +91,9 @@ def make_composite_lightcurves():
 
     # Process each dataset using multiprocessing
     logging.info('Creating {} composites using {} core(s)'.format(
-        len(datasets), SETTINGS['num_cores']))
+        len(datasets), get_settings()['num_cores']))
     logging.info('')
-    pool = multiprocessing.Pool(processes=SETTINGS['num_cores'])
+    pool = multiprocessing.Pool(processes=get_settings()['num_cores'])
     pool.map(process_dataset, datasets)
     pool.close()
     pool.join()
@@ -126,7 +126,7 @@ def make_individual_lightcurve(metadata_dict, outputs_dict):
         outputs_dict['individual_filename'])
 
     if not os.path.exists(outputname):
-        inputname = os.path.join(SETTINGS['ingest_dir'],
+        inputname = os.path.join(get_settings()['ingest_dir'],
             metadata_dict['filename'])
 
         try:
@@ -181,7 +181,7 @@ def process_dataset(dataset):
         session.close()
 
         # Perform the extraction
-        path = SETTINGS['composite_dir']
+        path = get_settings()['composite_dir']
         output_filename = 'hlsp_hstlc_hst_{}-{}_{}_{}_{}_{}_v1_sci.fits'.format(
             instrume, detector, targname, opt_elem, cenwave, aperture).lower()
         save_loc = os.path.join(path, output_filename)

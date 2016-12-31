@@ -64,7 +64,6 @@ from scipy.stats.stats import pearsonr
 
 from lightcurve_pipeline.utils.periodogram_stats import get_periodogram_stats
 from lightcurve_pipeline.utils.utils import insert_or_update
-from lightcurve_pipeline.utils.utils import SETTINGS
 from lightcurve_pipeline.utils.utils import setup_logging
 from lightcurve_pipeline.database import database_interface
 from lightcurve_pipeline.database.database_interface import engine

@@ -56,7 +56,6 @@ The hard-coded ``targname_dict`` dictionary resides in the
 import urllib2
 from xml.dom import minidom
 
-from lightcurve_pipeline.utils.utils import SETTINGS
 from lightcurve_pipeline.utils.targname_dict import targname_dict
 from lightcurve_pipeline.database.database_interface import get_session
 from lightcurve_pipeline.database.database_interface import Metadata

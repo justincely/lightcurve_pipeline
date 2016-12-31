@@ -80,8 +80,6 @@ def get_settings():
 
     return data
 
-SETTINGS = get_settings()
-
 # -----------------------------------------------------------------------------
 
 def insert_or_update(table, data, id_num):
@@ -158,6 +156,8 @@ def setup_logging(module):
     module : string
         The name of the module to log
     """
+
+    SETTINGS = get_settings()
 
     # Configure logging
     timestamp = datetime.datetime.now().strftime('%Y-%m-%d-%H-%M')

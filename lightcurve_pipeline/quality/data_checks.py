@@ -54,7 +54,7 @@ import shutil
 
 from astropy.io import fits
 
-from lightcurve_pipeline.utils.utils import SETTINGS
+from lightcurve_pipeline.utils.utils import get_settings
 from lightcurve_pipeline.utils.utils import set_permissions
 from lightcurve_pipeline.database.update_database import update_bad_data_table
 
@@ -105,7 +105,7 @@ def move_file(filename):
         The full path to the dataset
     """
 
-    dst = os.path.join(SETTINGS['bad_data_dir'], os.path.basename(filename))
+    dst = os.path.join(get_settings()['bad_data_dir'], os.path.basename(filename))
     if os.path.exists(dst):
         os.remove(dst)
     shutil.move(filename, dst)

@@ -121,7 +121,7 @@ from astropy.io import fits
 import lightcurve
 
 from lightcurve_pipeline.utils.utils import make_directory
-from lightcurve_pipeline.utils.utils import SETTINGS
+from lightcurve_pipeline.utils.utils import get_settings
 from lightcurve_pipeline.utils.utils import set_permissions
 from lightcurve_pipeline.utils.utils import setup_logging
 from lightcurve_pipeline.database.update_database import update_metadata_table
@@ -159,7 +159,7 @@ def get_files_to_ingest():
     logging.info('Gathering files to ingest')
 
     # Determine which files are corrtag_a or corrtag_b files
-    files_to_ingest = glob.glob(os.path.join(SETTINGS['ingest_dir'], '*tag*.fits'))
+    files_to_ingest = glob.glob(os.path.join(get_settings()['ingest_dir'], '*tag*.fits'))
     corrtag_ab_files = [item for item in files_to_ingest if 'corrtag_' in os.path.basename(item)]
     files_to_remove = []
 
@@ -285,7 +285,7 @@ def make_file_dicts(filename, header):
 
     # Set image metadata keys
     metadata_dict['filename'] = os.path.basename(filename)
-    metadata_dict['path'] = os.path.join(SETTINGS['filesystem_dir'], metadata_dict['targname'])
+    metadata_dict['path'] = os.path.join(get_settings()['filesystem_dir'], metadata_dict['targname'])
     metadata_dict['ingest_date'] = datetime.datetime.strftime(datetime.datetime.today(), '%Y-%m-%d')
 
     # Set outputs keys
@@ -326,7 +326,7 @@ def move_file(metadata_dict):
     make_directory(metadata_dict['path'])
 
     # Move the file from ingest directory into filesystem
-    src = os.path.join(SETTINGS['ingest_dir'], metadata_dict['filename'])
+    src = os.path.join(get_settings()['ingest_dir'], metadata_dict['filename'])
 
     # If the file is a corrtag_a/b file, then move any accompanying corrtag
     # file.  If not, move the file nominally
@@ -348,7 +348,7 @@ def move_file(metadata_dict):
 
     # Move the accompanying x1d file from ingest directory to filesystem
     x1d_file = '{}_x1d.fits'.format(metadata_dict['filename'].split('_')[0])
-    src = os.path.join(SETTINGS['ingest_dir'], x1d_file)
+    src = os.path.join(get_settings()['ingest_dir'], x1d_file)
     dst = os.path.join(metadata_dict['path'], x1d_file)
     if os.path.exists(src):
         if os.path.exists(dst):
@@ -403,9 +403,9 @@ def main():
 
     # Ingest the files using multiprocessing
     logging.info('')
-    logging.info('Ingesting {} files using {} core(s)'.format(len(files_to_ingest), SETTINGS['num_cores']))
+    logging.info('Ingesting {} files using {} core(s)'.format(len(files_to_ingest), get_settings()['num_cores']))
     logging.info('')
-    pool = multiprocessing.Pool(processes=SETTINGS['num_cores'])
+    pool = multiprocessing.Pool(processes=get_settings()['num_cores'])
     mp_args = itertools.izip(files_to_ingest, itertools.repeat(args.corrtag_extract))
     pool.map(ingest, mp_args)
     pool.close()

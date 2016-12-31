@@ -46,7 +46,7 @@ import os
 import pickle
 import sys
 
-from lightcurve_pipeline.utils.utils import SETTINGS
+from lightcurve_pipeline.utils.utils import get_settings
 from lightcurve_pipeline.database import database_interface
 from lightcurve_pipeline.database.database_interface import session
 from lightcurve_pipeline.database.database_interface import engine
@@ -119,7 +119,7 @@ def rebuild_production_tables():
     """
 
     # # Write the contents of the bad_data table out to a text file
-    pickle_file = os.path.join(SETTINGS['home_dir'], 'bad_data.pck')
+    pickle_file = os.path.join(get_settings()['home_dir'], 'bad_data.pck')
     query = session.query(BadData).all()
     session.close()
     dict_list = [result.__dict__ for result in query]
@@ -149,7 +149,7 @@ def main():
     # Give user a second chance
     prompt = ('About to reset {} table(s) for database instance {}. '
         'Do you wish to proceed? (y/n)\n'.format(args.reset_table,
-        SETTINGS['db_connection_string']))
+        get_settings()['db_connection_string']))
 
     response = raw_input(prompt)
 

@@ -67,7 +67,7 @@ from sqlalchemy import ForeignKey
 from sqlalchemy import Integer
 from sqlalchemy import String
 
-from lightcurve_pipeline.utils.utils import SETTINGS
+from lightcurve_pipeline.utils.utils import get_settings
 
 # -----------------------------------------------------------------------------
 
@@ -85,7 +85,7 @@ def get_session():
         with the database.
     """
 
-    session, base, engine = load_connection(SETTINGS['db_connection_string'])
+    session, base, engine = load_connection(get_settings()['db_connection_string'])
 
     return session
 
@@ -122,7 +122,7 @@ def load_connection(connection_string, echo=False):
 
     return session, base, engine
 
-session, base, engine = load_connection(SETTINGS['db_connection_string'])
+session, base, engine = load_connection(get_settings()['db_connection_string'])
 
 # -----------------------------------------------------------------------------
 # Define ORMs
