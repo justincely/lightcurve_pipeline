@@ -58,4 +58,5 @@ target/
 
 *.png
 *.html
-*.ipynb_checkpoints/
+*.ipynb_checkpoints
+lightcurve_pipeline/utils/config.yaml
