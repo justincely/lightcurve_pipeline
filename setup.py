@@ -33,7 +33,8 @@ setup(
                         'pymysql',
                         'pyyaml',
                         'matplotlib',
-                        'bokeh'],
+                        'bokeh',
+                        'pandas'],
     scripts = ['scripts/hstlc_pipeline'],
     entry_points = entry_points,
     version = 1.0

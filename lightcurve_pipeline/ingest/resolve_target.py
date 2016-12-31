@@ -53,7 +53,7 @@ The hard-coded ``targname_dict`` dictionary resides in the
     (http://cdsweb.u-strasbg.fr/)
 """
 
-import urllib2
+from six.moves.urllib.request import urlopen
 from xml.dom import minidom
 
 from lightcurve_pipeline.utils.targname_dict import targname_dict
@@ -124,7 +124,7 @@ def resolve(targname):
 
     web_string = 'http://cdsweb.u-strasbg.fr/cgi-bin/nph-sesame/-oxpI?{}'.format(targname)
 
-    xmldoc = minidom.parse(urllib2.urlopen(web_string))
+    xmldoc = minidom.parse(urlopen(web_string))
     itemlist = xmldoc.getElementsByTagName('alias')
 
     other_names = [str(item.childNodes[0].data) for item in itemlist]

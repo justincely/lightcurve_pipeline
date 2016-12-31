@@ -32,7 +32,7 @@ env:
         # so Cython is required for testing. If your package does not include
         # Cython code, you can set CONDA_DEPENDENCIES=''
         - CONDA_CHANNELS=''
-        - CONDA_DEPENDENCIES='numpy scipy cython numba>=0.24.0 llvmlite>=0.9.0 sqlalchemy pymysql pyyaml matplotlib bokeh'
+        - CONDA_DEPENDENCIES='numpy scipy cython numba>=0.24.0 llvmlite>=0.9.0 sqlalchemy pymysql pyyaml matplotlib bokeh pandas'
 
     matrix:
         - PYTHON_VERSION=2.7 SETUP_CMD='install'

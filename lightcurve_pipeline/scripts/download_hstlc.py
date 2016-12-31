@@ -81,7 +81,6 @@ the ``ingest_dir`` directory determine by the config file (see below).
 
 import glob
 import datetime
-import httplib
 import logging
 import os
 import string
@@ -303,7 +302,7 @@ def submit_xml_request(xml_request):
         'mission':'HST',
         'request': request_xml_str})
     headers = {"Accept": "text/html", "User-Agent":"{0}PythonScript".format(user)}
-    req = httplib.HTTPSConnection(get_settings()['archive'])
+    req = HTTPSConnection(get_settings()['archive'])
     req.request("POST", "/cgi-bin/dads.cgi", params, headers)
     response = req.getresponse().read()
     req.close()
