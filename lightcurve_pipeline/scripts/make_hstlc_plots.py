@@ -293,13 +293,12 @@ def dataset_dashboard(filename, plot_file=''):
                 axes.append(figure(tools=TOOLS, plot_width=900, plot_height=350, title=key, toolbar_location='right'))
             else:
                 axes.append(figure(tools=TOOLS, x_range=axes[0].x_range, plot_width=900, plot_height=350, title=key, toolbar_location='right'))
-            axes[-1].circle('mjd',
-                            key,
-                            source=source,
+
+            axes[-1].circle(hdu[1].data['mjd'],
+                            hdu[1].data[key],
                             size=12,
                             color=colors,
                             fill_alpha=1)
-
 
     # put all the plots in a grid layout
     p = bokeh.io.vplot(*axes)
@@ -318,7 +317,7 @@ def exploratory_tables():
     """
 
     # Interesting results
-    logging.info('Creating exploratory table for interesting datasets')
+    logging.info('Creating exploratory table for interesting datasets to: {}'.format( os.path.join(SETTINGS['plot_dir'])))
     interesting_query = session.query(Stats.lightcurve_path, Stats.lightcurve_filename).\
         filter(Stats.poisson_factor != 'NULL').\
         filter(Stats.poisson_factor >= 1.2).\
@@ -458,8 +457,8 @@ def make_exploratory_table(dataset_list, table_name):
             os.system("""sed -i "s/&lt;/</g" {}""".format(table_name))
             os.system("""sed -i "s/&gt;/>/g" {}""".format(table_name))
         elif platform.system() == 'Darwin':
-            os.system("""sed -i '' "s/&lt;/</g" {}""".format(table_name))
-            os.system("""sed -i '' "s/&gt;/>/g" {}""".format(table_name))
+            os.system("""sed -i "s/&lt;/</g" {}""".format(table_name))
+            os.system("""sed -i "s/&gt;/>/g" {}""".format(table_name))
         else:
             raise ValueError("OS {} is not supported for this operation".format(platform.system()))
 
@@ -685,6 +684,7 @@ def main():
     pool.map(periodogram, datasets)
     pool.close()
     pool.join()
+
 
     logging.info('Processing complete')
 
