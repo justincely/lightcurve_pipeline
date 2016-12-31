@@ -46,7 +46,7 @@ import sqlalchemy
 
 def get_settings():
     """Return the setting information located in the configuration file
-    located in the ``lightcurve_pipeline/utils/`` directory
+    located in the user's home directory.
 
     Returns
     -------
@@ -69,7 +69,12 @@ def get_settings():
         The values of the keys are the user-supplied configurations
     """
 
-    config_file = os.path.join(os.path.dirname(__file__), 'config.yaml')
+    config_file = os.path.join(os.environ['HOME'], 'hstlc_config.yaml')
+    if not os.path.exists(config_file):
+        print("System cannot run without a config file.")
+        print("Please create a `hstlc_config.yaml` file in your home dir.")
+        sys.exit(1)
+
     with open(config_file, 'r') as f:
         data = yaml.load(f)
 
