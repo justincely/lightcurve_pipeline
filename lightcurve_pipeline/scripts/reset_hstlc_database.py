@@ -154,6 +154,8 @@ def main():
     response = raw_input(prompt)
 
     if response.lower() == 'y':
+        database_interface.base.metadata.create_all()
+
         print('Resetting {} table(s)'.format(args.reset_table))
 
         if args.reset_table == 'all':

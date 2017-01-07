@@ -42,6 +42,8 @@ import astropy
 import numpy
 import sqlalchemy
 
+__all__ = ['set_permissions']
+
 # -----------------------------------------------------------------------------
 
 def get_settings():
