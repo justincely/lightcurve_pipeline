@@ -136,10 +136,6 @@ import matplotlib as mpl
 mpl.use('Agg')
 import matplotlib.pyplot as plt
 
-# Set CRDS environement for reference files
-os.environ['lref'] = '/grp/hst/cdbs/lref/'
-os.environ['oref'] = '/grp/hst/cdbs/oref/'
-
 # -----------------------------------------------------------------------------
 
 def get_files_to_ingest():
@@ -395,6 +391,12 @@ def main():
     module = os.path.basename(__file__).strip('.py')
     setup_logging(module)
 
+    # Set CRDS environement for reference files
+    for key in ['lref', 'oref']:
+        if not key in os.environ:
+            logging.info("{0} not defined, setting to /grp/hst/cdbs/{0}".format(key))
+            os.environ[key] = '/grp/hst/cdbs/{}/'.format(key)
+
     # Parse arguments
     args = parse_args()
 
@@ -417,7 +419,3 @@ def main():
     logging.info('Processing complete.')
 
 # -----------------------------------------------------------------------------
-
-if __name__ == '__main__':
-
-    main()
